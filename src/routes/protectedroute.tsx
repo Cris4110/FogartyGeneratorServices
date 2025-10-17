@@ -1,17 +1,17 @@
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/Appcontext";
-import type { JSX } from "react";
+import React, { useContext } from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { AuthContext } from "../context/Appcontext";
 
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { currentUser } = useAuth();
+const ProtectedRoute: React.FC = () => {
+  const { currentUser } = useContext(AuthContext);
 
+  // If not authenticated, redirect to login
   if (!currentUser) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
-  return children;
+  // Otherwise, render the nested routes (Outlet)
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
-
-

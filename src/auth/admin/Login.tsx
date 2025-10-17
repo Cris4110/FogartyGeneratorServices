@@ -81,8 +81,10 @@ const Login: React.FC = () => {
     if (username === "admin" && password === "password") {
       const user = { id: 1, name: "Admin User", role: "admin" };
       setCurrentUser(user);
+      localStorage.setItem("user", JSON.stringify(user)); // keep it on refresh
       navigate("/admin");
-    } else {
+    } 
+    else {
       setIsError(true);
       setErrorMsg("Incorrect username or password. Try again.");
     }
