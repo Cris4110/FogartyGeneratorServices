@@ -1,17 +1,21 @@
 import React, { useContext } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { AuthContext } from "../context/Appcontext";
 
-const ProtectedRoute: React.FC = () => {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { currentUser } = useContext(AuthContext);
 
-  // If not authenticated, redirect to login
+  // Redirect to login if not authenticated
   if (!currentUser) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  // Otherwise, render the nested routes (Outlet)
-  return <Outlet />;
+  // Otherwise, render the protected component (e.g. AdminRoutes)
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

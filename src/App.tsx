@@ -1,23 +1,31 @@
-
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import PublicRoutes from "./routes/publicroutes";
+import AdminRoutes from "./routes/adminroutes";
 import Login from "./auth/admin/Login";
-import Dashboard from "./pages/admin/Dashboard";
 import ProtectedRoute from "./routes/protectedroute";
-import { AuthProvider } from "./context/Appcontext";
+import { AuthProvider } from "./context/Appcontext"; // ensure AuthProvider is imported
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public route */}
-          <Route path="/" element={<Login />} />
+          {/* Public portal */}
+          <Route path="/*" element={<PublicRoutes />} />
 
-          {/* Protected routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/admin" element={<Dashboard />} />
-          </Route>
+          {/* Login page */}
+          <Route path="/login" element={<Login />} />
+
+          {/* Admin portal (protected) */}
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute>
+                <AdminRoutes />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
