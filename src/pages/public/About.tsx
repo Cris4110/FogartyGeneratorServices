@@ -20,14 +20,13 @@ function About() {
         <Grid
             container
             padding={15}
-            border={3}  // black outline 
             spacing={15}
             display="flex"
             justifyContent="center"
             alignItems="center"
         >
             {/* Child of the component - image*/}
-            <Grid border={3}>
+            <Grid>
                 <Box
                     component="img"
                     src={logo}  // Placeholder image
@@ -38,7 +37,7 @@ function About() {
                 }}/>
             </Grid>
              {/* Child of the component - stack*/}
-            <Grid border={3}>
+            <Grid>
                 <Stack
                     spacing={5}
                     maxWidth={500}
