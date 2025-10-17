@@ -20,8 +20,8 @@ const ContainerStyle: SxProps<Theme> = {
   alignItems: "center",
   backgroundColor: "white",
   borderRadius: "32px",
-  padding: "50px 30px",
-  maxWidth: "350px",
+  padding: "20px 20px",
+  maxWidth: "450px",
 };
 
 const TitleStyle: SxProps<Theme> = {
@@ -29,8 +29,8 @@ const TitleStyle: SxProps<Theme> = {
 };
 
 const ImageStyle: SxProps<Theme> = {
-  width: "100px",
-  height: "100px",
+  width: "120px",
+  height: "120px",
   alignSelf: "center",
 };
 
@@ -81,8 +81,10 @@ const Login: React.FC = () => {
     if (username === "admin" && password === "password") {
       const user = { id: 1, name: "Admin User", role: "admin" };
       setCurrentUser(user);
+      localStorage.setItem("user", JSON.stringify(user)); // keep it on refresh
       navigate("/admin");
-    } else {
+    } 
+    else {
       setIsError(true);
       setErrorMsg("Incorrect username or password. Try again.");
     }

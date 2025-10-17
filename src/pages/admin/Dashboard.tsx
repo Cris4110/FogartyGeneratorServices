@@ -23,7 +23,7 @@ const Dashboard = () => {
   return (
     <Box 
       sx={{
-        width: "10vw",
+        width: "13vw",
         height: "100vh",
         display: "flex",
         flexDirection: "column",
