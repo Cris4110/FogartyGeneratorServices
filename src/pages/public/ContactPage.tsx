@@ -1,5 +1,5 @@
-import Navbar from "../Navbar";
-import Footer from "../Footer";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
 import {AppBar, Toolbar, Box, Button, Typography, Container} from "@mui/material";
 import logo from "../../assets/logo.png";
 
