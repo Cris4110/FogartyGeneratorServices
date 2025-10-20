@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv').config();
 const Admin = require('./models/admin.model');
 const adminRoute = require("./routes/admin.route.js")
 const Appointment = require('./models/appointment.model');
@@ -34,9 +35,9 @@ app.get('/', (req, res) => {
     res.send("Hello for Node API Server Updated");
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-const uri = "mongodb+srv://matthewcollins2_db_user:DnGR5NftL0oywZbt@cluster0.ktyohze.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = process.env.MONGODB_URI;
 
 mongoose.connect(uri)
 .then(() =>{
