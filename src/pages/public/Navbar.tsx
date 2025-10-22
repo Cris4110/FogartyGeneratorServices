@@ -68,14 +68,22 @@ function Navbar() {
 
           <Button //route button to login page
             color="inherit"
-            component={NavLink}
-            to="/login"
-            end
+            //When login oage is ready, uncomment below and add correct to 'path'
+            //component={NavLink}
+            //to="/login"
+            //end
             >Login
           </Button>
           
-          <Button color="inherit">Cart</Button>
-          
+          <Button color="inherit"
+            //When cart page is ready, uncomment below and add correct to 'path'
+            //component={NavLink}
+            //to="/cart"
+            //end 
+            >Cart
+          </Button>
+            
+
         </Toolbar>
       </Container>
     </AppBar>
