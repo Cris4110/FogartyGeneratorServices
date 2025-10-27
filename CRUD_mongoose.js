@@ -2,21 +2,27 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv').config();
 const Admin = require('./models/admin.model');
-const adminRoute = require("./routes/admin.route.js")
+const adminRoute = require("./routes/admin.route.js");
 const Appointment = require('./models/appointment.model');
-const appointmentRoute = require("./routes/appointment.route.js")
-const Generator = require("./models/generator.model")
-const generatorRoute = require("./routes/generator.route.js")
-const Manufacturer = require("./models/manufacturer.model")
-const manufacturerRoute = require("./routes/manufacturer.route.js")
-const Part = require("./models/part.model")
-const partRoute = require("./routes/part.route.js")
-const Review = require("./models/review.model")
-const reviewRoute = require("./routes/review.route.js")
-const User = require("./models/user.model")
-const userRoute = require("./routes/user.route.js")
+const appointmentRoute = require("./routes/appointment.route.js");
+const Generator = require("./models/generator.model");
+const generatorRoute = require("./routes/generator.route.js");
+const Manufacturer = require("./models/manufacturer.model");
+const manufacturerRoute = require("./routes/manufacturer.route.js");
+const Part = require("./models/part.model");
+const partRoute = require("./routes/part.route.js");
+const Review = require("./models/review.model");
+const reviewRoute = require("./routes/review.route.js");
+const User = require("./models/user.model");
+const userRoute = require("./routes/user.route.js");
+const path = require('path');
+const cors = require('cors');
 
 const app = express();
+app.use(cors());
+
+// Serve static HTML file
+//app.use(express.static(path.join(__dirname, 'public')));
 
 //middleware
 app.use(express.json());
