@@ -16,9 +16,12 @@ const reviewRoute = require("./routes/review.route.js")
 const User = require("./models/user.model")
 const userRoute = require("./routes/user.route.js")
 
+const cors = require("cors");
+
 const app = express();
 
 //middleware
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 //app.use(express.urlencoded({extended: false}));
 
@@ -36,7 +39,6 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-
 const uri = process.env.MONGODB_URI;
 
 mongoose.connect(uri)

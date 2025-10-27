@@ -60,10 +60,33 @@ const deleteAdmin = async (req, res) => {
     }
 }
 
+const loginAdmin = async (req, res) => {
+  try {
+    const { userID, password } = req.body;
+
+    const admin = await Admin.findOne({ userID });
+    if (!admin) {
+      return res.status(400).json({ message: "Invalid Username or Password" });
+    }
+
+    const isMatch = password === admin.password;
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid Username or Password" });
+    }
+
+    res.status(200).json({ message: "Login successful", admin });
+
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+}
+
 module.exports = {
     getAdmins,
     getAdmin,
     createAdmin,
     updateAdmin,
-    deleteAdmin
+    deleteAdmin,
+    loginAdmin
 };
