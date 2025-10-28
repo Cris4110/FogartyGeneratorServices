@@ -6,21 +6,25 @@ import { useNavigate } from "react-router-dom";
 
 //defines forms input values as strings
 interface FormData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   model: string;
   serial: string;
+  notes: string;
 }
 
 function RequestQuote() {
     //formData holds current state of form, setFormData updates state of form, strings set inital value of fields
     const [ formData, setFormData ] = useState<FormData>({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
         phone: "",
         model: "",
         serial: "",
+        notes: "",
     });
 
     //creates state objects for errors
@@ -40,11 +44,13 @@ function RequestQuote() {
         e.preventDefault(); // prevents page from refreshing when pressing submit
         // valdiates inputs and shows errors
         const newErrors: Partial<Record<keyof FormData, string>> = {};
-        if (!formData.name.trim()) newErrors.name = "Name is required";
+        if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+        if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
         if (!formData.email.trim()) newErrors.email = "Email is required";
         if (!formData.phone.trim()) newErrors.phone = "Phone is required";
         if (!formData.model.trim()) newErrors.model = "Model is required";
         if (!formData.serial.trim()) newErrors.serial = "Serial number is required";
+
 
         setErrors(newErrors); // sets new errors
 
@@ -96,12 +102,22 @@ function RequestQuote() {
                 {/* Input fields */}
                 <TextField
                     required
-                    name="name"
-                    label="Name"
-                    value={formData.name}
+                    name="firstName"
+                    label="First Name"
+                    value={formData.firstName}
                     onChange={handleChange}
-                    error={!!errors.name}
-                    helperText={errors.name}
+                    error={!!errors.firstName}
+                    helperText={errors.firstName}
+                />
+
+                <TextField
+                    required
+                    name="lastName"
+                    label="Last Name"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    error={!!errors.lastName}
+                    helperText={errors.lastName}
                 />
 
                 <TextField
@@ -143,6 +159,16 @@ function RequestQuote() {
                     error={!!errors.serial}
                     helperText={errors.serial}
                 />
+
+                <TextField
+                    name="notes"
+                    label="Extra Notes"
+                    multiline
+                    rows={5}
+                    value={formData.notes}
+                    onChange={handleChange}
+                />
+
                 {/* submit button */}
                 <Box sx={{ mt: 4, display: "flex", justifyContent: 'center', gap: 2 }}>
                     <Button
