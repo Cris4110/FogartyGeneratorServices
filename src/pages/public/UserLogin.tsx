@@ -16,10 +16,11 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
-  withCredentials: false, // not using cookies yet; set true when you add JWT cookies
+  withCredentials: true, // not using cookies yet; set true when JWT cookies
 });
 
 export default function Login() {
@@ -27,6 +28,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate()
   const [snack, setSnack] = useState<{ open: boolean; msg: string; sev: "success" | "error" }>({
     open: false,
     msg: "",
@@ -39,26 +41,17 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formValid || submitting) return;
-
+    if (submitting) return;
     setSubmitting(true);
     try {
-      // normalize BEFORE sending (matches backend lookups)
-      const payload = {
-        email: email.toLowerCase().trim(),
-        password: password.trim(),
-      };
+      const payload = { email: email.toLowerCase().trim(), password: password.trim() };
+      await api.post("/users/login", payload);     // sets HttpOnly cookie
+      // (optional) const me = await api.get("/users/me");
 
-      const { data } = await api.post("/users/login", payload);
-      // data.user => { id, name, email, role } if you return that from backend
       setSnack({ open: true, msg: "Login successful!", sev: "success" });
-
-      // TODO: set auth context and/or navigate:
-      // setCurrentUser?.(data.user);
-      // navigate("/");
-
+      navigate("/"); // redirect home
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.response?.data?.error || "Login failed";
+      const msg = err?.response?.data?.message || err?.response?.data?.error || "Login failed1";
       setSnack({ open: true, msg, sev: "error" });
     } finally {
       setSubmitting(false);

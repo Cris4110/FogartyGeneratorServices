@@ -89,6 +89,8 @@ const UserSchema = mongoose.Schema(
         timestamps: true,
     }
 );
+//This portion is double hashing the password,
+//
 /*
 UserSchema.pre("save", async function (next) {
     if(!this.isModified("password")) return next();
