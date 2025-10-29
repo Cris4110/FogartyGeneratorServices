@@ -89,6 +89,7 @@ const UserSchema = mongoose.Schema(
         timestamps: true,
     }
 );
+/*
 UserSchema.pre("save", async function (next) {
     if(!this.isModified("password")) return next();
 
@@ -101,7 +102,7 @@ UserSchema.pre("save", async function (next) {
         next(err);
     } 
 });
-
+*/
 
 //method to compare password during login 
 UserSchema.methods.comparePassword = async function (candidatePassword) {

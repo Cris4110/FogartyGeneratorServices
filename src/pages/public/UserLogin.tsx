@@ -26,6 +26,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [snack, setSnack] = useState<{ open: boolean; msg: string; sev: "success" | "error" }>({
     open: false,
     msg: "",
@@ -37,22 +38,32 @@ export default function Login() {
   const formValid = !emailError && !passwordError;
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!formValid) {
-    setSnack({ open: true, msg: "Please fill in both Email and Password.", sev: "error" });
-    return;
-  }
-  try {
-    const { data } = await api.post("/users/login", { email, password });
-    // data.user contains { id, name, email, role }
-    setSnack({ open: true, msg: "Login successful!", sev: "success" });
+    e.preventDefault();
+    if (!formValid || submitting) return;
 
-    // Or navigate etc.
-  } catch (err: any) {
-    const msg = err?.response?.data?.message || err?.response?.data?.error || "Login failed";
-    setSnack({ open: true, msg, sev: "error" });
-  }
-};
+    setSubmitting(true);
+    try {
+      // normalize BEFORE sending (matches backend lookups)
+      const payload = {
+        email: email.toLowerCase().trim(),
+        password: password.trim(),
+      };
+
+      const { data } = await api.post("/users/login", payload);
+      // data.user => { id, name, email, role } if you return that from backend
+      setSnack({ open: true, msg: "Login successful!", sev: "success" });
+
+      // TODO: set auth context and/or navigate:
+      // setCurrentUser?.(data.user);
+      // navigate("/");
+
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || "Login failed";
+      setSnack({ open: true, msg, sev: "error" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <>
