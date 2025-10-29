@@ -5,6 +5,8 @@ import About from "../pages/public/About";
 import FAQ from "../pages/public/FAQ";
 import ContactPage from "../pages/public/ContactPage";
 import UserSettings from "../pages/public/UserSettings";
+import UserRegistration from "../pages/public/UserRegistration";
+import UserLogin from "../pages/public/UserLogin";
 
 const PublicRoutes = () => (
 
@@ -15,6 +17,8 @@ const PublicRoutes = () => (
         <Route path="/ContactPage" element={<ContactPage />} />
         <Route path="/services" element={<Servicespage />} />
         <Route path="/UserSettings" element={<UserSettings />} />
+        <Route path="/UserRegistration" element={<UserRegistration />} />
+        <Route path="/UserLogin" element={<UserLogin />} />
     </Routes>
 
 );
