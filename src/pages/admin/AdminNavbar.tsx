@@ -21,10 +21,22 @@ const AdminNavbar = () => {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
 
-  const handleLogout = () => {
-    auth?.setCurrentUser(null);
-    localStorage.removeItem("token");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/admins/logout", {
+        method: "POST",
+        credentials: "include", 
+      });
+
+      if (res.ok) {
+        auth?.setCurrentUser(null);
+        navigate("/login");
+      } else {
+        console.error("Failed to logout:", await res.text());
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const handleNavigation = (path: string) => {
@@ -44,7 +56,6 @@ const AdminNavbar = () => {
         position: "fixed"
       }}
     >
-      {/* Logo and Title */}
       <Box
         sx={{
           display: "flex",
@@ -75,8 +86,6 @@ const AdminNavbar = () => {
           Admin Portal
         </Typography>
       </Box>
-
-      {/* Route Links */}
       <Stack spacing={4} sx={{ ml: 3 }}>
         {navItems.map((item) => (
           <Typography
@@ -94,8 +103,6 @@ const AdminNavbar = () => {
           </Typography>
         ))}
       </Stack>
-
-      {/* Logout Button */}
       <Box
         sx={{
           position: "absolute",
