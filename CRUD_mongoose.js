@@ -22,16 +22,18 @@ const cookieParser = require("cookie-parser");
 const app = express();
 
 //define cors options
-app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
-  credentials: true,  // allow cookies
-}));
+
 //middleware
 app.use(express.json());
 app.use(cookieParser());
 // Serve static HTML file
 //app.use(express.static(path.join(__dirname, 'public')));
 //app.use(express.urlencoded({extended: false}));
+//define cors options
+app.use(cors({
+  origin: true,  // reflect request origin
+  credentials: true,  // allow cookies
+}));
 
 //routes
 app.use('/api/admins', adminRoute);
