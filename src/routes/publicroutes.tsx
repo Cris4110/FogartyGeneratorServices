@@ -6,6 +6,7 @@ import FAQ from "../pages/public/FAQ";
 import ContactPage from "../pages/public/ContactPage";
 import RequestQuote from "../pages/public/RequestQuote";
 import UserSettings from "../pages/public/UserSettings";
+import Appointment from "../pages/public/Appointment";
 
 const PublicRoutes = () => (
 
@@ -18,6 +19,7 @@ const PublicRoutes = () => (
         <Route path="/RequestQuote" element={<RequestQuote />} />
 
         <Route path="/UserSettings" element={<UserSettings />} />
+        <Route path="/Appointment" element={<Appointment />} />
     </Routes>
 
 );
