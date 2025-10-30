@@ -418,4 +418,12 @@ FodyWeavers.xsd
 *.msp
 
 #Personally added
-node_modules
+node_modules.DS_Store
+.vscode/
+# macOS system files
+.DS_Store
+src/.DS_Store
+src/pages/.DS_Store
+
+# VS Code settings folder
+.vscode/

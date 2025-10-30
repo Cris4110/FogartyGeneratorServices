@@ -59,6 +59,8 @@ function Servicespage() {
             }}
           >
             <Button
+              component={Link}
+              to="/CurrentStockPage"
               variant="text"
               style={{
                 fontFamily: "Sans-serif",
