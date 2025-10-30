@@ -2,7 +2,7 @@ import Footer from "./Footer";
 import {AppBar,Toolbar,Box,Button,Typography,Container,TextField,MenuItem,Grid,Card,CardContent,CardActions} from "@mui/material";
 import logo from "../../assets/logo.png";
 
-function CurrentStockPage() {
+function CurrentStock() {
   return (
     <>
       {/* ===== Navbar Section ===== */}
@@ -148,4 +148,4 @@ function CurrentStockPage() {
   );
 }
 
-export default CurrentStockPage;
+export default CurrentStock;
