@@ -7,6 +7,10 @@ import ContactPage from "../pages/public/ContactPage";
 import RequestQuote from "../pages/public/RequestQuote";
 import UserSettings from "../pages/public/UserSettings";
 import Appointment from "../pages/public/Appointment";
+import YourAccount from "../pages/public/YourAccount";
+import YourOrders from "../pages/public/YourOrders";
+import ReturnPage from "../pages/public/ReturnPage";
+
 
 const PublicRoutes = () => (
 
@@ -20,6 +24,10 @@ const PublicRoutes = () => (
 
         <Route path="/UserSettings" element={<UserSettings />} />
         <Route path="/Appointment" element={<Appointment />} />
+        <Route path="/YourAccount" element={<YourAccount />} />
+        <Route path="/YourOrders" element={<YourOrders />} />
+        <Route path="/ReturnPage" element={<ReturnPage />} />
+
     </Routes>
 
 );
