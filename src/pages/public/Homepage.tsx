@@ -2,6 +2,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Container, Grid, Box, Typography, Button } from "@mui/material";
 import logo from "../../assets/Kohler_Gen.jpg";
+import { Link } from "react-router-dom";
 
 function Homepage() {
   return (
@@ -21,6 +22,8 @@ function Homepage() {
 
             <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
               <Button
+                component={Link}
+                to="/Appointment"
                 variant="contained"
                 color="primary"
                 size="large"
