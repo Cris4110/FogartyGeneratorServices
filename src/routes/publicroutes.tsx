@@ -10,6 +10,7 @@ import Appointment from "../pages/public/Appointment";
 import YourAccount from "../pages/public/YourAccount";
 import YourOrders from "../pages/public/YourOrders";
 import ReturnPage from "../pages/public/ReturnPage";
+import CurrentStockPage from "../pages/public/CurrentStockPage";
 
 
 const PublicRoutes = () => (
@@ -27,6 +28,7 @@ const PublicRoutes = () => (
         <Route path="/YourAccount" element={<YourAccount />} />
         <Route path="/YourOrders" element={<YourOrders />} />
         <Route path="/ReturnPage" element={<ReturnPage />} />
+        <Route path="/CurrentStockPage" element={<CurrentStockPage />} />
 
     </Routes>
 
