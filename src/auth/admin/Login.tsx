@@ -74,21 +74,30 @@ const Login: React.FC = () => {
     setPassword(e.target.value);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    // non-api validation replace with real api using mongo later 
-    if (username === "admin" && password === "password") {
-      const user = { id: 1, name: "Admin User", role: "admin" };
-      setCurrentUser(user);
-      localStorage.setItem("user", JSON.stringify(user)); // keep it on refresh
-      navigate("/admin");
-    } 
-    else {
-      setIsError(true);
-      setErrorMsg("Incorrect username or password. Try again.");
-    }
-  };
+  try {
+    const res = await fetch("http://localhost:3000/api/admins/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userID: username, password }),
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    setCurrentUser(data.admin);
+    
+    navigate("/admin");
+  } catch (err: any) {
+    console.error("Login error:", err);
+    setIsError(true);
+    setErrorMsg(err.message);
+  }
+};
 
   const handleClearError = () => {
     setIsError(false);
