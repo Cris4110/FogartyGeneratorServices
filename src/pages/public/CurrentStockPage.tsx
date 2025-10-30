@@ -1,4 +1,5 @@
 import Footer from "./Footer";
+import Navbar from "./Navbar";
 import {AppBar,Toolbar,Box,Button,Typography,Container,TextField,MenuItem,Grid,Card,CardContent,CardActions} from "@mui/material";
 import logo from "../../assets/logo.png";
 
@@ -99,7 +100,7 @@ function CurrentStockPage() {
         {/* Stock Grid */}
         <Grid container spacing={4}>
           {[...Array(9)].map((_, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
+           
               <Card
                 sx={{
                   textAlign: "center",
@@ -138,7 +139,7 @@ function CurrentStockPage() {
                   </Button>
                 </CardActions>
               </Card>
-            </Grid>
+
           ))}
         </Grid>
       </Container>
