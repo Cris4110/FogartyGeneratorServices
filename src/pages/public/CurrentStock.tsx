@@ -69,7 +69,7 @@ function CurrentStock() {
           Current Stock
         </Typography>
 
-        {/* Search + Sort Bar */}
+        {/* Search + Sort Bar: */}
         <Box
           sx={{
             display: "flex",
