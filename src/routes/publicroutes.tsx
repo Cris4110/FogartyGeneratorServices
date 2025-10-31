@@ -7,6 +7,7 @@ import ContactPage from "../pages/public/ContactPage";
 import RequestQuote from "../pages/public/RequestQuote";
 import UserSettings from "../pages/public/UserSettings";
 import Appointment from "../pages/public/Appointment";
+import CurrentStockPage from "../pages/public/CurrentStockPage";
 
 const PublicRoutes = () => (
 
@@ -20,6 +21,7 @@ const PublicRoutes = () => (
 
         <Route path="/UserSettings" element={<UserSettings />} />
         <Route path="/Appointment" element={<Appointment />} />
+        <Route path="/CurrentStockPage" element={<CurrentStockPage />} />
     </Routes>
 
 );
