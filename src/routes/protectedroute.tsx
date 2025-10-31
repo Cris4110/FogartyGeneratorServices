@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { AuthContext } from "../context/Appcontext";
 
@@ -7,14 +7,50 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, setCurrentUser } = useContext(AuthContext);
+  const [isChecking, setIsChecking] = useState(true);
+  const [isValid, setIsValid] = useState(false);
 
-  // Redirect to login if not authenticated
-  if (!currentUser) {
-    return <Navigate to="/login" replace />;
+  useEffect(() => {
+    const checkToken = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/admins/checkAuth", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          throw new Error("Token invalid or expired");
+        }
+
+        const data = await res.json();
+        setCurrentUser(data.admin); 
+        setIsValid(true);
+      } catch (err) {
+        console.warn("Auth check failed:", err);
+        setIsValid(false);
+        setCurrentUser(null);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+
+    if (!currentUser) {
+      checkToken();
+    } else {
+      setIsValid(true);
+      setIsChecking(false);
+    }
+  }, [currentUser, setCurrentUser]);
+
+  if (isChecking) {
+    return <div>Checking authentication...</div>;
   }
 
-  // Otherwise, render the protected component (e.g. AdminRoutes)
+  if (!isValid) {
+    return <Navigate to="/login" replace />;
+  }
   return <>{children}</>;
 };
 
