@@ -16,7 +16,7 @@ const stateAbbreviations = [
   "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
 ];
 
-const AddressSchema = mongoose.Schema(
+const AddressSchema = new mongoose.Schema(
     {
         street: {
             type: String,
@@ -47,7 +47,7 @@ const UserSchema = mongoose.Schema(
         userID: {
             type: String,
             required: true,
-            default: ""
+            unique: true
         },
 
         name: {
@@ -71,21 +71,29 @@ const UserSchema = mongoose.Schema(
         email: {
             type: String,
             required: true,
-            default: ""
+            unique: true,
+            lowercase: true,
+            match: [/^\S+@\S+\.\S+$/, "Invalid email."],
         },
 
         phoneNumber: {
             type: Number,
             required: true,
-            default: 0
+            match: [/^\+?[0-9\s\-()]{10,15}$/, "Invalid phone number."],
         }, 
         address: {
             type : AddressSchema,
             required: false
-        },       
+        },
+        role: {
+            type:String,
+            enum: ['user', "admin"],
+            default: "user",
+        }       
     },
     {
         timestamps: true,
+        discriminatorKey: "userType", 
     }
 );
 UserSchema.pre("save", async function (next) {

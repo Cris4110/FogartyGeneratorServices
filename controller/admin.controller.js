@@ -41,13 +41,11 @@ const createAdmin = async (req, res) => {
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
 
     const admin = new Admin({
       name,
       userID,
-      password: hashedPassword,
+      password,
       email,
       phoneNumber,
     });
@@ -63,6 +61,8 @@ const updateAdmin = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = { ...req.body };
+    const passwordRegex = /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/;
+
 
     // If password is provided in update, hash it again
     if (updateData.password) {
@@ -73,10 +73,11 @@ const updateAdmin = async (req, res) => {
             "Password must be at least 12 characters long and include at least 2 uppercase, 2 lowercase, 2 numbers, and 2 special characters.",
         });
       }
-      updateData.password = await bcrypt.hash(updateData.password, 10);
+      updateData.password = await bcrypt.hash(updateData.password, 12);
     }
 
-    const admin = await Admin.findByIdAndUpdate(id, updateData, { new: true });
+    const admin = await Admin.findByIdAndUpdate(id, updateData, { new: true, runValidators: true, }).select("-password");
+    
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }

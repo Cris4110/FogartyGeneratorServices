@@ -2,9 +2,6 @@ const express = require("express");
 const Admin = require('../models/admin.model');
 const router = express.Router();
 const {getAdmins, getAdmin, createAdmin, updateAdmin, deleteAdmin} = require('../controller/admin.controller.js');
-const bcrypt = require('bcrypt');
-
-
 
 router.get('/', getAdmins);
 
