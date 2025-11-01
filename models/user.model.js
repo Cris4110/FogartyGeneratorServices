@@ -8,6 +8,15 @@ const passwordRegex =  /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(
 //(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}) at least 2 special chars and these are the authrized character
 //.{12,}$ minimum total length of 12 characters
 
+const bcrypt = require('bcrypt');
+
+const passwordRegex =  /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/;
+//^(?=(?:.*[A-Z]){2,}) at least 2 uppercase letters
+//(?=(?:.*[a-z]){2,}) at least 2 lowercase letters
+//(?=(?:.*\d){2,}) at least 2 digits
+//(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}) at least 2 special chars and these are the authrized character
+//.{12,}$ minimum total length of 12 characters
+
 const stateAbbreviations = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
   "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
@@ -84,18 +93,16 @@ const UserSchema = mongoose.Schema(
         address: {
             type : AddressSchema,
             required: false
-        },
-        role: {
-            type:String,
-            enum: ['user', "admin"],
-            default: "user",
-        }       
+        },       
     },
     {
         timestamps: true,
         discriminatorKey: "userType", 
     }
 );
+//This portion is double hashing the password,
+//
+/*
 UserSchema.pre("save", async function (next) {
     if(!this.isModified("password")) return next();
 
@@ -108,6 +115,7 @@ UserSchema.pre("save", async function (next) {
         next(err);
     } 
 });
+*/
 
 //method to compare password during login 
 UserSchema.methods.comparePassword = async function (candidatePassword) {

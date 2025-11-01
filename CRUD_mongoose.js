@@ -15,10 +15,7 @@ const Review = require("./models/review.model");
 const reviewRoute = require("./routes/review.route.js");
 const User = require("./models/user.model");
 const userRoute = require("./routes/user.route.js");
-
 const cors = require("cors");
-
-// for coockies
 const cookieParser = require("cookie-parser");
 
 
@@ -50,13 +47,24 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 3000;
 const uri = process.env.MONGODB_URI;
 
-mongoose.connect(uri)
-.then(() =>{
-    console.log("Connected to MongoDB database!");
-})
-.catch((err) => {
-    console.error("Connection FAILED: ", err.message);
-});
+// Fail fast if the env var is not set to avoid confusing Mongoose errors
+if (!uri) {
+    console.error('MONGODB_URI is not set. Please add it to your .env or environment variables.');
+    console.error('Example .env: MONGODB_URI="mongodb+srv://user:pass@cluster0.mongodb.net/mydb?retryWrites=true&w=majority"');
+    process.exit(1);
+}
+
+(async () => {
+    try {
+        await mongoose.connect(uri);
+        console.log('Connected to MongoDB database!');
+    } catch (err) {
+        console.error('Connection FAILED:');
+        // print the full error to aid debugging
+        console.error(err);
+        process.exit(1);
+    }
+})();
 
 app.listen(PORT, () =>{
     console.log(`Server is running on port ${PORT}`);

@@ -28,9 +28,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     if (!response.ok) {
       // Show the backend error directly
-      setResponseMsg(result.message || "Error creating admin.");
+      setResponseMsg(result.message || "Error creating user.");
     } else {
-      setResponseMsg(result.message || "Admin created successfully!");
+      setResponseMsg(result.message || "User created successfully!");
       // Clear form fields after success
       setFname("");
       setLname("");
@@ -164,7 +164,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               }}
         />
         <div style={{ textAlign: "center" }}>
-          <button type="submit">Create Admin</button>
+          <button type="submit">Create User</button>
         </div>
       </form>
 
