@@ -2,7 +2,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Container, Grid, Typography } from "@mui/material";
 
-function Homepage() {
+function FAQ() {
   return (
     <>
       <Navbar />
@@ -83,4 +83,4 @@ function Homepage() {
   );
 }
 
-export default Homepage;
+export default FAQ;

@@ -18,6 +18,13 @@ const userRoute = require("./routes/user.route.js");
 const path = require('path');
 const cors = require('cors');
 
+const cors = require("cors");
+
+
+// for coockies
+const cookieParser = require("cookie-parser");
+
+
 const app = express();
 app.use(cors());
 
@@ -25,7 +32,11 @@ app.use(cors());
 //app.use(express.static(path.join(__dirname, 'public')));
 
 //middleware
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
+
+
 //app.use(express.urlencoded({extended: false}));
 
 //routes
@@ -42,7 +53,6 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-
 const uri = process.env.MONGODB_URI;
 
 mongoose.connect(uri)

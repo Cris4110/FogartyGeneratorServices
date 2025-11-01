@@ -1,6 +1,7 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Container, Grid, Box, Typography, Button } from "@mui/material";
+import { Link } from "react-router-dom";
 
 function Servicespage() {
   return (
@@ -58,6 +59,8 @@ function Servicespage() {
             }}
           >
             <Button
+              component={Link}
+              to="/CurrentStockPage"
               variant="text"
               style={{
                 fontFamily: "Sans-serif",
@@ -89,6 +92,8 @@ function Servicespage() {
             }}
           >
             <Button
+              component={Link}
+              to="/Appointment"
               variant="text"
               style={{
                 fontFamily: "Sans-serif",

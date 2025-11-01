@@ -9,7 +9,7 @@ import AdminRegistration from "./routes/userregroute";
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
+
       <BrowserRouter>
         <Routes>
           {/* Public portal */}
@@ -30,7 +30,7 @@ const App: React.FC = () => {
           />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+
   );
 };
 
