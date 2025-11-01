@@ -1,4 +1,12 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+
+const passwordRegex =  /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/;
+//^(?=(?:.*[A-Z]){2,}) at least 2 uppercase letters
+//(?=(?:.*[a-z]){2,}) at least 2 lowercase letters
+//(?=(?:.*\d){2,}) at least 2 digits
+//(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}) at least 2 special chars and these are the authrized character
+//.{12,}$ minimum total length of 12 characters
 
 const bcrypt = require('bcrypt');
 
@@ -17,7 +25,7 @@ const stateAbbreviations = [
   "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
 ];
 
-const AddressSchema = mongoose.Schema(
+const AddressSchema = new mongoose.Schema(
     {
         street: {
             type: String,
@@ -48,7 +56,7 @@ const UserSchema = mongoose.Schema(
         userID: {
             type: String,
             required: true,
-            default: ""
+            unique: true
         },
 
         name: {
@@ -72,13 +80,15 @@ const UserSchema = mongoose.Schema(
         email: {
             type: String,
             required: true,
-            default: ""
+            unique: true,
+            lowercase: true,
+            match: [/^\S+@\S+\.\S+$/, "Invalid email."],
         },
 
         phoneNumber: {
             type: Number,
             required: true,
-            default: 0
+            match: [/^\+?[0-9\s\-()]{10,15}$/, "Invalid phone number."],
         }, 
         address: {
             type : AddressSchema,
@@ -87,6 +97,7 @@ const UserSchema = mongoose.Schema(
     },
     {
         timestamps: true,
+        discriminatorKey: "userType", 
     }
 );
 //This portion is double hashing the password,
