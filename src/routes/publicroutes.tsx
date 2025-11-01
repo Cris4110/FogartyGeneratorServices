@@ -11,6 +11,11 @@ import CurrentStockPage from "../pages/public/CurrentStockPage";
 import YourAccount from "../pages/public/YourAccount";
 import YourOrders from "../pages/public/YourOrders";
 import ReturnPage from "../pages/public/ReturnPage";
+import UsernameChange from "../pages/public/UsernameChange";
+import NameChange from "../pages/public/NameChange"
+import EmailChange from "../pages/public/EmailChange"
+import PhoneNumberChange from "../pages/public/PhoneNumberChange"
+import PasswordChange from "../pages/public/PasswordChange"
 
 
 const PublicRoutes = () => (
@@ -29,6 +34,12 @@ const PublicRoutes = () => (
         <Route path="/YourAccount" element={<YourAccount />} />
         <Route path="/YourOrders" element={<YourOrders />} />
         <Route path="/ReturnPage" element={<ReturnPage />} />
+
+        <Route path="/UsernameChange" element={<UsernameChange />} />
+        <Route path="/NameChange" element={<NameChange />} />
+        <Route path="/EmailChange" element={<EmailChange />} />
+        <Route path="/PhoneNumberChange" element={<PhoneNumberChange />} />
+        <Route path="/PasswordChange" element={<PasswordChange />} />
 
     </Routes>
 
