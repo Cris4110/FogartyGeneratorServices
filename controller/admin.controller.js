@@ -140,13 +140,15 @@ const loginAdmin = async (req, res) => {
           userID: admin.userID,
           email: admin.email,
           phoneNumber: admin.phoneNumber,
+          adminLevel: admin.adminLevel,
+          permissions: admin.permissions,
         },
       });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error", error });
   }
-}
+};
 
 const checkAuth = async (req, res) => {
   try {

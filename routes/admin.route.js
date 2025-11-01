@@ -5,6 +5,7 @@ const {getAdmins, getAdmin, createAdmin, updateAdmin, deleteAdmin, loginAdmin, c
 
 
 
+
 // keep checkAuth at top bacause it collides with getAdmin and other routes
 router.get("/checkAuth", checkAuth);
 

@@ -22,6 +22,7 @@
     "@mui/material": "^7.3.4",
     "@mui/x-date-pickers": "^8.15.0",
     "axios": "^1.12.2",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -33,7 +34,8 @@
     "react": "^19.1.1",
     "react-calendar": "^6.0.0",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.9.4"
+    "react-router-dom": "^7.9.4",
+    "tr46": "^6.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.38",

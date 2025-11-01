@@ -15,19 +15,14 @@ const Review = require("./models/review.model");
 const reviewRoute = require("./routes/review.route.js");
 const User = require("./models/user.model");
 const userRoute = require("./routes/user.route.js");
-const path = require('path');
-const cors = require('cors');
 
 const cors = require("cors");
-
 
 // for coockies
 const cookieParser = require("cookie-parser");
 
 
 const app = express();
-app.use(cors());
-
 // Serve static HTML file
 //app.use(express.static(path.join(__dirname, 'public')));
 
