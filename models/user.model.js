@@ -8,15 +8,6 @@ const passwordRegex =  /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(
 //(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}) at least 2 special chars and these are the authrized character
 //.{12,}$ minimum total length of 12 characters
 
-const bcrypt = require('bcrypt');
-
-const passwordRegex =  /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/;
-//^(?=(?:.*[A-Z]){2,}) at least 2 uppercase letters
-//(?=(?:.*[a-z]){2,}) at least 2 lowercase letters
-//(?=(?:.*\d){2,}) at least 2 digits
-//(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}) at least 2 special chars and these are the authrized character
-//.{12,}$ minimum total length of 12 characters
-
 const stateAbbreviations = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
   "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
