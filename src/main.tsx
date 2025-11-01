@@ -1,11 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
-//import { AuthProvider } from "../context/AuthContext";
-//import { AuthContext } from "../../context/Appcontext";
+import App from "./App";
+import UserRegistration from "./pages/public/UserRegistration"; // adjust name/path if needed
 import { AuthProvider } from "./context/Appcontext";
-
 
 // Optional: custom MUI theme
 const theme = createTheme({
@@ -25,9 +24,14 @@ const theme = createTheme({
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
-      <CssBaseline /> {/* resets browser styles */}
+      <CssBaseline />
       <AuthProvider>
-        <App />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<App />} />
+            <Route path="userreg" element={<UserRegistration />} />
+          </Routes>
+        </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
   </React.StrictMode>

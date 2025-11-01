@@ -1,30 +1,19 @@
 const mongoose = require('mongoose');
+const {User} = require("./user.model");
 
-const AdminSchema = mongoose.Schema(
+// Admin extends User
+const AdminSchema = new mongoose.Schema(
     {
-        userID: {
-            type: String,
-            required: true,
-            default: ""
+        permissions: {
+            type: [String],
+            default: ["manage_users", "view_reports", "modify_data"],
         },
-
-        password: {
-            type: String,
-            required: true,
-            default: ""
-        },
-
-        email: {
-            type: String,
-            required: true,
-            default: ""
-        },
-
-        phoneNumber: {
+        adminLevel: {
             type: Number,
-            required: true,
-            default: 0
-        },        
+            min: 1,
+            max: 5,
+            default: 1,
+        }
     },
     {
         timestamps: true,
