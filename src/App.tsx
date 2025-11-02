@@ -5,17 +5,22 @@ import AdminRoutes from "./routes/adminroutes";
 import Login from "./auth/admin/Login";
 import ProtectedRoute from "./routes/protectedroute";
 import { AuthProvider } from "./context/Appcontext"; // ensure AuthProvider is imported
+import AdminRegistration from "./routes/userregroute";
+import UserRegistration from "./pages/public/UserRegistration"; // adjust name/path if needed
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
+
       <BrowserRouter>
         <Routes>
           {/* Public portal */}
           <Route path="/*" element={<PublicRoutes />} />
-
+          {/*Admin User Reg*/}
+          <Route path="/adminreg" element={<AdminRegistration />} />
           {/* Login page */}
           <Route path="/login" element={<Login />} />
+
+          <Route path="userreg" element={<UserRegistration />} />
 
           {/* Admin portal (protected) */}
           <Route
@@ -28,7 +33,7 @@ const App: React.FC = () => {
           />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+
   );
 };
 

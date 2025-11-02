@@ -1,12 +1,13 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { Link } from "react-router-dom";
 
 import { Box, Button, Grid, Stack, Typography } from "@mui/material";
 
 
 // Helper function that creates a row for each user setting
 // label defines the setting and value defines the user's information
-function settingRow(label: String, value: String) {
+function settingRow(label: String, value: String, editLink: string) {
     return (
         <>
             {/* Contains each setting to one box/row */}
@@ -26,7 +27,7 @@ function settingRow(label: String, value: String) {
                     </Grid>
                     {/* Button to change setting */}
                     <Grid container size={2} padding={5} direction="row" sx={{justifyContent: "flex-end"}}>
-                        <Button variant="outlined">Edit</Button>
+                        <Button variant="outlined" component={Link} to={editLink}>Edit</Button>
                     </Grid>
                 </Grid>
             </Box>
@@ -55,11 +56,11 @@ function UserSettings() {
                 <Box border={1} borderRadius={5}>
                     <Stack >
                         {/* Each setting: label, value */}
-                        {settingRow("Username", "user123")}
-                        {settingRow("Name", "John Doe")}
-                        {settingRow("Email", "email@email.com")}
-                        {settingRow("Phone", "+1 (555) 111-1111")}
-                        {settingRow("Password", "*******")}
+                        {settingRow("Username", "user123", "/UsernameChange")}
+                        {settingRow("Name", "John Doe", "/NameChange")}
+                        {settingRow("Email", "email@email.com", "/EmailChange")}
+                        {settingRow("Phone", "+1 (555) 111-1111", "/PhoneNumberChange")}
+                        {settingRow("Password", "*******", "/PasswordChange")}
                     </Stack>
                 </Box>
             </Stack>
