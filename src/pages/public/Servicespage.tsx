@@ -12,7 +12,7 @@ function Servicespage() {
           {/* Services Page Title */}
           <Box sx={{ mb: 4 }}>
             <Typography variant="h3" fontWeight={700} align="center">
-              <mark>Services</mark>
+              Services
             </Typography>
           </Box>
           {/* Request Parts Box */}
@@ -27,6 +27,8 @@ function Servicespage() {
           >
             <Button
               variant="text"
+              component={Link}
+              to="/RequestPart"
               style={{
                 fontFamily: "Sans-serif",
                 fontSize: "30px",
