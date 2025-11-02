@@ -5,23 +5,23 @@ import About from "../pages/public/About";
 import FAQ from "../pages/public/FAQ";
 import ContactPage from "../pages/public/ContactPage";
 import RequestQuote from "../pages/public/RequestQuote";
+import RequestPart from "../pages/public/RequestPart";
 import UserSettings from "../pages/public/UserSettings";
 import Appointment from "../pages/public/Appointment";
 
 const PublicRoutes = () => (
+  <Routes>
+    <Route path="/" element={<Homepage />} />
+    <Route path="/about" element={<About />} />
+    <Route path="/FAQ" element={<FAQ />} />
+    <Route path="/ContactPage" element={<ContactPage />} />
+    <Route path="/Services" element={<Servicespage />} />
+    <Route path="/RequestQuote" element={<RequestQuote />} />
+    <Route path="/RequestPart" element={<RequestPart />} />
 
-    <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/FAQ" element={<FAQ />} />
-        <Route path="/ContactPage" element={<ContactPage />} />
-        <Route path="/services" element={<Servicespage />} />
-        <Route path="/RequestQuote" element={<RequestQuote />} />
-
-        <Route path="/UserSettings" element={<UserSettings />} />
-        <Route path="/Appointment" element={<Appointment />} />
-    </Routes>
-
+    <Route path="/UserSettings" element={<UserSettings />} />
+    <Route path="/Appointment" element={<Appointment />} />
+  </Routes>
 );
 
 export default PublicRoutes;
