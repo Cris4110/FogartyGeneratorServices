@@ -15,6 +15,7 @@ const navItems = [
   { label: "Incoming\nRequests", path: "/admin/incoming-requests" },
   { label: "Catalog\nManagement", path: "/admin/catalog-management" },
   { label: "User\nManagement", path: "/admin/user-management" },
+  { label: "Appointment Request", path: "/admin/appointmentrequest" },
 ];
 
 const AdminNavbar = () => {
