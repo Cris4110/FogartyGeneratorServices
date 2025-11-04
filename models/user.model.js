@@ -91,22 +91,6 @@ const UserSchema = mongoose.Schema(
         discriminatorKey: "userType", 
     }
 );
-//This portion is double hashing the password,
-//
-/*
-UserSchema.pre("save", async function (next) {
-    if(!this.isModified("password")) return next();
-
-    try{
-        const saltRounds = 12;
-        const hashed = await bcrypt.hash(this.password, saltRounds);
-        this.password = hashed;
-        next();
-    }catch (err){
-        next(err);
-    } 
-});
-*/
 
 //method to compare password during login 
 UserSchema.methods.comparePassword = async function (candidatePassword) {

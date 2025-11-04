@@ -2,11 +2,11 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Dashboard from "../pages/public/UserRegistration";
 
-const UserReg: React.FC = () => (
+const UserRegistration: React.FC = () => (
     <Routes>
-      <Route path="/userreg" element={<Dashboard />} />
+      <Route path="/UserRegistration" element={<Dashboard />} />
     </Routes>
 
 );
 
-export default UserReg;
+export default UserRegistration;
