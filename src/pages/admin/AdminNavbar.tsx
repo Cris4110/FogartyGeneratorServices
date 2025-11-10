@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Stack } from "@mui/material";
+import { Box, Typography, Button, Stack, AppBar, Drawer } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
@@ -15,6 +15,7 @@ const navItems = [
   { label: "Incoming\nRequests", path: "/admin/incoming-requests" },
   { label: "Catalog\nManagement", path: "/admin/catalog-management" },
   { label: "User\nManagement", path: "/admin/user-management" },
+  { label: "Inventory\nManagement", path: "/admin/inven-management" },
 ];
 
 const AdminNavbar = () => {
@@ -44,82 +45,102 @@ const AdminNavbar = () => {
   };
 
   return (
-    <Box
+    <>
+    <Typography
+      variant="h3"
       sx={{
-        width: "13vw",
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
-        backgroundColor: "#f5f5f5",
-        p: 4,
-        position: "fixed"
+        mt: 6,
+        ml: 35,
+        fontWeight: "bold",
+        color: "#1976d2",
+        whiteSpace: "nowrap",
       }}
     >
+      Admin Portal
+    </Typography>
+   
+    <AppBar>
+    <Drawer
+        sx={{
+          width: "13vw",
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: "13vw",
+            boxSizing: 'border-box',
+          },
+        }}
+        variant="permanent"
+        anchor="left"
+      >
+        
       <Box
         sx={{
+          width: "13vw",
+          height: "100vh",
           display: "flex",
-          alignItems: "center",
-          gap: 4,
-          mb: 6,
+          flexDirection: "column",
+          alignItems: "flex-start",
+          backgroundColor: "#f5f5f5",
+          p: 4,
+          position: "fixed",
         }}
       >
         <Box
-          component="img"
-          src={logo}
-          alt="Logo"
           sx={{
-            width: 200,
-            height: 200,
-          }}
-        />
-        <Typography
-          variant="h3"
-          sx={{
-            fontWeight: "bold",
-            color: "#1976d2",
-            whiteSpace: "nowrap",
-            position: "relative",
-            top: "-100px",
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            mb: 6,
           }}
         >
-          Admin Portal
-        </Typography>
-      </Box>
-      <Stack spacing={4} sx={{ ml: 3 }}>
-        {navItems.map((item) => (
-          <Typography
-            key={item.label}
-            variant="h5"
+          <Box
+            component="img"
+            src={logo}
+            alt="Logo"
             sx={{
-              whiteSpace: "pre-line",
-              cursor: "pointer",
-              transition: "0.3s",
-              "&:hover": { color: "#1976d2" },
+              width: 200,
+              height: 200,
             }}
-            onClick={() => handleNavigation(item.path)}
-          >
-            {item.label}
-          </Typography>
-        ))}
-      </Stack>
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: 50,
-          left: 50,
-        }}
-      >
-        <Button
-          variant="contained"
-          color="primary"
-          sx={SubmitButtonStyle}
-          onClick={handleLogout}
+          />  
+        </Box>
+
+        <Stack spacing={4} sx={{ ml: 3 }}>
+          {navItems.map((item) => (
+            <Typography
+              key={item.label}
+              variant="h5"
+              sx={{
+                whiteSpace: "pre-line",
+                cursor: "pointer",
+                transition: "0.3s",
+                "&:hover": { color: "#1976d2" },
+              }}
+              onClick={() => handleNavigation(item.path)}
+            >
+              {item.label}
+            </Typography>
+          ))}
+        </Stack>
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 50,
+            left: 50,
+          }}
         >
-          Logout
-        </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={SubmitButtonStyle}
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </Box>
       </Box>
-    </Box>
+    </Drawer>
+    </AppBar>
+    </>
   );
 };
 
