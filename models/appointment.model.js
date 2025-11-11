@@ -20,12 +20,12 @@ const AppointmentSchema = mongoose.Schema(
             type: String,
             required: false, // optional
             default: "",
-            },
-            description: {
+        },
+        description: {
             type: String,
             required: false, // optional
             default: "",
-            },
+        },
     },    
     {
         timestamps: true,
