@@ -7,17 +7,25 @@ const AppointmentSchema = mongoose.Schema(
             required: true,
             default: ""
         },
-        appointmentDate: {
-            type: Date, //YYYY/MM/DD
+        appointmentTime: {
+            type: String, // Format: MMMM DD, YYYY TT:TT AM/PM
             require: true
         },
-         appointmentTime: {
+        generatorModel: {
             type: String,
-            required: true,
-            match: /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i //12 hour time format requrires two digit hour,
-                                                                //two digit min and AM/PM
-            
-         },
+            required: false, // optional
+            default: "",
+        },
+        serialNumber: {
+            type: String,
+            required: false, // optional
+            default: "",
+        },
+        description: {
+        type: String,
+        required: false, // optional
+        default: "",
+        },
     },    
     {
         timestamps: true,

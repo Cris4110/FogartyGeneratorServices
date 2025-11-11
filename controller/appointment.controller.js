@@ -1,49 +1,93 @@
 const Appointment = require('../models/appointment.model');
 const User = require("../models/user.model");
-/*
-const getAppointments = async (req, res) =>{
- try {
-        const appt = await Appointment.find({});
-        res.status(200).json(appt);
-    } catch (error) {
-        res.status(500).json({message: error.message});
-        
-    }
-}
-*/
+
+//section for getting appointments with user details included.
 const getAppointments = async (req, res) => {
   try {
     console.log("COLLECTIONS:", {
       appointments: Appointment.collection.name,
       users: User.collection.name,
     });
-
+    
     const rows = await Appointment.aggregate([
       {
         $lookup: {
-          from: User.collection.name,     // <- guarantees correct collection name
+          from: User.collection.name,     // users collection
           localField: "userID",           // field in appointments
           foreignField: "userID",         // field in users
           as: "user",
         },
       },
-      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } }, // keep appts even if no user match
       {
         $project: {
-          _id: 1,
-          appointmentDate: 1,
+          _id: 1, // keep appointment _id
+          appointmentTime: 1, // keep appointmentTime
 
-          // debug “where did it break?”
-          appointmentUserID: "$userID",
-          matchedUserID: "$user.userID",
+          appointmentUserID: "$userID", // from appointment
+          matchedUserID: "$user.userID", // from user (if any)
 
-          // fields your UI wants (with placeholders)
+          //user details, with null checks
           name:  { $ifNull: ["$user.name", "(no match)"] },
           phone: { $ifNull: ["$user.phoneNumber", "(no phone)"] },
           email: { $ifNull: ["$user.email", "(no email)"] },
+          
+          //really complicated section for address, but could be simplied with
+          /*
+          address: {
+            $concat: [
+              "$user.address.street", ", ",
+              "$user.address.city", ", ",
+              "$user.address.state", " ",
+              "$user.address.zip"
+            ]
+          }*/
+          //reason for complicated null checks is because majoirty of current users don't have address filled out, so error when checking addresses.
+
+          address: {
+          $concat: [
+            { $ifNull: ["$user.address.street", ""] },
+            {
+              $cond: [
+                { $and: [
+                  { $ne: [{ $ifNull: ["$user.address.street", ""] }, ""] },
+                  { $ne: [{ $ifNull: ["$user.address.city", ""] }, ""] }
+                ]},
+                ", ",
+                ""
+              ]
+            },
+            { $ifNull: ["$user.address.city", ""] },
+            {
+              $cond: [
+                { $and: [
+                  { $ne: [{ $ifNull: ["$user.address.city", ""] }, ""] },
+                  { $ne: [{ $ifNull: ["$user.address.state", ""] }, ""] }
+                ]},
+                ", ",
+                ""
+              ]
+            },
+            { $ifNull: ["$user.address.state", ""] },
+            {
+              $cond: [
+                { $and: [
+                  { $ne: [{ $ifNull: ["$user.address.state", ""] }, ""] },
+                  { $ne: [{ $ifNull: ["$user.address.zip", ""] }, ""] }
+                ]},
+                " ",
+                ""
+              ]
+            },
+            { $ifNull: ["$user.address.zip", ""] }
+          ]
+        },
+
+          generatorModel: { $ifNull: ["$generatorModel", ""] },
+          serialNumber:   { $ifNull: ["$serialNumber", ""] },
+          description:   { $ifNull: ["$description", ""] },
         },
       },
-      // { $sort: { appointmentDate: -1 } },
     ]);
 
     if (rows.length) console.log("DEBUG sample row:", rows[0]);

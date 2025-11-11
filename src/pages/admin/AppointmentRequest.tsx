@@ -10,8 +10,11 @@ type Appointment = {
   name: string;
   phone: string;
   email: string;
-  location: string;
-  appointmentDate: string; // keep as raw string for now
+  address: string;
+  appointmentTime: string;
+  description: string;
+  generatorModel: string;
+  serialNumber: string;
 };
 
 export default function AppointmentRequest() {
@@ -53,10 +56,14 @@ export default function AppointmentRequest() {
   }, []);
 //include address later.
   const columns: GridColDef<Appointment>[] = [
- { field: "appointmentDate", headerName: "Appointment Date", flex: 1, minWidth: 180 },
-  { field: "name",            headerName: "Name",            flex: 1, minWidth: 160 },
-  { field: "phone",           headerName: "Phone",           flex: 1, minWidth: 140 },
-  { field: "email",           headerName: "Email",           flex: 1, minWidth: 220 },
+    { field: "appointmentTime", headerName: "Appointment Date", flex: 1, minWidth: 220 },
+    { field: "name",            headerName: "Name",             flex: 1, minWidth: 160 },
+    { field: "phone",           headerName: "Phone",            flex: 1, minWidth: 140 },
+    { field: "email",           headerName: "Email",            flex: 1, minWidth: 220 },
+    { field: "address",         headerName: "Address",          flex: 1.5, minWidth: 260 },
+    { field: "generatorModel",  headerName: "Generator Model",  flex: 1, minWidth: 160 },
+    { field: "serialNumber",    headerName: "Serial Number",    flex: 1, minWidth: 160 },
+    { field: "description",     headerName: "Service Description", flex: 2, minWidth: 300 },
   ];
 
   return (

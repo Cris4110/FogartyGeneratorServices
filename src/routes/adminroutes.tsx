@@ -5,7 +5,7 @@ import AppointmentRequest from "../pages/admin/AppointmentRequest";
 const AdminRoutes = () => (
     <Routes>
       <Route path="/" element={<Dashboard />} />
-      <Route path="/appointmentrequest" element={<AppointmentRequest />} />
+      <Route path="/incoming/appointments" element={<AppointmentRequest />} />
     </Routes>
 
 );
