@@ -8,17 +8,19 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { StaticDateTimePicker } from "@mui/x-date-pickers/StaticDateTimePicker";
 import axios from "axios";
 
-type User = {  userID: string; name?: string; email: string };
+type Address = { street: string; city: string; state: string; zipcode: string}
+type User = {  userID: string; name?: string; email: string, address?: Address, phoneNumber?: string };
 
 function Appointment() {
   const [dateTime, setDateTime] = useState<dayjs.Dayjs | null>(dayjs());
   const [userID, setUserID] = useState("");
-  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
   const [generatorModel, setGeneratorNumber] = useState("");
   const [serialNumber, setSerialNumber] = useState("");
   const [description, setDescription] = useState("");
   const [appointmentTime, setTime] = useState("");
   const [responseMsg, setResponseMsg] = useState("");
+  
 
   const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
@@ -28,28 +30,26 @@ function Appointment() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    api.get("/users/me")
-      .then(res => {
-        if (!cancelled && res.data.user) {
-          const user = res.data.user as User; // now matches type
-          setCurrentUser(user);
-
-          // Autofill userID
-          setUserID(user.userID);
-        }
-      })
-      .catch(() => !cancelled && setCurrentUser(null))
-      .finally(() => !cancelled && setAuthReady(true));
-
-    return () => { cancelled = true; };
-  }, []);
+   useEffect(() => {
+  let cancelled = false;
+  api.get("/users/me")
+    .then(res => {
+      if (!cancelled && res.data.user) {
+        const user = res.data.user as User;
+        setCurrentUser(user);
+        setUserID(user.userID);
+        setPhone(user.phoneNumber ?? "Issue with getting phone");
+      }
+    })
+    .catch(() => !cancelled && setCurrentUser(null))
+    .finally(() => !cancelled && setAuthReady(true));
+  return () => { cancelled = true; };
+}, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!userID) {
+    if (!currentUser) {
       setResponseMsg("You must be logged in to create an appointment.");
       return;
     }
@@ -57,7 +57,6 @@ function Appointment() {
     try {
       const response = await api.post("/appointments", {
         userID,
-        address,
         generatorModel,
         serialNumber,
         description,
@@ -67,7 +66,6 @@ function Appointment() {
       const result = response.data;
 
       setResponseMsg(result.message || "Appointment created successfully!");
-      setAddress("");
       setGeneratorNumber("");
       setSerialNumber("");
       setDescription("");
@@ -109,7 +107,46 @@ function Appointment() {
                 {/* UserID automatically filled */}
                 <TextField
                   label="User ID"
-                  value={currentUser.userID}
+                  value={currentUser.userID? currentUser.userID : "Issue with getting userID"}
+                  fullWidth
+                  sx={{ mb: 3 }}
+                  disabled
+                />
+
+                {/* Name automatically filled */}
+                <TextField
+                  label="Name"
+                  value={currentUser.name? currentUser.name : "Issue with getting name"}
+                  fullWidth
+                  sx={{ mb: 2 }}
+                  disabled
+                />
+
+                {/* Email automatically filled */}
+                <TextField
+                  label="Email"
+                  value={currentUser.email? currentUser.email : "Issue with getting email"}
+                  fullWidth
+                  sx={{ mb: 3 }}
+                  disabled
+                />
+
+                {/* Address automatically filled */}
+                <TextField
+                  label="Address"
+                  value={
+                    currentUser?.address
+                      ? `${currentUser.address.street}, ${currentUser.address.city}, ${currentUser.address.state} ${currentUser.address.zipcode}` : "Issue with getting address"
+                  }
+                  fullWidth
+                  sx={{ mb: 3 }}
+                  disabled
+                />
+
+                {/* Phone number automatically filled */}
+                <TextField
+                  label="Phone Number"
+                  value={currentUser.phoneNumber? currentUser.phoneNumber : "Issue with getting phone number"}
                   fullWidth
                   sx={{ mb: 3 }}
                   disabled
@@ -160,7 +197,7 @@ function Appointment() {
             )}
           </Grid>
 
-          {/* Right Date & Time Picker */}
+          {/* Right side Date & Time Picker */}
           <Grid size={{ xs: 12, md: 6 }}>
             <Typography
               variant="h4"
