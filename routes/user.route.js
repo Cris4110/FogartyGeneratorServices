@@ -12,9 +12,18 @@ require('dotenv').config();
 
 router.get("/me", requireAuth, async (req, res) => {
   // req.user.sub was set by requireAuth above
-  const user = await User.findById(req.user.sub).select("name email role");
-  if (!user) return res.status(404).json({ error: "user not found" });
-  res.json({ user: { id: String(user._id), name: user.name, email: user.email, role: user.role } });
+    const user = await User.findById(req.user.sub).select("name email role userID phoneNumber address");
+   if (!user) return res.status(404).json({ error: "user not found" });
+  res.json({
+    user: {
+      id: String(user._id),
+      name: user.name,
+      email: user.email,
+      userID: user.userID,    
+      phoneNumber: user.phoneNumber,
+      address: user.address,    
+    }
+  });
 });
 
 router.get('/', getUsers);
