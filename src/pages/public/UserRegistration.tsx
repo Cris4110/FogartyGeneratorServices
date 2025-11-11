@@ -10,18 +10,40 @@ const UserRegistration: React.FC = () => {
   const [userID, setUserID] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(""); 
+
+  //Address Fields
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipcode, setZipcode] = useState("");
+
   const [responseMsg, setResponseMsg] = useState("");
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
   const name = `${fname} ${lname}`;
+  const address ={
+    street:street.trim(),
+    city: city.trim(),
+    state: state.trim(),
+    zipcode: zipcode.trim(),
+  };
+
+  const newUser ={
+    name, 
+    userID,
+    email,
+    phoneNumber,
+    password,
+    address,
+  }
   try {
     const response = await fetch("http://localhost:3000/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, userID, email, phoneNumber, password }),
+      body: JSON.stringify(newUser),
     });
 
     const result = await response.json();
@@ -38,7 +60,12 @@ const handleSubmit = async (e: React.FormEvent) => {
       setEmail("");
       setPhoneNumber("");
       setPassword("");
+      setStreet("");
+      setCity("");
+      setState("");
+      setZipcode("");
     }
+
   } catch (error) {
     setResponseMsg("Error connecting to server.");
     console.error(error);
@@ -162,7 +189,67 @@ const handleSubmit = async (e: React.FormEvent) => {
               borderRadius: "4px",
               border: "1px solid #ccc",
               }}
-        />
+               />
+     
+          <input 
+          type="text" 
+          placeholder="Street" 
+          value={street} 
+          onChange={(e) => setStreet(e.target.value)} 
+          required 
+          style={{
+              display: "block",
+              width: "80%",       // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+              }}
+          />
+          <input 
+          type="text" 
+          placeholder="City" 
+          value={city} 
+          onChange={(e) => setCity(e.target.value)} 
+          required 
+          style={{
+              display: "block",
+              width: "80%",       // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+              }} />
+          <input 
+          type="text" 
+          placeholder="State (e.g., CA)" 
+          value={state} 
+          onChange={(e) => setState(e.target.value.toUpperCase())} 
+          required 
+          style={{
+              display: "block",
+              width: "80%",       // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+              }} />
+          <input 
+          type="text" 
+          placeholder="ZIP Code" 
+          value={zipcode} 
+          onChange={(e) => setZipcode(e.target.value)} 
+          required 
+          style={{
+              display: "block",
+              width: "80%",       // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+              }} />
+
+
         <div style={{ textAlign: "center" }}>
           <button type="submit">Create User</button>
         </div>

@@ -22,9 +22,9 @@ const AppointmentSchema = mongoose.Schema(
             default: "",
         },
         description: {
-        type: String,
-        required: false, // optional
-        default: "",
+            type: String,
+            required: false, // optional
+            default: "",
         },
     },    
     {
