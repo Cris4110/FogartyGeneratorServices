@@ -1,13 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import Dashboard from "../pages/admin/Dashboard";
-import InventoryManagement from "../pages/admin/InventoryManagement";
-import CreateItem from "../pages/admin/CreateItem";
+import UserManagementPage from "../pages/admin/UserManagementPage";
+import AppointmentRequest from "../pages/admin/AppointmentRequest";
 
 const AdminRoutes = () => (
     <Routes>
       <Route path="/" element={<Dashboard />} />
-      <Route path="/inven-management" element={<InventoryManagement />} />
-      <Route path="/create-item" element={<CreateItem />} />
+      <Route path="/user-management" element={<UserManagementPage/>} />
+      <Route path="/incoming/appointments" element={<AppointmentRequest />} />
     </Routes>
 
 );
