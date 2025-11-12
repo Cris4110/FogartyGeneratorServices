@@ -1,20 +1,22 @@
 
-import AdminNavbar from './AdminNavbar';
-import { Box, Container, Fab } from '@mui/material';
+import Navbar from "./AdminNavbar";
+import { Box, Container, Fab, Typography } from '@mui/material';
 import ItemTabs from './ItemTabs';
 
 // admin inventory management page
 function InventoryManagement() {
   return (
-    <>
-      <AdminNavbar />
-      <Container
-          maxWidth="lg"
-          sx={{
-          ml: "13vw",
-          mt: 4,
-          }}
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      <Navbar />
+      <Box
+          sx={{ flexGrow: 1, marginLeft: "13vw", p: 8, backgroundColor: "#fafafa" }}
       >
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: "bold", mb: 4, color: "#000000ff" }}
+        >
+          Inventory Management
+        </Typography>
         <Box 
           sx={{
           position: "relative",
@@ -23,8 +25,8 @@ function InventoryManagement() {
         {/* allows user to switch between the generator table and parts table */}
         <ItemTabs></ItemTabs>
         </Box>
-      </Container>
-    </>
+      </Box>
+    </Box>
   );
 }
 
