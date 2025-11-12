@@ -43,52 +43,43 @@ const AdminNavbar = () => {
   };
   
   return (
-    <>
-    <Typography
-      variant="h3"
+    <Box
       sx={{
-        mt: 6,
-        ml: 35,
-        fontWeight: "bold",
-        color: "#1976d2",
-        whiteSpace: "nowrap",
+        width: "13vw",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        backgroundColor: "#f5f5f5",
+        p: 4,
+        position: "fixed"
       }}
     >
-      Admin Portal
-    </Typography>
-   
-    <AppBar>
-    <Drawer
-        sx={{
-          width: "13vw",
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: "13vw",
-            boxSizing: 'border-box',
-          },
-        }}
-        variant="permanent"
-        anchor="left"
-      >
-        
       <Box
         sx={{
-          width: "13vw",
-          height: "100vh",
           display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          backgroundColor: "#f5f5f5",
-          p: 4,
-          position: "fixed",
+          alignItems: "center",
+          gap: 4,
+          mb: 6,
         }}
       >
         <Box
+          component="img"
+          src={logo}
+          alt="Logo"
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            mb: 6,
+            width: 200,
+            height: 200,
+          }}
+        />
+        <Typography
+          variant="h3"
+          sx={{
+            fontWeight: "bold",
+            color: "#1976d2",
+            whiteSpace: "nowrap",
+            position: "relative",
+            top: "-100px",
           }}
         >
           Admin Portal
@@ -207,19 +198,10 @@ const AdminNavbar = () => {
           sx={SubmitButtonStyle}
           onClick={handleLogout}
         >
-          <Button
-            variant="contained"
-            color="primary"
-            sx={SubmitButtonStyle}
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
-        </Box>
+          Logout
+        </Button>
       </Box>
-    </Drawer>
-    </AppBar>
-    </>
+    </Box>
   );
 };
 
