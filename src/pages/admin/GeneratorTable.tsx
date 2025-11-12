@@ -6,9 +6,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from "react-router-dom";
 
-// username: aabb22
-// password: $2b$12$lFgryF47q7aUbYBJgh/b1u0LKCdsun2H0D0VhXTrFaj97pm50Z8jy
-
 
 // displays generators table for the inventory-management page
 function GeneratorTable() {
