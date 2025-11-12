@@ -182,6 +182,20 @@ const AdminNavbar = () => {
         >
           {"User\nManagement"}
         </Typography>
+
+      {/* Inventory Management"*/}
+        <Typography
+          variant="h5"
+          sx={{
+            whiteSpace: "pre-line",
+            cursor: "pointer",
+            transition: "0.3s",
+            "&:hover": { color: "#1976d2" },
+          }}
+          onClick={() => handleNavigation("/admin/inven-management")}
+        >
+          {"Inventory\nManagement"}
+        </Typography>
       </Stack>
 
       {/* Logout Button */}

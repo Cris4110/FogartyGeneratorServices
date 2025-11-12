@@ -3,7 +3,7 @@ const Generator = require('../models/generator.model');
 const getGens = async (req, res) =>{
  try {
         const gen = await Generator.find({});
-        res.status(200).json(admin);
+        res.status(200).json(gen);
     } catch (error) {
         res.status(500).json({message: error.message});
         
@@ -14,7 +14,7 @@ const getGen = async (req, res) =>{
     try {
         const {id} = req.params;
         const gen = await Generator.findById(id);
-        res.status(200).json(admin);
+        res.status(200).json(gen);
     } catch (error) {
         res.status(500).json({message: error.message});
         
@@ -48,8 +48,8 @@ const updateGen = async (req, res) => {
 
 const deleteGen = async (req, res) => {
      try {
-        const {id} = req.params;
-        const gen = await Generator.findByIdAndDelete(id, req.body);
+        const {id} = req.params;    
+        const gen = await Generator.findOneAndDelete({genID: id}).select('genID');
         if(!gen){
             return res.status(404).json({message: "Generator not found"});
         }
