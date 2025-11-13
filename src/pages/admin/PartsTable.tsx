@@ -43,8 +43,8 @@ function PartsTable() {
   const navigate = useNavigate();
   /* create button routes to form to create another item, 
   currently form doesn't actually add to the database and doesn't actually add to the table */
-  const handleCreate = () => {
-    navigate("/admin/create-item");
+  const handleCreatePart = () => {
+    navigate("/admin/create-part");
   };
 
   /* delete button has no functionality as of yet */
@@ -72,7 +72,7 @@ function PartsTable() {
     </Box>
 
     <Stack direction="row" spacing={2} sx={{ position: "fixed", top: 32, right: 32 }}>
-      <Fab color="primary" aria-label="add" onClick={handleCreate}>
+      <Fab color="primary" aria-label="add" onClick={handleCreatePart}>
         <AddIcon />
       </Fab>
       <Fab color="secondary" aria-label="delete" onClick={handleDeleteRows}>

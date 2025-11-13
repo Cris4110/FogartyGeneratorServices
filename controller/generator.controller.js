@@ -3,7 +3,7 @@ const Generator = require('../models/generator.model');
 const getGens = async (req, res) =>{
  try {
         const gen = await Generator.find({});
-        res.status(200).json(admin);
+        res.status(200).json(gen);
     } catch (error) {
         res.status(500).json({message: error.message});
         
