@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import { Backdrop, Button, CircularProgress, Fab, Paper, Stack, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -26,42 +26,48 @@ function GeneratorTable() {
   const handleRowsLoaded = () => {
     setRowLoaded(true);
   }
+  
+  const getGens = async () => {
+    const res = await fetch("http://localhost:3000/api/generators", {
+      method: "GET"
+    });
 
-  // async function that fetches the generators and parses into the list format
-  async function fetchGens() {
-    try {
-      const res = await fetch("http://localhost:3000/api/generators", {
-        method: "GET"
-      });
+    // Array of generators is returned
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
 
-      // Array of generators is returned
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      let tmp = [];
-      // Converts the generators to the list format
-      for (let i = 0; i < data.length; i++) {
-        let gen = data[i];
-        tmp[i] = {
-            id:           gen.genID,
-            name:         gen.name||"",
-            type:         gen.type||"",
-            serial:       gen.serial||"",
-            power:        gen.power||"",
-            fuel:         gen.fuel||"",
-            manufactuer:  gen.manufactuer||"",
-            stock:        gen.stock||"",
-            availability: gen.availability||"",
-            sale:         gen.sale||""
-        }
+    let tmp = [data.length];
+    // Converts the generators to the list format
+    for (let i = 0; i < data.length; i++) {
+      let gen = data[i];
+      tmp[i] = {
+          id:           gen.genID,
+          name:         gen.name||"",
+          type:         gen.type||"",
+          serial:       gen.serial||"",
+          power:        gen.power||"",
+          fuel:         gen.fuel||"",
+          manufactuer:  gen.manufactuer||"",
+          stock:        gen.stock||"",
+          availability: gen.availability||"",
+          sale:         gen.sale||""
       }
-      updateRows(tmp);
-      handleRowsLoaded();
-    } catch (err: any) {
-      console.error("Fetch error:", err);
-      return {};
     }
+    updateRows(tmp);
+    handleRowsLoaded();
   }
+
+
+  useEffect(() => {
+    const fetchGenerators = async () => {
+      try {
+        getGens();
+      } catch (err: any) {
+        console.error("Error fetching generators:", err);
+      }
+    };
+    fetchGenerators();
+  }, []);
 
   /* declares name of columns and settings */
   const columns: GridColDef[] = [
@@ -111,17 +117,13 @@ function GeneratorTable() {
         if (!res.ok) throw new Error(data.message);
       } catch (err) {
         console.error("Fetch error:", err);
+      } finally {
+        getGens();
+        handleCloseDelete(); // close the backdrop
       }
     });
-
-    // Update the rows by fetching again
-    fetchGens();
-    handleCloseDelete(); // close the form
   };
 
-
-  // Updates the rows
-  fetchGens();
   return (
     <>
     <Box sx={{ height: 600, width: '100%'}}>
