@@ -1,62 +1,64 @@
 const Generator = require('../models/generator.model');
 
-const getGens = async (req, res) =>{
- try {
-        const gen = await Generator.find({});
-        res.status(200).json(gen);
-    } catch (error) {
-        res.status(500).json({message: error.message});
-        
-    }
-}
-
-const getGen = async (req, res) =>{
+// Get all generators
+const getGens = async (req, res) => {
     try {
-        const {id} = req.params;
-        const gen = await Generator.findById(id);
-        res.status(200).json(gen);
+        const generators = await Generator.find({});
+        res.status(200).json(generators); // <-- return the fetched data
     } catch (error) {
-        res.status(500).json({message: error.message});
-        
+        res.status(500).json({ message: error.message });
     }
 }
 
-const createGen = async (req, res) => {
-        try {
-        const gen = await Generator.create(req.body);
-        res.status(200).json({message: "Generators created!"})
-    } catch (error) {
-        res.status(500).json({message: error.message});
-    }
-    
-}
-
-const updateGen = async (req, res) => {
-     try {
-        const {id} = req.params;
-        const gen = await Generator.findByIdAndUpdate(id, req.body);
-        if(!gen){
-            return res.status(404).json({message: "Generator not found"});
+// Get a single generator by ID
+const getGen = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const generator = await Generator.findById(id);
+        if (!generator) {
+            return res.status(404).json({ message: "Generator not found" });
         }
-        const updatedGen = await Generator.findById(id);
+        res.status(200).json(generator); // <-- return the fetched data
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+// Create a new generator
+const createGen = async (req, res) => {
+    try {
+        const generator = await Generator.create(req.body);
+        res.status(201).json({ message: "Generator created!", generator });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+// Update a generator
+const updateGen = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updatedGen = await Generator.findByIdAndUpdate(id, req.body, { new: true });
+        if (!updatedGen) {
+            return res.status(404).json({ message: "Generator not found" });
+        }
         res.status(200).json(updatedGen);
     } catch (error) {
-        res.status(500).json({message: error.message});
-        
+        res.status(500).json({ message: error.message });
     }
 }
 
+// Delete a generator
 const deleteGen = async (req, res) => {
-     try {
-        const {id} = req.params;    
-        const gen = await Generator.findOneAndDelete({genID: id}).select('genID');
-        if(!gen){
-            return res.status(404).json({message: "Generator not found"});
+    try {
+        const { id } = req.params;
+        const deletedGen = await Generator.findByIdAndDelete(id);
+        if (!deletedGen) {
+            return res.status(404).json({ message: "Generator not found" });
         }
-        res.status(200).json({message:"Generator was successfully deleted"});
+        res.status(200).json({ message: "Generator successfully deleted" });
     } catch (error) {
-        res.status(500).json({message: error.message});
-        
+        res.status(500).json({ message: error.message });
     }
 }
 
