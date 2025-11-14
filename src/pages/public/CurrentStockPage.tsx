@@ -1,9 +1,62 @@
+import { useState, useEffect } from "react";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
-import {AppBar,Toolbar,Box,Button,Typography,Container,TextField,MenuItem,Grid,Card,CardContent,CardActions} from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  Box,
+  Button,
+  Typography,
+  Container,
+  TextField,
+  MenuItem,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+} from "@mui/material";
 import logo from "../../assets/logo.png";
 
 function CurrentStockPage() {
+  const [generators, setGenerators] = useState([]);
+  const [parts, setParts] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [sortOption, setSortOption] = useState("");
+
+  // Fetch Generators
+  useEffect(() => {
+    fetch("http://localhost:3000/api/generators")
+      .then((res) => res.json())
+      .then((data) => setGenerators(data))
+      .catch((err) => console.error("Error fetching generators:", err));
+  }, []);
+
+  // Fetch Parts
+  useEffect(() => {
+    fetch("http://localhost:3000/api/parts")
+      .then((res) => res.json())
+      .then((data) => setParts(data))
+      .catch((err) => console.error("Error fetching parts:", err));
+  }, []);
+
+  // Filter + Sort Generators
+  const filteredGenerators = generators
+    .filter((gen) => gen.name.toLowerCase().includes(searchText.toLowerCase()))
+    .sort((a, b) => {
+      if (sortOption === "a-z") return a.name.localeCompare(b.name);
+      if (sortOption === "z-a") return b.name.localeCompare(a.name);
+      return 0;
+    });
+
+  // Filter + Sort Parts
+  const filteredParts = parts
+    .filter((part) => part.type.toLowerCase().includes(searchText.toLowerCase()))
+    .sort((a, b) => {
+      if (sortOption === "a-z") return a.type.localeCompare(b.type);
+      if (sortOption === "z-a") return b.type.localeCompare(a.type);
+      return 0;
+    });
+
   return (
     <>
       {/* ===== Navbar Section ===== */}
@@ -11,7 +64,9 @@ function CurrentStockPage() {
 
       {/* ===== Top Navigation ===== */}
       <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Toolbar
+          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+        >
           {/* Left: Logo */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Box
@@ -70,7 +125,7 @@ function CurrentStockPage() {
           Current Stock
         </Typography>
 
-        {/* Search + Sort Bar: */}
+        {/* Search + Sort Bar */}
         <Box
           sx={{
             display: "flex",
@@ -85,62 +140,110 @@ function CurrentStockPage() {
             variant="outlined"
             fullWidth
             sx={{ backgroundColor: "white", borderRadius: 1 }}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
           <TextField
             select
             label="Sort By:"
-            defaultValue=""
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
             sx={{ width: "30%", backgroundColor: "white", borderRadius: 1 }}
           >
-            <MenuItem value="a-z">Name A-Z</MenuItem>
-            <MenuItem value="z-a">Name Z-A</MenuItem>
+            <MenuItem value="">Default</MenuItem>
+            <MenuItem value="a-z">A-Z</MenuItem>
+            <MenuItem value="z-a">Price Low-High <Low-High></Low-High></MenuItem>
           </TextField>
         </Box>
 
-        {/* Stock Grid */}
-        <Grid container spacing={4}>
-          {[...Array(9)].map((_, index) => (
-           
-              <Card
-                sx={{
-                  textAlign: "center",
-                  boxShadow: 2,
-                  borderRadius: 3,
-                  p: 2,
-                }}
-              >
-                <Box
-                  sx={{
-                    backgroundColor: "#B3E5FC",
-                    height: 150,
-                    borderRadius: 2,
-                    mb: 2,
-                  }}
-                ></Box>
-                <CardContent>
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    PART
-                  </Typography>
-                  <Typography variant="h6" fontWeight={500}>
-                    $500
-                  </Typography>
-                </CardContent>
-                <CardActions sx={{ justifyContent: "center" }}>
-                  <Button
-                    variant="contained"
+        {/* Generators Section */}
+        <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+          Generators
+        </Typography>
+        <Grid container spacing={4} sx={{ mb: 6 }}>
+          {filteredGenerators.length === 0 ? (
+            <Typography>No generators available</Typography>
+          ) : (
+            filteredGenerators.map((gen) => (
+              <Grid item xs={12} sm={6} md={4} key={gen._id}>
+                <Card sx={{ textAlign: "center", boxShadow: 2, borderRadius: 3, p: 2 }}>
+                  <Box
                     sx={{
-                      backgroundColor: "black",
-                      color: "white",
-                      textTransform: "none",
-                      "&:hover": { backgroundColor: "#333" },
+                      backgroundColor: "#FFFACD",
+                      height: 150,
+                      borderRadius: 2,
+                      mb: 2,
                     }}
-                  >
-                    Add to cart
-                  </Button>
-                </CardActions>
-              </Card>
+                  ></Box>
+                  <CardContent>
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {gen.name}
+                    </Typography>
+                    <Typography variant="body2">{gen.type}</Typography>
+                  </CardContent>
+                  <CardActions sx={{ justifyContent: "center" }}>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "black",
+                        color: "white",
+                        textTransform: "none",
+                        "&:hover": { backgroundColor: "#333" },
+                      }}
+                    >
+                      Add to cart
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))
+          )}
+        </Grid>
 
-          ))}
+        {/* Parts Section */}
+        <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+          Parts
+        </Typography>
+        <Grid container spacing={4}>
+          {filteredParts.length === 0 ? (
+            <Typography>No parts available</Typography>
+          ) : (
+            filteredParts.map((part) => (
+              <Grid item xs={12} sm={6} md={4} key={part._id}>
+                <Card sx={{ textAlign: "center", boxShadow: 2, borderRadius: 3, p: 2 }}>
+                  <Box
+                    sx={{
+                      backgroundColor: "#FFCDD2",
+                      height: 150,
+                      borderRadius: 2,
+                      mb: 2,
+                    }}
+                  ></Box>
+                  <CardContent>
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {part.type}
+                    </Typography>
+                    <Typography variant="h6" fontWeight={500}>
+                      ${part.cost}
+                    </Typography>
+                  </CardContent>
+                  <CardActions sx={{ justifyContent: "center" }}>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "black",
+                        color: "white",
+                        textTransform: "none",
+                        "&:hover": { backgroundColor: "#333" },
+                      }}
+                    >
+                      Add to cart
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))
+          )}
         </Grid>
       </Container>
 

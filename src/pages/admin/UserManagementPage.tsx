@@ -42,9 +42,7 @@ interface Address {
 const formatAddress = (addr: Address) => {
   if (!addr) return "No address";
   if (typeof addr === "string") return addr || "No address";
-  const parts = [addr.street, addr.city, addr.state, addr.zipcode].filter(
-    Boolean
-  );
+  const parts = [addr.street, addr.city, addr.state, addr.zipcode].filter(Boolean);
   return parts.length ? parts.join(", ") : "No address";
 };
 
@@ -134,14 +132,7 @@ const UserManagementPage = () => {
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <Navbar />
 
-      <Box
-        sx={{
-          flexGrow: 1,
-          marginLeft: "13vw",
-          p: 8,
-          backgroundColor: "#fafafa",
-        }}
-      >
+      <Box sx={{ flexGrow: 1, marginLeft: "13vw", p: 8, backgroundColor: "#fafafa" }}>
         <Typography
           variant="h4"
           sx={{ fontWeight: "bold", mb: 4, color: "#000000ff" }}
