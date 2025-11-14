@@ -49,7 +49,7 @@ const updatePart = async (req, res) => {
 const deletePart = async (req, res) => {
      try {
         const {id} = req.params;
-        const part = await Part.findByIdAndDelete(id, req.body);
+        const part = await Part.findOneAndDelete({partID: id}).select('partID');
         if(!part){
             return res.status(404).json({message: "Part not found"});
         }

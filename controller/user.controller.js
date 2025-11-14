@@ -24,7 +24,7 @@ const getUser = async (req, res) =>{
 
 const createUser = async (req, res) => {
          try {
-    const { name, userID, password, email, phoneNumber } = req.body;
+    const { name, userID, password, email, phoneNumber, address } = req.body;
 
     // Check if email is already registered
     const existingUser = await User.findOne({ email });
@@ -49,6 +49,7 @@ const createUser = async (req, res) => {
       password: hashedPassword,
       email,
       phoneNumber,
+      address
     });
 
     await user.save();

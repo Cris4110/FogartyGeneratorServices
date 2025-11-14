@@ -28,7 +28,7 @@ const pages = [
   { label: "Services", to: "/services" },
   { label: "Contact", to: "/Contactpage" },
   { label: "FAQ", to: "/faq" },
-  {label: "Request Account", to: "/adminreg"},
+  {label: "Request Account", to: "/UserRegistration"},
 ];
 
 
