@@ -52,7 +52,7 @@ const updateGen = async (req, res) => {
 const deleteGen = async (req, res) => {
     try {
         const { id } = req.params;
-        const deletedGen = await Generator.findByIdAndDelete(id);
+        const deletedGen = await Generator.findOneAndDelete({genID: id}).select('genID');
         if (!deletedGen) {
             return res.status(404).json({ message: "Generator not found" });
         }
