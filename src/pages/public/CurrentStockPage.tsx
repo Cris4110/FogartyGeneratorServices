@@ -61,50 +61,6 @@ function CurrentStockPage() {
     <>
       {/* ===== Navbar Section ===== */}
       <Navbar />
-
-      {/* ===== Top Navigation ===== */}
-      <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar
-          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
-        >
-          {/* Left: Logo */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Box
-              component="img"
-              src={logo}
-              alt="Fogarty Logo"
-              sx={{ height: 45, width: 45, borderRadius: "50%" }}
-            />
-            <Typography variant="h6" fontWeight={700} color="text.primary">
-              Fogarty Online Generator Service
-            </Typography>
-          </Box>
-
-          {/* Right: Sign In + Cart */}
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Button variant="text">Sign In</Button>
-            <Button variant="text">Cart</Button>
-          </Box>
-        </Toolbar>
-
-        {/* Navbar Links */}
-        <Toolbar
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 3,
-            borderTop: "1px solid #ddd",
-            borderBottom: "1px solid #ddd",
-          }}
-        >
-          {["Home", "About", "Services", "Contact", "FAQ"].map((item) => (
-            <Button key={item} color="inherit" sx={{ fontWeight: 600 }}>
-              {item}
-            </Button>
-          ))}
-        </Toolbar>
-      </AppBar>
-
       {/* ===== Main Content ===== */}
       <Container maxWidth="lg" sx={{ mt: 6, mb: 12 }}>
         {/* Page Title */}
