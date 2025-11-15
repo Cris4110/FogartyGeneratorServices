@@ -18,9 +18,11 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.4",
-    "@mui/material": "^7.3.4",
-    "@mui/x-date-pickers": "^8.17.0",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/material": "^7.3.5",
+    "@mui/system": "^7.3.5",
+    "@mui/x-data-grid": "^8.18.0",
+    "@mui/x-date-pickers": "^8.18.0",
     "axios": "^1.13.1",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
@@ -31,16 +33,17 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
-    "react": "^19.1.1",
+    "react": "^19.2.0",
     "react-calendar": "^6.0.0",
-    "react-dom": "^19.1.1",
+    "react-day-picker": "^9.11.1",
+    "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4",
-    "tr46": "^6.0.0"
+    "update": "^0.7.4"
   },
   "devDependencies": {
-    "@types/react": "^18.0.38",
-    "@types/react-dom": "^18.0.11",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "nodemon": "^3.1.10",
-    "vite": "^7.1.12"
+    "vite": "^7.2.2"
   }
 }

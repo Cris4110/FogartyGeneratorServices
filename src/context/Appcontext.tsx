@@ -1,9 +1,10 @@
 import React, { createContext, useState, useEffect, type ReactNode } from "react";
 
 export interface User {
-  id: number;
+  _id: string;
+  userID: string;
   name: string;
-  role: string;
+  email: string;
 }
 
 export interface AuthContextType {
@@ -30,35 +31,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (res.ok) {
           const data = await res.json();
           setCurrentUser(data.admin);
-
         } else {
           setCurrentUser(null);
         }
       } catch (err) {
         console.error("Auth check failed:", err);
-
         setCurrentUser(null);
       } finally {
-
         setLoading(false);
       }
     };
 
     checkAuth();
-  }, [])
+  }, []);
 
-const logout = async () => {
-  try {
-    await fetch("http://localhost:3000/api/admins/logout", {
-      method: "POST",
-      credentials: "include", // must include cookies
-    });
-  } catch (err) {
-    console.error("Logout failed:", err);
-  } finally {
-    setCurrentUser(null); // clear context
-  }
-};
+  const logout = async () => {
+    try {
+      await fetch("http://localhost:3000/api/admins/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      setCurrentUser(null);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ currentUser, setCurrentUser, logout, loading }}>
       {children}

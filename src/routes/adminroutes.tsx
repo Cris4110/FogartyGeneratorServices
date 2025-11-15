@@ -4,6 +4,7 @@ import UserManagementPage from "../pages/admin/UserManagementPage";
 import AppointmentRequest from "../pages/admin/AppointmentRequest";
 import InventoryManagement from "../pages/admin/InventoryManagement";
 import CreateItem from "../pages/admin/CreateItem";
+import ReviewedAppointments from "../pages/admin/ReviewedAppointments";
 
 const AdminRoutes = () => (
     <Routes>
@@ -12,6 +13,7 @@ const AdminRoutes = () => (
       <Route path="/incoming/appointments" element={<AppointmentRequest />} />
       <Route path="/inven-management" element={<InventoryManagement />} />
       <Route path="/create-item" element={<CreateItem />} />
+      <Route path="/reviewed" element={<ReviewedAppointments />} />
     </Routes>
 
 );

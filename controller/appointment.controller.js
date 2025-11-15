@@ -1,157 +1,197 @@
-const Appointment = require('../models/appointment.model');
+const Appointment = require("../models/appointment.model");
 const User = require("../models/user.model");
+const dayjs = require("dayjs");
 
-//section for getting appointments with user details included.
+
+// GET all pending appointments
 const getAppointments = async (req, res) => {
   try {
-    console.log("COLLECTIONS:", {
-      appointments: Appointment.collection.name,
-      users: User.collection.name,
-    });
-    
     const rows = await Appointment.aggregate([
+      { $match: { status: "pending" } },
+
       {
         $lookup: {
-          from: User.collection.name,     // users collection
-          localField: "userID",           // field in appointments
-          foreignField: "userID",         // field in users
+          from: User.collection.name,
+          localField: "userID",
+          foreignField: "userID",
           as: "user",
         },
       },
-      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } }, // keep appts even if no user match
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+
       {
         $project: {
-          _id: 1, // keep appointment _id
-          appointmentTime: 1, // keep appointmentTime
-
-          appointmentUserID: "$userID", // from appointment
-          matchedUserID: "$user.userID", // from user (if any)
-
-          //user details, with null checks
-          name:  { $ifNull: ["$user.name", "(no match)"] },
+          _id: 1,
+          appointmentDate: 1,
+          appointmentTime: 1,
+          status: 1,
+          newAppointmentDate: 1,
+          newAppointmentTime: 1,
+          name: { $ifNull: ["$user.name", "(no match)"] },
           phone: { $ifNull: ["$user.phoneNumber", "(no phone)"] },
           email: { $ifNull: ["$user.email", "(no email)"] },
-          
-          //really complicated section for address, but could be simplied with
-          /*
-          address: {
-            $concat: [
-              "$user.address.street", ", ",
-              "$user.address.city", ", ",
-              "$user.address.state", " ",
-              "$user.address.zip"
-            ]
-          }*/
-          //reason for complicated null checks is because majoirty of current users don't have address filled out, so error when checking addresses.
-
-          address: {
-          $concat: [
-            { $ifNull: ["$user.address.street", ""] },
-            {
-              $cond: [
-                { $and: [
-                  { $ne: [{ $ifNull: ["$user.address.street", ""] }, ""] },
-                  { $ne: [{ $ifNull: ["$user.address.city", ""] }, ""] }
-                ]},
-                ", ",
-                ""
-              ]
-            },
-            { $ifNull: ["$user.address.city", ""] },
-            {
-              $cond: [
-                { $and: [
-                  { $ne: [{ $ifNull: ["$user.address.city", ""] }, ""] },
-                  { $ne: [{ $ifNull: ["$user.address.state", ""] }, ""] }
-                ]},
-                ", ",
-                ""
-              ]
-            },
-            { $ifNull: ["$user.address.state", ""] },
-            {
-              $cond: [
-                { $and: [
-                  { $ne: [{ $ifNull: ["$user.address.state", ""] }, ""] },
-                  { $ne: [{ $ifNull: ["$user.address.zip", ""] }, ""] }
-                ]},
-                " ",
-                ""
-              ]
-            },
-            { $ifNull: ["$user.address.zip", ""] }
-          ]
-        },
-
-          generatorModel: { $ifNull: ["$generatorModel", ""] },
-          serialNumber:   { $ifNull: ["$serialNumber", ""] },
-          description:   { $ifNull: ["$description", ""] },
+          address: { $ifNull: ["$user.address.fullAddress", ""] },
+          generatorModel: 1,
+          serialNumber: 1,
+          description: 1,
         },
       },
     ]);
 
-    if (rows.length) console.log("DEBUG sample row:", rows[0]);
-    res.status(200).json(rows);
-  } catch (error) {
-    console.error("getAppointments error:", error);
-    res.status(500).json({ message: error.message });
+    res.json(rows);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-const getAppointment = async (req, res) =>{
-    try {
-        const {id} = req.params;
-        const appt = await Appointment.findById(id);
-        res.status(200).json(appt);
-    } catch (error) {
-        res.status(500).json({message: error.message});
-        
-    }
-}
 
+// GET all reviewed appointments
+const getReviewedAppointments = async (req, res) => {
+  try {
+    const rows = await Appointment.aggregate([
+      { $match: { status: { $ne: "pending" } } },
+
+      {
+        $lookup: {
+          from: User.collection.name,
+          localField: "userID",
+          foreignField: "userID",
+          as: "user",
+        },
+      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+
+      {
+        $project: {
+          _id: 1,
+          appointmentDate: 1,
+          appointmentTime: 1,
+          status: 1,
+          newAppointmentDate: 1,
+          newAppointmentTime: 1,
+          name: { $ifNull: ["$user.name", "(no match)"] },
+          phone: { $ifNull: ["$user.phoneNumber", "(no phone)"] },
+          email: { $ifNull: ["$user.email", "(no email)"] },
+          address: { $ifNull: ["$user.address.fullAddress", ""] },
+          description: 1,
+        },
+      },
+    ]);
+
+    res.json(rows);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// GET single appointment
+const getAppointment = async (req, res) => {
+  try {
+    const appt = await Appointment.findById(req.params.id);
+    if (!appt) return res.status(404).json({ message: "Not found" });
+    res.json(appt);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// CREATE appointment
 const createAppointment = async (req, res) => {
-        try {
-        const appt = await Appointment.create(req.body);
-        res.status(200).json({message: "New Appointment User Created"});
-    } catch (error) {
-        res.status(500).json({message: error.message});
-    }
-    
-}
+  try {
+    const {
+      userID,
+      appointmentDate,
+      appointmentTime,
+      generatorModel,
+      serialNumber,
+      description,
+    } = req.body;
 
+    const appt = await Appointment.create({
+      userID,
+      appointmentDate,
+      appointmentTime,
+      generatorModel,
+      serialNumber,
+      description,
+      status: "pending",
+    });
+
+    res.json({ message: "Appointment created", appt });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// UPDATE appointment (admin edits core data)
 const updateAppointment = async (req, res) => {
-     try {
-        const {id} = req.params;
-        const appt = await Appointment.findByIdAndUpdate(id, req.body);
-        if(!appt){
-            return res.status(404).json({message: "Appointment not found"});
-        }
-        const updatedAppointment = await User.findById(id);
-        res.status(200).json(updatedAppointment);
-    } catch (error) {
-        res.status(500).json({message: error.message});
-        
-    }
-}
+  try {
+    const updated = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
 
+    res.json(updated);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// UPDATE status or reschedule
+const updateAppointmentStatus = async (req, res) => {
+  try {
+    const { status, newAppointmentDate, newAppointmentTime } = req.body;
+
+    const updateData = { status };
+
+    if (status === "rescheduled") {
+      updateData.newAppointmentDate = newAppointmentDate || null;
+      updateData.newAppointmentTime = newAppointmentTime || null;
+    }
+
+    const updated = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
+
+    res.json(updated);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// DELETE appointment
 const deleteAppointment = async (req, res) => {
-     try {
-        const {id} = req.params;
-        const appt = await Appointment.findByIdAndDelete(id, req.body);
-        if(!appt){
-            return res.status(404).json({message: "Appointment not found"});
-        }
-        res.status(200).json({message:"Appointment was successfully deleted"});
-    } catch (error) {
-        res.status(500).json({message: error.message});
-        
-    }
-}
+  try {
+    await Appointment.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted" });
 
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// EXPORT EVERYTHING
 module.exports = {
-    getAppointment,
-    getAppointments,
-    createAppointment,
-    updateAppointment,
-    deleteAppointment
+  getAppointments,
+  getReviewedAppointments,
+  getAppointment,
+  createAppointment,
+  updateAppointment,
+  updateAppointmentStatus,
+  deleteAppointment,
 };

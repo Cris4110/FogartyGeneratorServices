@@ -20,7 +20,7 @@ const AdminNavbar = () => {
     try {
       const res = await fetch("http://localhost:3000/api/admins/logout", {
         method: "POST",
-        credentials: "include", 
+        credentials: "include",
       });
 
       if (res.ok) {
@@ -41,7 +41,7 @@ const AdminNavbar = () => {
   const handleToggleIncoming = () => {
     setOpenIncoming((prev) => !prev);
   };
-  
+
   return (
     <Box
       sx={{
@@ -52,7 +52,7 @@ const AdminNavbar = () => {
         alignItems: "flex-start",
         backgroundColor: "#f5f5f5",
         p: 4,
-        position: "fixed"
+        position: "fixed",
       }}
     >
       <Box
@@ -85,6 +85,7 @@ const AdminNavbar = () => {
           Admin Portal
         </Typography>
       </Box>
+
       <Stack spacing={3} sx={{ ml: 3, width: "100%" }}>
         {/* Dashboard */}
         <Typography
@@ -123,30 +124,23 @@ const AdminNavbar = () => {
             <Stack spacing={2} sx={{ ml: 4, mt: 1 }}>
               <Typography
                 variant="body1"
-                sx={{
-                  cursor: "pointer",
-                  "&:hover": { color: "#1976d2" },
-                }}
+                sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
                 onClick={() => handleNavigation("/admin/incoming/quotes")}
               >
                 Quote Requests
               </Typography>
+
               <Typography
                 variant="body1"
-                sx={{
-                  cursor: "pointer",
-                  "&:hover": { color: "#1976d2" },
-                }}
+                sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
                 onClick={() => handleNavigation("/admin/incoming/appointments")}
               >
                 Appointment Requests
               </Typography>
+
               <Typography
                 variant="body1"
-                sx={{
-                  cursor: "pointer",
-                  "&:hover": { color: "#1976d2" },
-                }}
+                sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
                 onClick={() => handleNavigation("/admin/incoming/parts")}
               >
                 Parts Request
@@ -154,6 +148,20 @@ const AdminNavbar = () => {
             </Stack>
           </Collapse>
         </Box>
+
+        
+        <Typography
+          variant="h5"
+          sx={{
+            whiteSpace: "pre-line",
+            cursor: "pointer",
+            transition: "0.3s",
+            "&:hover": { color: "#1976d2" },
+          }}
+          onClick={() => handleNavigation("/admin/reviewed")}
+        >
+          {"Reviewed\nAppointments"}
+        </Typography>
 
         {/* Catalog Management */}
         <Typography
@@ -169,7 +177,7 @@ const AdminNavbar = () => {
           {"Catalog\nManagement"}
         </Typography>
 
-        {/* User Management"*/}
+        {/* User Management */}
         <Typography
           variant="h5"
           sx={{
@@ -183,7 +191,7 @@ const AdminNavbar = () => {
           {"User\nManagement"}
         </Typography>
 
-      {/* Inventory Management"*/}
+        {/* Inventory Management */}
         <Typography
           variant="h5"
           sx={{
@@ -198,7 +206,7 @@ const AdminNavbar = () => {
         </Typography>
       </Stack>
 
-      {/* Logout Button */}
+      {/* Logout */}
       <Box
         sx={{
           position: "absolute",
