@@ -43,9 +43,8 @@ function Appointment() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
 
-  // ---------------------------
+ 
   // LOAD USER INFO
-  // ---------------------------
   useEffect(() => {
     let cancelled = false;
 
@@ -64,42 +63,41 @@ function Appointment() {
     };
   }, []);
 
-  // ---------------------------
   // SUBMIT APPOINTMENT REQUEST
-  // ---------------------------
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!currentUser) {
-      setResponseMsg("You must be logged in to create an appointment.");
-      return;
-    }
+  if (!currentUser) {
+    setResponseMsg("You must be logged in to create an appointment.");
+    return;
+  }
 
-    try {
-      const response = await api.post("/appointments", {
-        userID: currentUser.userID,
-        generatorModel,
-        serialNumber,
-        description,
-        appointmentDate,
-        appointmentTime,
-      });
+  try {
+    // Send ONE clean ISO timestamp
+    const appointmentDateTime = dateTime.toISOString();
 
-      setResponseMsg(response.data.message || "Appointment created successfully!");
+    const response = await api.post("/appointments", {
+      userID: currentUser.userID,
+      generatorModel,
+      serialNumber,
+      description,
+      appointmentDateTime,
+    });
 
-      setGeneratorNumber("");
-      setSerialNumber("");
-      setDescription("");
-      setAppointmentDate("");
-      setAppointmentTime("");
-    } catch (err: any) {
-      setResponseMsg(err.response?.data?.message || "Error connecting to server.");
-    }
-  };
+    setResponseMsg(response.data.message || "Appointment created successfully!");
 
-  // ---------------------------
+    setGeneratorNumber("");
+    setSerialNumber("");
+    setDescription("");
+    setAppointmentDate("");
+    setAppointmentTime("");
+  } catch (err: any) {
+    setResponseMsg(err.response?.data?.message || "Error connecting to server.");
+  }
+};
+
+
   // RENDER COMPONENT
-  // ---------------------------
 return (
   <>
     <Navbar />
