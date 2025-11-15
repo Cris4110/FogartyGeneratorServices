@@ -7,13 +7,13 @@ const AppointmentSchema = new mongoose.Schema(
             required: true,
             default: ""
         },
-        appointmentDate: {
-            type: String,
+        appointmentDateTime: {
+            type: Date,
             require: true
         },
-        appointmentTime: {
-            type: String,
-            require: true
+        rescheduledDateTime: {
+            type: Date,
+            default: null
         },
         generatorModel: {
             type: String,
@@ -35,10 +35,7 @@ const AppointmentSchema = new mongoose.Schema(
             enum: ["pending", "accepted", "denied", "rescheduled"],
             default: "pending"
         },
-        newAppointmentTime: {
-            type: Date,
-            default: null
-        },
+        
     },    
     {
         timestamps: true,

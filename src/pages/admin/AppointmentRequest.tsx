@@ -14,7 +14,8 @@ export type Appointment = {
   phone: string;
   email: string;
   address: string;
-  appointmentTime: string; // stored as ISO string in DB
+  appointmentDateTime: string; // stored as ISO string in DB
+  createdAt: string; 
   description: string;
   generatorModel: string;
   serialNumber: string;
@@ -73,8 +74,8 @@ export default function AppointmentRequest() {
 
         const sorted = data.sort(
           (a, b) =>
-            dayjs(a.appointmentTime).valueOf() -
-            dayjs(b.appointmentTime).valueOf()
+            dayjs(a.appointmentDateTime).valueOf() -
+            dayjs(b.appointmentDateTime).valueOf()
         );
 
         if (active) setRows(sorted);
@@ -104,21 +105,31 @@ export default function AppointmentRequest() {
   // DATAGRID COLUMNS
   // -------------------------------
   const columns: GridColDef<Appointment>[] = [
+  {
+  field: "appointmentDate",
+  headerName: "Requested Date",
+  flex: 1,
+  minWidth: 150,
+  valueGetter: (_v, row) =>
+    dayjs(row.appointmentDateTime).format("MMM DD, YYYY")
+},
+{
+  field: "appointmentTimeFormatted",
+  headerName: "Requested Time",
+  flex: 1,
+  minWidth: 150,
+  valueGetter: (_v, row) =>
+    dayjs(row.appointmentDateTime).format("h:mm A")
+},
     {
-      field: "appointmentDate",
-      headerName: "Date",
-      flex: 1,
-      minWidth: 120,
-      valueGetter: (_v, row) =>
-        dayjs(row.appointmentTime).format("MMM DD, YYYY")
-    },
-    {
-      field: "appointmentTimeFormatted",
-      headerName: "Time",
-      flex: 1,
-      minWidth: 120,
-      valueGetter: (_v, row) =>
-        dayjs(row.appointmentTime).format("h:mm A")
+       field: "createdDate",
+       headerName: "Created At",
+       flex: 1,
+       minWidth: 160,
+        valueGetter: (_v, row) =>
+        dayjs(row.createdAt).isValid()
+          ? dayjs(row.createdAt).format("MMM DD, YYYY @ h:mm A")
+          : "-",
     },
     { field: "name", headerName: "Name", flex: 1, minWidth: 200, },
     { field: "phone", headerName: "Phone", flex: 1,  },

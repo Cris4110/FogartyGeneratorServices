@@ -1,7 +1,5 @@
 const Appointment = require("../models/appointment.model");
 const User = require("../models/user.model");
-const dayjs = require("dayjs");
-
 
 // GET all pending appointments
 const getAppointments = async (req, res) => {
@@ -17,23 +15,32 @@ const getAppointments = async (req, res) => {
           as: "user",
         },
       },
+
       { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
 
       {
         $project: {
           _id: 1,
-          appointmentDate: 1,
-          appointmentTime: 1,
+          appointmentDateTime: 1,
+          rescheduledDateTime: 1,
+          createdAt: 1,
           status: 1,
-          newAppointmentDate: 1,
-          newAppointmentTime: 1,
-          name: { $ifNull: ["$user.name", "(no match)"] },
-          phone: { $ifNull: ["$user.phoneNumber", "(no phone)"] },
-          email: { $ifNull: ["$user.email", "(no email)"] },
-          address: { $ifNull: ["$user.address.fullAddress", ""] },
+          description: 1,
           generatorModel: 1,
           serialNumber: 1,
-          description: 1,
+
+          name: { $ifNull: ["$user.name", "(no name)"] },
+          phone: { $ifNull: ["$user.phoneNumber", "(no phone)"] },
+          email: { $ifNull: ["$user.email", "(no email)"] },
+
+          address: {
+            $concat: [
+              { $ifNull: ["$user.address.street", ""] }, ", ",
+              { $ifNull: ["$user.address.city", ""] }, ", ",
+              { $ifNull: ["$user.address.state", ""] }, " ",
+              { $ifNull: ["$user.address.zipcode", ""] }
+            ]
+          },
         },
       },
     ]);
@@ -41,6 +48,7 @@ const getAppointments = async (req, res) => {
     res.json(rows);
 
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -60,21 +68,31 @@ const getReviewedAppointments = async (req, res) => {
           as: "user",
         },
       },
+
       { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
 
       {
         $project: {
           _id: 1,
-          appointmentDate: 1,
-          appointmentTime: 1,
+          appointmentDateTime: 1,
+          rescheduledDateTime: 1,
           status: 1,
-          newAppointmentDate: 1,
-          newAppointmentTime: 1,
+          generatorModel: 1,
+          serialNumber: 1,
+          description: 1,
+
           name: { $ifNull: ["$user.name", "(no match)"] },
           phone: { $ifNull: ["$user.phoneNumber", "(no phone)"] },
           email: { $ifNull: ["$user.email", "(no email)"] },
-          address: { $ifNull: ["$user.address.fullAddress", ""] },
-          description: 1,
+
+          address: {
+            $concat: [
+              { $ifNull: ["$user.address.street", ""] }, ", ",
+              { $ifNull: ["$user.address.city", ""] }, ", ",
+              { $ifNull: ["$user.address.state", ""] }, " ",
+              { $ifNull: ["$user.address.zipcode", ""] }
+            ]
+          }
         },
       },
     ]);
@@ -105,8 +123,7 @@ const createAppointment = async (req, res) => {
   try {
     const {
       userID,
-      appointmentDate,
-      appointmentTime,
+      appointmentDateTime,
       generatorModel,
       serialNumber,
       description,
@@ -114,8 +131,7 @@ const createAppointment = async (req, res) => {
 
     const appt = await Appointment.create({
       userID,
-      appointmentDate,
-      appointmentTime,
+      appointmentDateTime: new Date(appointmentDateTime),
       generatorModel,
       serialNumber,
       description,
@@ -130,7 +146,7 @@ const createAppointment = async (req, res) => {
 };
 
 
-// UPDATE appointment (admin edits core data)
+// UPDATE appointment
 const updateAppointment = async (req, res) => {
   try {
     const updated = await Appointment.findByIdAndUpdate(
@@ -150,22 +166,21 @@ const updateAppointment = async (req, res) => {
 // UPDATE status or reschedule
 const updateAppointmentStatus = async (req, res) => {
   try {
-    const { status, newAppointmentDate, newAppointmentTime } = req.body;
+    const { status, newAppointmentTime } = req.body;
 
-    const updateData = { status };
+    const update = { status };
 
-    if (status === "rescheduled") {
-      updateData.newAppointmentDate = newAppointmentDate || null;
-      updateData.newAppointmentTime = newAppointmentTime || null;
+    if (status === "rescheduled" && newAppointmentTime) {
+      update.rescheduledDateTime = new Date(newAppointmentTime);
     }
 
-    const updated = await Appointment.findByIdAndUpdate(
+    const result = await Appointment.findByIdAndUpdate(
       req.params.id,
-      updateData,
+      update,
       { new: true }
     );
 
-    res.json(updated);
+    res.json(result);
 
   } catch (err) {
     res.status(500).json({ message: err.message });

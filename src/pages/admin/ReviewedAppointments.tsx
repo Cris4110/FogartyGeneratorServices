@@ -7,14 +7,15 @@ import dayjs from "dayjs";
 
 interface ReviewedAppointment {
   _id: string;
-  appointmentTime: string;
+  appointmentDateTime: string;
   newAppointmentTime?: string | null;
   status: "accepted" | "denied" | "rescheduled";
   name: string;
   phone: string;
   email: string;
   address: string;
-  description: string;
+  description: string;  
+  rescheduledDateTime?: string | null;
 }
 
 const formatISO = (iso?: string | null) => {
@@ -44,44 +45,43 @@ export default function ReviewedAppointments() {
     })();
   }, []);
 
-  const columns: GridColDef<ReviewedAppointment>[] = [
-    {
-      field: "original",
-      headerName: "Original Date",
-      flex: 1.3,
-      minWidth: 200,
-      sortable: false,
-      valueGetter: (_value, row) => formatISO(row.appointmentTime)
-    },
+ const columns: GridColDef<ReviewedAppointment>[] = [
+  {
+    field: "original",
+    headerName: "Original Date",
+    flex: 1.3,
+    minWidth: 200,
+    sortable: false,
+    valueGetter: (_value, row) => formatISO(row.appointmentDateTime)
+  },
 
-    {
-  field: "status",
-  headerName: "Status",
-  flex: 1,
-  minWidth: 200,
-  renderCell: (params: GridRenderCellParams<ReviewedAppointment>) => {
-    const s = params.row?.status ?? "unknown";
+  {
+    field: "status",
+    headerName: "Status",
+    flex: 1,
+    minWidth: 200,
+    renderCell: (params) => {
+      const s = params.row?.status ?? "unknown";
+      const color =
+        s === "accepted"
+          ? "success"
+          : s === "denied"
+          ? "error"
+          : s === "rescheduled"
+          ? "warning"
+          : "default";
 
-    const color =
-      s === "accepted"
-        ? "success"
-        : s === "denied"
-        ? "error"
-        : s === "rescheduled"
-        ? "warning"
-        : "default";
+      return <Chip label={s.toUpperCase()} color={color} />;
+    }
+  },
 
-    return <Chip label={s.toUpperCase()} color={color} />;
-  }
-},
-
-    {
-      field: "newDate",
-      headerName: "New Date (If Rescheduled)",
-      flex: 1.4,
-      minWidth: 200,
-      sortable: false,
-      valueGetter: (_value, row) => formatISO(row.newAppointmentTime)
+  {
+    field: "newDate",
+    headerName: "New Date (If Rescheduled)",
+    flex: 1.4,
+    minWidth: 200,
+    sortable: false,
+    valueGetter: (_value, row) => formatISO(row.rescheduledDateTime)
     },
 
     { field: "name", headerName: "Name", flex: 1, minWidth:200, },
