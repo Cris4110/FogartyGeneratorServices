@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import { Backdrop, Button, CircularProgress, Fab, Paper, Stack, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -27,39 +27,43 @@ function PartsTable() {
     setRowLoaded(true);
   }
 
+  const getParts = async () => {
+    const res = await fetch("http://localhost:3000/api/parts", {
+      method: "GET"
+    });
 
-    // async function that fetches the parts and parses into the list format
-   async function fetchParts() {
-    try {
-      const res =  await fetch("http://localhost:3000/api/parts", {
-        method: "GET"
-      });
+    // Array of generators is returned
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
 
-      // Array of generators is returned
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      let tmp = [];
-      // Converts the generators to the list format
-      for (let i = 0; i < data.length; i++) {
-        let part = data[i];
-        tmp[i] = {
-            id:           part.partID,
-            name:         part.name||"",
-            type:         part.type||"",
-            stock:        part.stock||"",
-            availability: part.availability||"",
-            cost:         part.cost||"",
-            image:        part.image||'https://img.freepik.com/premium-photo/section-industrial-electric-motor-3d-rendering_823159-1461.jpg?semt=ais_hybrid&w=740&q=80'
-        }
+    let tmp = [data.length];
+    // Converts the generators to the list format
+    for (let i = 0; i < data.length; i++) {
+      let part = data[i];
+      tmp[i] = {
+        id:           part.partID,
+        name:         part.name||"",
+        type:         part.type||"",
+        stock:        part.stock||"",
+        availability: part.availability||"",
+        cost:         part.cost||"",
+        image:        part.image||'https://img.freepik.com/premium-photo/section-industrial-electric-motor-3d-rendering_823159-1461.jpg?semt=ais_hybrid&w=740&q=80'
       }
-      updateRows(tmp);
-      handleRowsLoaded();
-    } catch (err: any) {
-      console.error("Fetch error:", err);
-      return {};
     }
+    updateRows(tmp);
+    handleRowsLoaded();
   }
+
+  useEffect(() => {
+    const fetchDB = async () => {
+      try {
+          getParts();
+      } catch (err: any) {
+        console.error("Error fetching generators:", err);
+      }
+    };
+    fetchDB();
+  }, []);
 
 
   /* declares name of columns and settings */
@@ -102,8 +106,8 @@ function PartsTable() {
   const navigate = useNavigate();
   /* create button routes to form to create another item, 
   currently form doesn't actually add to the database and doesn't actually add to the table */
-  const handleCreate = () => {
-    navigate("/admin/create-item");
+  const handleCreatePart = () => {
+    navigate("/admin/create-part");
   };
 
   /* delete button has no functionality as of yet */
@@ -120,17 +124,13 @@ function PartsTable() {
         if (!res.ok) throw new Error(data.message);
       } catch (err) {
         console.error("Fetch error:", err);
+      } finally {
+        getParts(); // Update the rows by fetching again
+        handleCloseDelete(); // close the backdrop
       }
     });
-
-    
-    fetchParts(); // Update the rows by fetching again
-    handleCloseDelete(); // close the backdrop
   };
 
-
-  // Updates the rows
-  fetchParts();
   return (
     <>
     <Box sx={{ height: 600, width: '100%'} }>
@@ -180,7 +180,7 @@ function PartsTable() {
       </Paper>
     </Backdrop>
     <Stack direction="row" spacing={2} sx={{ position: "fixed", top: 32, right: 32 }}>
-      <Fab color="primary" aria-label="add" onClick={handleCreate}>
+      <Fab color="primary" aria-label="add" onClick={handleCreatePart}>
         <AddIcon />
       </Fab>
       <Fab color="secondary" aria-label="delete" onClick={handleConfrimDelete}>

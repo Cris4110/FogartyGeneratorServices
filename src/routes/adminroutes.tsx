@@ -5,6 +5,8 @@ import AppointmentRequest from "../pages/admin/AppointmentRequest";
 import InventoryManagement from "../pages/admin/InventoryManagement";
 import CreateItem from "../pages/admin/CreateItem";
 import ReviewedAppointments from "../pages/admin/ReviewedAppointments";
+import CreateGenerator from "../pages/admin/CreateGen";
+import CreatePart from "../pages/admin/CreatePart";
 
 const AdminRoutes = () => (
     <Routes>
@@ -14,6 +16,8 @@ const AdminRoutes = () => (
       <Route path="/inven-management" element={<InventoryManagement />} />
       <Route path="/create-item" element={<CreateItem />} />
       <Route path="/reviewed" element={<ReviewedAppointments />} />
+      <Route path="/create-gen" element={<CreateGenerator />} />
+      <Route path="/create-part" element={<CreatePart />} />
     </Routes>
 
 );

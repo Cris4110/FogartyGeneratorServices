@@ -5,6 +5,7 @@
   "main": "CRUD_mongoose.js",
   "scripts": {
     "dev": "vite",
+    "devCRUD": "nodemon CRUD_mongoose.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
