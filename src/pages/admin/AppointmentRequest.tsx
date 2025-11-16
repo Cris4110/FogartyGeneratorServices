@@ -1,69 +1,256 @@
 // src/pages/admin/AppointmentRequest.tsx
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Toolbar, Alert, CircularProgress } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import type { GridColDef } from '@mui/x-data-grid';
+import { Box, Typography, Toolbar, Alert, CircularProgress, Button, Stack } from "@mui/material";
+import { DataGrid, type GridColDef, type GridRenderCellParams } from "@mui/x-data-grid";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import AdminNavbar from "./AdminNavbar";
+import dayjs from "dayjs";
 
-type Appointment = {
+type AppointmentStatus = "pending" | "accepted" | "denied" | "rescheduled";
+
+export type Appointment = {
   _id: string;
   name: string;
   phone: string;
   email: string;
   address: string;
-  appointmentTime: string;
+  appointmentDateTime: string; // stored as ISO string in DB
+  createdAt: string; 
   description: string;
   generatorModel: string;
   serialNumber: string;
+  status: AppointmentStatus;
+  newAppointmentTime?: string | null;
+};
+
+type ActionState = {
+  decision: "none" | "accept" | "deny" | "reschedule";
+  newDateTime?: string;
 };
 
 export default function AppointmentRequest() {
   const [rows, setRows] = useState<Appointment[]>([]);
+  const [actions, setActions] = useState<Record<string, ActionState>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Update appointment status on server
+  const updateAppointmentOnServer = async (
+    id: string,
+    status: AppointmentStatus,
+    newDateTime?: string
+  ) => {
+    const payload: any = { status };
+
+    if (status === "rescheduled" && newDateTime) {
+      const dt = dayjs(newDateTime);
+      payload.newAppointmentTime = dt.toISOString();
+    }
+
+    await fetch(`http://localhost:3000/api/appointments/${id}/status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    // remove handled appointment from table
+    setRows((prev) => prev.filter((r) => r._id !== id));
+
+    setActions((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
+
+  // Load appointments
   useEffect(() => {
-    let mounted = true;
+    let active = true;
+
     (async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const res = await fetch("http://localhost:3000/api/appointments", {
-          credentials: "include", 
-        });
+        const res = await fetch("http://localhost:3000/api/appointments");
+        const data: Appointment[] = await res.json();
 
+        const sorted = data.sort(
+          (a, b) =>
+            dayjs(a.appointmentDateTime).valueOf() -
+            dayjs(b.appointmentDateTime).valueOf()
+        );
 
-        const text = await res.text();
-        let data: Appointment[];
-        try {
-          data = JSON.parse(text);
-        } catch {
-          console.error("Non-JSON response:", text);
-          throw new Error(`Expected JSON, got ${res.headers.get("content-type") || "unknown"} (HTTP ${res.status})`);
-        }
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        if (mounted) setRows(data);
-      } catch (e: any) {
-        if (mounted) setError(e.message || "Failed to load appointments");
+        if (active) setRows(sorted);
+      } catch (err) {
+        if (active)
+          setError(
+            err instanceof Error ? err.message : "Could not load appointments"
+          );
       } finally {
-        if (mounted) setLoading(false);
+        if (active) setLoading(false);
       }
     })();
+
     return () => {
-      mounted = false;
+      active = false;
     };
   }, []);
-//include address later.
+
+  const handleAction = (id: string, decision: ActionState["decision"]) => {
+    setActions((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], decision }
+    }));
+  };
+
+  // -------------------------------
+  // DATAGRID COLUMNS
+  // -------------------------------
   const columns: GridColDef<Appointment>[] = [
-    { field: "appointmentTime", headerName: "Appointment Date", flex: 1, minWidth: 220 },
-    { field: "name",            headerName: "Name",             flex: 1, minWidth: 160 },
-    { field: "phone",           headerName: "Phone",            flex: 1, minWidth: 140 },
-    { field: "email",           headerName: "Email",            flex: 1, minWidth: 220 },
-    { field: "address",         headerName: "Address",          flex: 1.5, minWidth: 260 },
-    { field: "generatorModel",  headerName: "Generator Model",  flex: 1, minWidth: 160 },
-    { field: "serialNumber",    headerName: "Serial Number",    flex: 1, minWidth: 160 },
-    { field: "description",     headerName: "Service Description", flex: 2, minWidth: 300 },
+  {
+  field: "appointmentDate",
+  headerName: "Requested Date",
+  flex: 1,
+  minWidth: 150,
+  valueGetter: (_v, row) =>
+    dayjs(row.appointmentDateTime).format("MMM DD, YYYY")
+},
+{
+  field: "appointmentTimeFormatted",
+  headerName: "Requested Time",
+  flex: 1,
+  minWidth: 150,
+  valueGetter: (_v, row) =>
+    dayjs(row.appointmentDateTime).format("h:mm A")
+},
+    {
+       field: "createdDate",
+       headerName: "Created At",
+       flex: 1,
+       minWidth: 160,
+        valueGetter: (_v, row) =>
+        dayjs(row.createdAt).isValid()
+          ? dayjs(row.createdAt).format("MMM DD, YYYY @ h:mm A")
+          : "-",
+    },
+    { field: "name", headerName: "Name", flex: 1, minWidth: 200, },
+    { field: "phone", headerName: "Phone", flex: 1,  },
+    { field: "email", headerName: "Email", flex: 1.3, minWidth: 220, },
+    { field: "address", headerName: "Address", flex: 1.4, minWidth: 200, },
+    { field: "generatorModel", headerName: "Model", flex: 1, minWidth: 120, },
+    { field: "serialNumber", headerName: "Serial", flex: 1, minWidth: 120, },
+    { field: "description", headerName: "Issue Description", flex: 2, minWidth:260, },
+
+    // ACTION BUTTONS
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 1.2,
+      minWidth: 280,
+      sortable: false,
+      renderCell: (params: GridRenderCellParams<Appointment>) => {
+        const id = params.row._id;
+        const state = actions[id]?.decision ?? "none";
+
+        return (
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant={state === "accept" ? "contained" : "outlined"}
+              color="success"
+              size="small"
+              onClick={() => handleAction(id, "accept")}
+            >
+              Accept
+            </Button>
+
+            <Button
+              variant={state === "deny" ? "contained" : "outlined"}
+              color="error"
+              size="small"
+              onClick={() => handleAction(id, "deny")}
+            >
+              Deny
+            </Button>
+
+            <Button
+              variant={state === "reschedule" ? "contained" : "outlined"}
+              color="warning"
+              size="small"
+              onClick={() => handleAction(id, "reschedule")}
+            >
+              Reschedule
+            </Button>
+          </Stack>
+        );
+      }
+    },
+
+    // RESCHEDULE PICKER
+    {
+      field: "newDateTime",
+      headerName: "New Date & Time",
+      flex: 1.4,
+      minWidth: 280,
+      sortable: false,
+      renderCell: (params) => {
+        const id = params.row._id;
+        const actionState = actions[id];
+
+        if (actionState?.decision !== "reschedule") return <>-</>;
+
+        const dt = actionState.newDateTime
+          ? dayjs(actionState.newDateTime)
+          : null;
+
+        return (
+          <DateTimePicker
+            value={dt}
+            onChange={(val) =>
+              setActions((prev) => ({
+                ...prev,
+                [id]: {
+                  ...prev[id],
+                  newDateTime: val ? val.toISOString() : undefined
+                }
+              }))
+            }
+          />
+        );
+      }
+    },
+
+    // UPDATE BUTTON
+    {
+      field: "update",
+      headerName: "Update",
+      flex: 1,
+      minWidth: 140,
+      sortable: false,
+      renderCell: (params) => {
+        const id = params.row._id;
+        const state = actions[id];
+
+        return (
+          <Button
+            size="small"
+            variant="contained"
+            disabled={!state || state.decision === "none"}
+            onClick={() => {
+              if (!state) return;
+
+              if (state.decision === "accept")
+                updateAppointmentOnServer(id, "accepted");
+              else if (state.decision === "deny")
+                updateAppointmentOnServer(id, "denied");
+              else if (state.decision === "reschedule") {
+                if (!state.newDateTime) return alert("Select a new date/time");
+                updateAppointmentOnServer(id, "rescheduled", state.newDateTime);
+              }
+            }}
+          >
+            Update
+          </Button>
+        );
+      }
+    }
   ];
 
   return (
@@ -71,28 +258,49 @@ export default function AppointmentRequest() {
       <AdminNavbar />
       <Box sx={{ ml: "13vw", px: 4 }}>
         <Toolbar />
-        <Typography variant="h4" gutterBottom>Admin Appointment</Typography>
+        <Typography variant="h4" gutterBottom>
+          Admin Appointment Requests
+        </Typography>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && <Alert severity="error">{error}</Alert>}
 
-        <Box sx={{ height: 600, width: "100%", position: "relative" }}>
-          {loading && (
-            <Box sx={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", zIndex: 1 }}>
+        <Box
+          sx={{
+            height: 650,
+            width: "100%",
+            overflowX: "auto",      // horizontal scroll enabled
+            overflowY: "hidden",
+            whiteSpace: "nowrap"    // columns don't wrap
+             }}
+          >
+
+          {loading ? (
+            <Box
+              sx={{
+                display: "grid",
+                placeItems: "center",
+                height: "100%"
+              }}
+            >
               <CircularProgress />
             </Box>
+          ) : (
+            <DataGrid
+              rows={rows}
+              getRowId={(r) => r._id}
+              columns={columns}
+              disableRowSelectionOnClick
+              pageSizeOptions={[10, 25, 50]}
+              initialState={{
+                pagination: { paginationModel: { page: 0, pageSize: 25 } },
+                columns: { columnVisibilityModel: {} }
+              }}
+                sx={{
+                  minWidth: 1800,     // <-- Forces wide grid
+                  overflowX: "auto",  // <-- Allows sliding horizontally
+                 }}
+            />
           )}
-
-          <DataGrid
-            rows={rows}
-            getRowId={(r) => r._id}
-            columns={columns}
-            loading={loading}
-            disableRowSelectionOnClick
-            checkboxSelection={false}
-            // no sorting state, no value formatters — raw DB values only
-            pageSizeOptions={[10, 25, 50]}
-            initialState={{ pagination: { paginationModel: { page: 0, pageSize: 25 } } }}
-          />
         </Box>
       </Box>
     </>

@@ -1,18 +1,24 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { AuthContext } from "../context/Appcontext";
+import { AuthContext, type AuthContextType } from "../context/Appcontext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { currentUser, setCurrentUser } = useContext(AuthContext);
-  const [isChecking, setIsChecking] = useState(true);
-  const [isValid, setIsValid] = useState(false);
+  const ctx = useContext(AuthContext);
+  const [checking, setChecking] = useState(true);
+  const [valid, setValid] = useState(false);
+
+  if (!ctx) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const { currentUser, setCurrentUser } = ctx;
 
   useEffect(() => {
-    const checkToken = async () => {
+    const verify = async () => {
       try {
         const res = await fetch("http://localhost:3000/api/admins/checkAuth", {
           method: "GET",
@@ -20,37 +26,32 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         });
 
         if (!res.ok) {
-          throw new Error("Token invalid or expired");
+          setValid(false);
+          setCurrentUser(null);
+        } else {
+          const data = await res.json();
+          setCurrentUser(data.admin);
+          setValid(true);
         }
-
-        const data = await res.json();
-        setCurrentUser(data.admin); 
-        setIsValid(true);
-      } catch (err) {
-        console.warn("Auth check failed:", err);
-        setIsValid(false);
+      } catch {
+        setValid(false);
         setCurrentUser(null);
       } finally {
-        setIsChecking(false);
+        setChecking(false);
       }
     };
 
-
     if (!currentUser) {
-      checkToken();
+      verify();
     } else {
-      setIsValid(true);
-      setIsChecking(false);
+      setValid(true);
+      setChecking(false);
     }
   }, [currentUser, setCurrentUser]);
 
-  if (isChecking) {
-    return <div>Checking authentication...</div>;
-  }
+  if (checking) return <div>Checking authentication...</div>;
+  if (!valid) return <Navigate to="/login" replace />;
 
-  if (!isValid) {
-    return <Navigate to="/login" replace />;
-  }
   return <>{children}</>;
 };
 
