@@ -28,6 +28,40 @@ To set up this project do the following:
     ```bash
     npm run dev
     ```
+## Current features 
+Our platform includes a full set of features designed to give users an easy way to explore services, request quotes, manage their accounts, and purchase products. The system ensures a smooth experience even for visitors who are not logged in, while still offering more advanced options for registered users.
+
+**General Access**
+- FAQ Page – Users can browse frequently asked questions for quick help.
+- Contact Page – Users can reach out directly for inquiries or support.
+- Request a Free Quote (No Login Needed) – Visitors can submit a quote request even without creating an account.
+
+**Profile & Account**
+- User Registration – Create an account using a simple signup process.
+- User Login – Secure login system to access personalized features.
+- Profile Settings – Logged-in users can update personal details through the settings page.
+
+**Profile & Account**
+- Request Services (Logged-in Users) – Users can request maintenance, repair, or other services.
+- Buy Generators & Parts On-Hand – A dedicated page to browse available generators and parts currently in stock.
+- Track Requests (Optional) – Users can follow the status of their submitted service requests.
+
+Alongside the user facing functionality, we provide a powerful admin dashboard that allows the business to manage inventory, monitor service requests, and maintain the platform efficiently. Both sides work together to support real time operations and ensure accuracy.
+
+**Inventory Management**
+- Add new parts or generators.
+- Edit existing product details.
+- Remove outdated or unavailable inventory.
+
+**Service Request Management**
+- Accept service requests.
+- Hold requests for review or follow-up.
+- Decline requests when needed.
+
+**Platform Control**
+- Keep track of user activity and incoming quote request.
+- Manage system data and keep product availability up to date.
+
 ## Security
 Passwords are hashed and never stored in plaintext. Authentication is handled by our backend, and multi-factor authentication (MFA) provides an additional security layer during login.
 
