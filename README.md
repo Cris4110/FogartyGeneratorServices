@@ -1,7 +1,9 @@
-# FogartyGeneratorServices
+# Fogarty Onsite Generator Service Website
+<img src="https://github.com/Cris4110/FogartyGeneratorServices/blob/main/public/Fogarty%20Generator%20Service%20Logo%20Design.png" width="400" />
+Definition: Fogarty Onsite Generator Service Website is a portal that replaces the clients call and text business, giving the customers the opportunity to schedule appointments, request quotes, make purchase requests, and much more.<br><br>
 
-## Description
-This website is Senior Project By CSUS Sacramento students for A client.
+Purpose: Fogarty Onsite Generator Service primarily runs through a text and call model which leads to many issues. Customers cannot reliably get help with their generator needs through these promotions, which leads to overbooked schedules and potentially missed clients. This is a solution that provides resources to customers and helps reduce reliance on this primary source of contact. By creating this website, customers can view his services, book appointments, read reviews, view available items, and strengthen his independent online presence.
+
 
 ## Built Tools
 - **Frontend:** React, TypeScript, MUI Library, Node.js
