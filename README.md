@@ -69,11 +69,10 @@ Passwords are hashed and never stored in plaintext. Authentication is handled by
 - Secure registration and login using server-side validation and hashed passwords 
 - Multi-factor authorization (MFA) will also be implemented for logging in and account recovery (Future Development)
 - Login tokens expire after 12 hours
-
-**Role-Based Access Control**
-    - There is a separate login page specifically for admins
-    - Only admins have access to change/manage appointments, inventory, and users
-    - Standard users can request appointments/quotes and purchase parts/generators
-
 - API keys are used for backend services
 - .env files contain confidential information, so do not commit .env files or anything that compromises security
+
+**Role-Based Access Control**
+- There is a separate login page specifically for admins
+- Only admins have access to change/manage appointments, inventory, and users
+- Standard users can request appointments/quotes and purchase parts/generators
