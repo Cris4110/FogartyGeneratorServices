@@ -83,6 +83,30 @@ Alongside the user facing functionality, we provide a powerful admin dashboard t
 - Keep track of user activity and incoming quote request.
 - Manage system data and keep product availability up to date.
 
+## Upcoming Features
+During the timeline of late January 2026 to early April 2026, our team plans to implement the following features:
+
+**Authentication**
+- Currently, customers and admins can create an account and log in, but we do not yet have a full authentication system to verify their accounts. We plan to integrate Firebase Authentication as our authentication API to securely handle account verification and login.
+
+**Notification**
+- We plan to implement APIs to send email and SMS notifications for appointment requests and appointment reminders.
+
+**Settings**
+- For admins, we plan to provide the ability to modify website content to post updates. We also plan to add general settings for both admins and customers, including notification preferences.
+
+**Reviews**
+- We plan to create a review system that is used only within the website. Reviews will be triggered by completed appointments and will be visible to all users.
+
+**Quotes**
+- An account-free system for customers to submit quote requests describing their general needs. These requests will be reviewed by admins to provide a rough cost estimate.
+
+**Wave Integration**
+- An account-free system for customers to submit quote requests describing their general needs. These requests will be reviewed by admins to provide a rough cost estimate.
+
+**Domain & Hosting**
+- During development, the application is running on `localhost` for both the frontend and backend. Before the client begins using the platform in production, we will utilize a custom domain name.
+
 ## Security
 Passwords are hashed and never stored in plaintext. Authentication is handled by our backend, and multi-factor authentication (MFA) provides an additional security layer during login.
 
