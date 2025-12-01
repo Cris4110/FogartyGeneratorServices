@@ -273,11 +273,13 @@ Insomnia
 ![This is an alt text.](/src/assets/Insomnia_For_ReadME.png "Insomnia Testing Example")
 
 ## Testing
+- TBA
 
 ## Deployment
-
+- TBA
+  
 ## Developer Instructions
-
+- TBA
 
 
 
