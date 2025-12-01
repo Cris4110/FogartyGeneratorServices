@@ -274,10 +274,6 @@ Insomnia
 
 ## Developer Instructions
 
-Testing:	
 
-Deployment:
-
-Developer Instructions:
 
 
