@@ -267,7 +267,17 @@ Fogarty Onsite Generator Services uses MongoDB in JSON Format.
 
 Test endpoints using:
 
+
+
 Insomnia
 ![This is an alt text.](/src/assets/Insomnia_For_ReadME.png "Insomnia Testing Example")
+
+## Developer Instructions
+
+Testing:	
+
+Deployment:
+
+Developer Instructions:
 
 
