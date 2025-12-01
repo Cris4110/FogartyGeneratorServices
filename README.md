@@ -121,3 +121,143 @@ Passwords are hashed and never stored in plaintext. Authentication is handled by
 - There is a separate login page specifically for admins
 - Only admins have access to change/manage appointments, inventory, and users
 - Standard users can request appointments/quotes and purchase parts/generators
+
+**API Documentation**
+
+All API responses follow:
+```
+{
+  "success": true,
+  "message": "Description",
+  "data": {}
+}
+```
+Generator Equipment API response example:
+```
+{
+"_id": "69141edd7a5dc4d8798112fb",
+"genID": "GEN-0001",
+"name": "Generac Guardian 22kW",
+"type": "Standby (Residential, NG/LP)"
+}
+```
+
+
+👤 User API
+|Method |Endpoint|  Description|    Auth|
+|-------|--------|-------------|:-----------:|
+|GET    |/api/users |Get all users| Admin|
+|GET    |/api/users/:id|    Get single| User|  
+|PUT    |/api/users/:id|    Update user|User    |
+|DELETE |/api/users/:id|    Delete user|    Admin|
+
+
+📅 Appointment API
+|Method |Endpoint|  Description|    Auth|
+|-------|--------|-------------|:-----------:|
+|POST   |/api/appointments  |Create appointment request|    User
+|GET    |/api/appointments  |Get all pending appointments|  Admin
+|PUT    |/api/appointments/:id/approve| Approve appointment|    Admin
+|PUT    |/api/appointments/:id/deny|    Deny/delete appointment|    Admin
+|DELETE |/api/appointments/:id|Remove appointment   |Admin|
+
+
+🛠️ Generator API
+|Method |Endpoint|  Description|    Auth|
+|-------|--------|-------------|:-----------:|
+|GET    |/api/generators|   List generator models| User |
+|POST   |/api/generators    |Add a generator model| Admin|
+|PUT    |/api/generators/:id|   Update generator|   Admin|
+|DELETE |/api/generators/:id|   Delete generator|   Admin|
+
+
+📦 Parts / Inventory API
+|Method |Endpoint|  Description|    Auth|
+|-------|--------|-------------|:-----------:|
+|GET    |/api/parts |Get all parts  |Admin|
+|POST   |/api/parts|    Create a new part entry |Admin|
+|PUT    |/api/parts/:id|    Update part information |Admin|
+|DELETE |/api/parts/:id|    Delete a part|  Admin|
+
+
+🗄️ Database Schema (MongoDB)
+
+
+Fogarty Onsite Generator Services uses MongoDB in JSON Format.
+
+
+👤 Users Collection
+```
+{
+  "_id": "ObjectId",
+  "userID": "string",
+  "name": "string",
+  "email": "string",
+  "password": "hashed string",
+  "phoneNumber": "string",
+  "address": {
+    "street": "string",
+    "city": "string",
+    "state": "string",
+    "zipcode": "string"
+  },
+  "role": "user | admin",
+  "createdAt": "Date"
+}
+```
+
+
+📅 Appointments Collection
+```
+{
+  "_id": "ObjectId",
+  "userID": "string",
+  "appointmentTime": "Date",
+  "description": "string",
+  "generatorModel": "string",
+  "serialNumber": "string",
+  "status": "pending | approved | denied",
+  "address": "string",
+  "createdAt": "Date"
+}
+```
+
+
+🛠️ Generators Collection
+```
+{
+  "_id": "ObjectId",
+  "manufacturer": "string",
+  "model": "string",
+  "serialRange": "string",
+  "fuelType": "string",
+  "powerRating": "string",
+  "notes": "string"
+}
+```
+
+
+📦 Parts Collection
+```
+{
+  "_id": "ObjectId",
+  "partName": "string",
+  "partNumber": "string",
+  "quantity": "number",
+  "location": "string",
+  "compatibleModels": ["string"]
+}
+```
+
+
+🧩 ERD — Entity Relationship Diagram
+![This is an alt text.](/src/assets/ERD_for_README.png "Current ERD")
+
+🧪 API Testing
+
+Test endpoints using:
+
+Insomnia
+![This is an alt text.](/src/assets/Insomnia_For_ReadME.png "Insomnia Testing Example")
+
+
