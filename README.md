@@ -10,6 +10,16 @@ Purpose: Fogarty Onsite Generator Service primarily runs through a text and call
 - **Backend:** MongoDB
 - **Version Control:** GitHub
 
+## Table of Contents
+- [Installation](#installation)
+- [Current Features](#current-features)
+- [Upcoming Features](#upcoming-features)
+- [Security](#security)
+- [API Documentation](#api-documentation)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Developer Instructions](#developer-instructions)
+
 ## Installation
 
 To set up this project, follow the steps below:
@@ -122,7 +132,7 @@ Passwords are hashed and never stored in plaintext. Authentication is handled by
 - Only admins have access to change/manage appointments, inventory, and users
 - Standard users can request appointments/quotes and purchase parts/generators
 
-**API Documentation**
+## API Documentation
 
 All API responses follow:
 ```
