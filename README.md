@@ -65,17 +65,13 @@ Our platform includes a full set of features designed to give users an easy way 
 **General Access**
 - FAQ Page – Users can browse frequently asked questions for quick help.
 - Contact Page – Users can reach out directly for inquiries or support.
-- Request a Free Quote (No Login Needed) – Visitors can submit a quote request even without creating an account.
 
 **Profile & Account**
 - User Registration – Create an account using a simple signup process.
 - User Login – Secure login system to access personalized features.
-- Profile Settings – Logged-in users can update personal details through the settings page.
 
 **Profile & Account**
 - Request Services (Logged-in Users) – Users can request maintenance, repair, or other services.
-- Buy Generators & Parts On-Hand – A dedicated page to browse available generators and parts currently in stock.
-- Track Requests (Optional) – Users can follow the status of their submitted service requests.
 
 Alongside the user facing functionality, we provide a powerful admin dashboard that allows the business to manage inventory, monitor service requests, and maintain the platform efficiently. Both sides work together to support real time operations and ensure accuracy.
 
