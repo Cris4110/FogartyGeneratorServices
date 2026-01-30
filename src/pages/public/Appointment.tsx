@@ -70,7 +70,7 @@ function Appointment() {
     }
 
     try {
-      // ✔ Save EXACT full timestamp selected by user
+      // Save EXACT full timestamp selected by user
       const appointmentDateTime = dateTime.toISOString();
 
        const createdAt = new Date().toISOString();

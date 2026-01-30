@@ -12,7 +12,7 @@ interface ReviewedAppointment {
   status: "accepted" | "denied" | "rescheduled";
   name: string;
   phone: string;
-  email: string;
+  email: string; 
   address: string;
   description: string;  
   rescheduledDateTime?: string | null;
