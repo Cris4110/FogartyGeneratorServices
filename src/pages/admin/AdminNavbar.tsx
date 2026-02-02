@@ -163,20 +163,6 @@ const AdminNavbar = () => {
           {"Reviewed\nAppointments"}
         </Typography>
 
-        {/* Catalog Management */}
-        <Typography
-          variant="h5"
-          sx={{
-            whiteSpace: "pre-line",
-            cursor: "pointer",
-            transition: "0.3s",
-            "&:hover": { color: "#1976d2" },
-          }}
-          onClick={() => handleNavigation("/admin/catalog-management")}
-        >
-          {"Catalog\nManagement"}
-        </Typography>
-
         {/* User Management */}
         <Typography
           variant="h5"

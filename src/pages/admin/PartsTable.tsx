@@ -6,6 +6,12 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from "react-router-dom";
 
+
+interface PartRow {
+  id: string;
+  stock: number;
+}
+
 // displays parts table for the inventory-management page
 function PartsTable() {
 
@@ -41,13 +47,10 @@ function PartsTable() {
     for (let i = 0; i < data.length; i++) {
       let part = data[i];
       tmp[i] = {
-        id:           part.partID,
-        name:         part.name||"",
-        type:         part.type||"",
-        stock:        part.stock||"",
-        availability: part.availability||"",
-        cost:         part.cost||"",
-        image:        part.image||'https://img.freepik.com/premium-photo/section-industrial-electric-motor-3d-rendering_823159-1461.jpg?semt=ais_hybrid&w=740&q=80'
+        id:           part._id ?? part.partID,
+        Part_Name:    part.Part_Name,
+        stock: Number(part.Stock) || 0,
+
       }
     }
     updateRows(tmp);
@@ -68,40 +71,96 @@ function PartsTable() {
 
   /* declares name of columns and settings */
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 150, editable: true },
-    { field: "name", headerName: "Name", width: 150, editable: true },
-    { field: "type", headerName: "Type", width: 150, editable: true },
-    { field: "stock", headerName: "Stock", width: 150, editable: true },
-    { field: "availability", headerName: "Availability", width: 150, editable: true },
-    { field: "cost", headerName: "Cost", width: 150, editable: true },
-    { field: "image", headerName: "Image", width: 150,
-      renderCell: (params) => (
-      <img
-        src={params.value || ""}
-        alt="thumbnail"
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-          borderRadius: 8,
-        }}
-      />
-      ),
-    },
+    { field: "Part_Name", headerName: "Name", width: 150, editable: true },
+    {
+  field: "stock",
+  headerName: "Stock",
+  width: 300,
+  sortable: false,
+  renderCell: (params) => (
+    <Stack direction="row" spacing={1} alignItems="center">
+      <Button
+        size="small"
+        variant="outlined"
+        onClick={() => updateLocalStock(params.row.id, -1)}
+      >
+        −
+      </Button>
+
+      <Typography minWidth={24} textAlign="center">
+        {params.row.stock}
+      </Typography>
+
+      <Button
+        size="small"
+        variant="outlined"
+        onClick={() => updateLocalStock(params.row.id, 1)}
+      >
+        +
+      </Button>
+
+      <Button
+        size="small"
+        variant="contained"
+        onClick={() => saveStock(params.row.id, params.row.stock)}
+      >
+        Save
+      </Button>
+    </Stack>
+  )
+}
+
   ];
 
   /* random data, to be replaced with data from database */
-  const [rows, updateRows] = useState([
-  { id: "1", name: 'name1', type: 'type1', stock: 'stock', availability: 'avail', cost: '123', image: 'https://img.freepik.com/premium-photo/section-industrial-electric-motor-3d-rendering_823159-1461.jpg?semt=ais_hybrid&w=740&q=80'},
-  { id: "2", name: 'name2', type: 'type2', stock: 'stock', availability: 'avail', cost: '567', image: 'https://img.freepik.com/premium-photo/section-industrial-electric-motor-3d-rendering_823159-1461.jpg?semt=ais_hybrid&w=740&q=80'},
-  { id: "3", name: 'name3', type: 'type3', stock: 'stock', availability: 'avail', cost: '345', image: 'https://img.freepik.com/premium-photo/section-industrial-electric-motor-3d-rendering_823159-1461.jpg?semt=ais_hybrid&w=740&q=80'},
-  ]);
+  const [rows, updateRows] = useState<PartRow[]>([]);
 
   // Tracks state of the selected parts/rows
   const [rowSelectionModel, setRowSelectionModel] = useState({
     type: 'include',
     ids: new Set(),
   });
+
+
+
+  const updateLocalStock = (id: string, delta: number) => {
+  updateRows((prev) =>
+    prev.map((row) =>
+      row.id === id
+        ? { ...row, stock: Math.max(0, row.stock + delta) }
+        : row
+    )
+  );
+};
+
+const saveStock = async (id: string, stock: number) => {
+  try {
+    const res = await fetch(`http://localhost:3000/api/parts/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Stock: stock }) // matches DB field
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.message);
+    }
+
+    const updatedPart = await res.json();
+
+    // Sync UI with DB response
+    updateRows((prev) =>
+      prev.map((row) =>
+        row.id === id
+          ? { ...row, stock: Number(updatedPart.Stock) }
+          : row
+      )
+    );
+  } catch (err) {
+    console.error("Stock update error:", err);
+  }
+};
+
 
   const navigate = useNavigate();
   /* create button routes to form to create another item, 
@@ -120,8 +179,8 @@ function PartsTable() {
           method: "DELETE"
         });
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
+        const deletedGen = await res.json();
+        if (!res.ok) throw new Error(deletedGen.message);
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {
