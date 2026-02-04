@@ -78,8 +78,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       <Navbar />
       <div style={{ fontFamily: "Arial, sans-serif", padding: "2rem", background: "#f9f9f9" }}>
         <div style={{ textAlign: "center" }}>
-          <h1>Fogarty Onsite</h1>
-          <h1>Generator Service</h1>
+          <h1>Request An Account</h1>
         </div>
 
       <form
@@ -93,12 +92,6 @@ const handleSubmit = async (e: React.FormEvent) => {
           margin: "auto",
         }}
       >
-        <div style={{ textAlign: "center" }}>
-          <h3>Create an account</h3>
-          <h5>
-            Already have an account? <u>Login</u>
-          </h5>
-        </div>
 
         <input
           type="text"
