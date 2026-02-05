@@ -33,9 +33,17 @@ const QuoteSchema = mongoose.Schema ({
         type: String,
         reuqired: true,
         default: ""
+    },
+    acknowledged: {
+        type: Boolean,
+        default: false
+    },
+},
+    {
+        timestamps: true,
     }
 
-})
+)
 
 const Quote = mongoose.model("Quote", QuoteSchema);
 
