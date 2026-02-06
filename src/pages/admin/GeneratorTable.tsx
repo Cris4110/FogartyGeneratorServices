@@ -29,23 +29,14 @@ function GeneratorTable() {
   const [rows, setRows] = useState<GeneratorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDelete, setOpenDelete] = useState(false);
-  //const [rowSelectionModel, setRowSelectionModel] = useState<string[]>([]);
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>();
-
-  
-  //const selectedIds = rowSelectionModel;
-  //const selectedIds = getSelectedIds();
-
 
   const getSelectedIds = (): string[] => {
   if (!rowSelectionModel) return [];
-
-  // v7+ object shape
   if ("ids" in rowSelectionModel) {
     return Array.from(rowSelectionModel.ids).map(String);
   }
 
-  // v6 array shape fallback
   return rowSelectionModel.map(String);
 };
   const selectedIds = getSelectedIds();
@@ -86,15 +77,24 @@ function GeneratorTable() {
     getGens();
   }, []);
 
+  const processRowUpdate = async (newRow: GeneratorRow) => {
+  // prevent negatives
+  const updatedRow = {
+    ...newRow,
+    stock: Math.max(0, Number(newRow.stock)),
+  };
 
-const updateLocalStock = (id: string, delta: number) => {
+  // optimistic UI update
   setRows((prev) =>
     prev.map((row) =>
-      row.id === id
-        ? { ...row, stock: Math.max(0, row.stock + delta) }
-        : row
+      row.id === updatedRow.id ? updatedRow : row
     )
   );
+
+  // save to DB
+  await saveStock(updatedRow.id, updatedRow.stock);
+
+  return updatedRow;
 };
 
 const saveStock = async (id: string, stock: number) => {
@@ -128,43 +128,7 @@ const saveStock = async (id: string, stock: number) => {
     { field: "Serial_Number", headerName: "Serial Number", width: 150, editable: true },
     { field: "name", headerName: "Name", width: 150, editable: true },
     { field: "description", headerName: "Description", width: 250, editable: true },
-    {
-  field: "stock",
-  headerName: "Stock",
-  width: 300,
-  sortable: false,
-  renderCell: (params) => (
-    <Stack direction="row" spacing={1} alignItems="center">
-      <Button
-        size="small"
-        variant="outlined"
-        onClick={() => updateLocalStock(params.row.id, -1)}
-      >
-        −
-      </Button>
-
-      <Typography minWidth={24} textAlign="center">
-        {params.row.stock}
-      </Typography>
-
-      <Button
-        size="small"
-        variant="outlined"
-        onClick={() => updateLocalStock(params.row.id, 1)}
-      >
-        +
-      </Button>
-
-      <Button
-        size="small"
-        variant="contained"
-        onClick={() => saveStock(params.row.id, params.row.stock)}
-      >
-        Save
-      </Button>
-    </Stack>
-  )
-}
+    { field: "stock", headerName: "Stock", width: 150, editable: true,type: "number" }
  ];
 
 const handleDeleteRows = async () => {
@@ -213,7 +177,7 @@ const handleDeleteRows = async () => {
             pageSizeOptions={[5]}
             checkboxSelection
             disableRowSelectionOnClick
-        
+            processRowUpdate={processRowUpdate}
             onRowSelectionModelChange={(newSelection) =>
             setRowSelectionModel(newSelection)
             }

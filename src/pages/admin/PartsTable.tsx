@@ -68,47 +68,30 @@ function PartsTable() {
     fetchDB();
   }, []);
 
+  const processRowUpdate = async (newRow: any) => {
+  const updatedRow = {
+    ...newRow,
+    stock: Math.max(0, Number(newRow.stock)),
+  };
+
+  // Optimistic UI update
+  updateRows((prev) =>
+    prev.map((row) =>
+      row.id === updatedRow.id ? updatedRow : row
+    )
+  );
+
+  // Persist to backend
+  await saveStock(updatedRow.id, updatedRow.stock);
+
+  return updatedRow;
+};
+
 
   /* declares name of columns and settings */
   const columns: GridColDef[] = [
     { field: "Part_Name", headerName: "Name", width: 150, editable: true },
-    {
-  field: "stock",
-  headerName: "Stock",
-  width: 300,
-  sortable: false,
-  renderCell: (params) => (
-    <Stack direction="row" spacing={1} alignItems="center">
-      <Button
-        size="small"
-        variant="outlined"
-        onClick={() => updateLocalStock(params.row.id, -1)}
-      >
-        −
-      </Button>
-
-      <Typography minWidth={24} textAlign="center">
-        {params.row.stock}
-      </Typography>
-
-      <Button
-        size="small"
-        variant="outlined"
-        onClick={() => updateLocalStock(params.row.id, 1)}
-      >
-        +
-      </Button>
-
-      <Button
-        size="small"
-        variant="contained"
-        onClick={() => saveStock(params.row.id, params.row.stock)}
-      >
-        Save
-      </Button>
-    </Stack>
-  )
-}
+    { field: "stock", headerName: "Stock", width: 150, editable: true, type: "number", description: "Click to edit stock quantity",}
 
   ];
 
@@ -121,17 +104,6 @@ function PartsTable() {
     ids: new Set(),
   });
 
-
-
-  const updateLocalStock = (id: string, delta: number) => {
-  updateRows((prev) =>
-    prev.map((row) =>
-      row.id === id
-        ? { ...row, stock: Math.max(0, row.stock + delta) }
-        : row
-    )
-  );
-};
 
 const saveStock = async (id: string, stock: number) => {
   try {
@@ -210,6 +182,7 @@ const saveStock = async (id: string, stock: number) => {
           pageSizeOptions={[5]}
           checkboxSelection
           disableRowSelectionOnClick
+          processRowUpdate={processRowUpdate}
           onRowSelectionModelChange={(newRowSelectionModel) => {
             setRowSelectionModel(newRowSelectionModel);
           }}
