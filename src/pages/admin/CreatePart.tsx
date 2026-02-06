@@ -1,22 +1,25 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const CreatePart: React.FC = () => {
     const [partID, setPartid] = useState("");
-    const [type, setType] = useState("");
-    const [cost, setCost] = useState("");
+    const [Stock, setStock] = useState("");
+    const [Part_Name, setPart_Name] = useState("");
     const [responseMsg, setResponseMsg] = useState("");
+    const navigate = useNavigate();
+
 
 
 const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+        
 
     try {
         const response = await fetch("http://localhost:3000/api/parts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ partID, type, cost: parseInt(cost, 10) }),
+            body: JSON.stringify({ partID, Part_Name, Stock }),
         });
-
         const result = await response.json();
 
         if (!response.ok) {
@@ -26,8 +29,9 @@ const handleSubmit = async (e: React.FormEvent) => {
             setResponseMsg(result.message || "Generator added successfully!");
             // Clear form fields after success
             setPartid("");
-            setType("");
-            setCost("");
+            setStock("");
+            setPart_Name("");
+            navigate("/admin/inven-management")
         }
     } catch (error) {
         setResponseMsg("Error connecting to server.");
@@ -60,9 +64,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             <input
             type="text"
-            placeholder="ID"
-            value={partID}
-            onChange={(e) => setPartid(e.target.value)}
+            placeholder="Name"
+            value={Part_Name}
+            onChange={(e) => setPart_Name(e.target.value)}
             required
             style={{
                 display: "block",
@@ -75,24 +79,9 @@ const handleSubmit = async (e: React.FormEvent) => {
             />
             <input
             type="text"
-            placeholder="Type"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            required
-            style={{
-                display: "block",
-                width: "80%",       // set width
-                margin: "0.5rem auto", // center horizontally and add spacing
-                padding: "0.5rem",
-                borderRadius: "4px",
-                border: "1px solid #ccc",
-                }}
-            />
-            <input
-            type="text"
-            placeholder="Cost"
-            value={cost}
-            onChange={(e) => setCost(e.target.value)}
+            placeholder="Stock"
+            value={Stock}
+            onChange={(e) => setStock(e.target.value)}
             required
             style={{
                 display: "block",

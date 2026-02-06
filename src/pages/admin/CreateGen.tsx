@@ -1,11 +1,13 @@
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 const CreateGen: React.FC = () => {
     const [genID, setGenid] = useState("");
+    const [Serial_Number, setSerial_Number] = useState("");
     const [name, setName] = useState("");
-    const [type, setType] = useState("");
+    const [Description, setDescription] = useState("");
+    const [Stock, setStock] = useState("");
     const [responseMsg, setResponseMsg] = useState("");
-
+    const navigate = useNavigate();
 
 const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,10 +16,11 @@ const handleSubmit = async (e: React.FormEvent) => {
         const response = await fetch("http://localhost:3000/api/generators", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ genID, name, type }),
+            body: JSON.stringify({ genID, name, Description, Stock, Serial_Number }),
         });
 
         const result = await response.json();
+        
 
         if (!response.ok) {
             // Show the backend error directly
@@ -27,7 +30,10 @@ const handleSubmit = async (e: React.FormEvent) => {
             // Clear form fields after success
             setGenid("");
             setName("");
-            setType("");
+            setDescription("");
+            setStock("");
+            setSerial_Number("");
+            navigate("/admin/inven-management")
         }
     } catch (error) {
         setResponseMsg("Error connecting to server.");
@@ -60,9 +66,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             <input
             type="text"
-            placeholder="ID"
-            value={genID}
-            onChange={(e) => setGenid(e.target.value)}
+            placeholder="Serial Number"
+            value={Serial_Number}
+            onChange={(e) => setSerial_Number(e.target.value)}
             required
             style={{
                 display: "block",
@@ -90,9 +96,24 @@ const handleSubmit = async (e: React.FormEvent) => {
             />
             <input
             type="text"
-            placeholder="Type"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
+            placeholder="Description"
+            value={Description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            style={{
+                display: "block",
+                width: "80%",       // set width
+                margin: "0.5rem auto", // center horizontally and add spacing
+                padding: "0.5rem",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+                }}
+            />
+            <input
+            type="text"
+            placeholder="Stock"
+            value={Stock}
+            onChange={(e) => setStock(e.target.value)}
             required
             style={{
                 display: "block",
