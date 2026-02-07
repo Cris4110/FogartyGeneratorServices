@@ -8,6 +8,7 @@ import ReviewedAppointments from "../pages/admin/ReviewedAppointments";
 import CreateGenerator from "../pages/admin/CreateGen";
 import CreatePart from "../pages/admin/CreatePart";
 import ReviewManagement from "../pages/admin/ReviewManagement";
+import QuoteRequests from "../pages/admin/QuoteRequests";
 
 const AdminRoutes = () => (
     <Routes>
@@ -18,8 +19,10 @@ const AdminRoutes = () => (
       
       <Route path="/reviewed" element={<ReviewedAppointments />} />
       <Route path="/create-gen" element={<CreateGenerator />} />
+      <Route path="/incoming/quotes" element={<QuoteRequests />} />
       <Route path="/create-part" element={<CreatePart />} />
       <Route path="/review-management" element={<ReviewManagement />} />
+  
     </Routes>
 
 );

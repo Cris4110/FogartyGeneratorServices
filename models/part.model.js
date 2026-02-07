@@ -4,23 +4,20 @@ const PartSchema = mongoose.Schema(
     {
         partID: {
             type: String,
-            required: true,
+            required: false,
             default: ""
         },
 
-        type: {
+        Part_Name: {
             type: String,
             required: true,
             default: ""
         },
 
-        cost: {
+        Stock: {
             type: Number,
             required: true,
-            default: 0.00,
-            min: 0,
-            get: v => (v/1).toFixed(2),
-            set: v => parseFloat(v.toFixed(2))
+            default: ""
         },
        
     },
