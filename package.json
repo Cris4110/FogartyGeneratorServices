@@ -4,7 +4,7 @@
   "description": "",
   "main": "CRUD_mongoose.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --open",
     "devCRUD": "nodemon CRUD_mongoose.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

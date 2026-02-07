@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import {
   Container,
   Box,
@@ -12,41 +11,30 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 
 function LeaveReview() {
-  const navigate = useNavigate();
+  const [name, setName] = useState(""); // free input name
+  const [service, setService] = useState("");
+  const [comments, setComments] = useState("");
+  const [rating, setRating] = useState(0); // can be 0.5, 1, 1.5, ...
+  const [error, setError] = useState("");
 
-  // Form state
-  const [name, setName] = useState<string>("");
-  const [service, setService] = useState<string>("");
-  const [comments, setComments] = useState<string>("");
-  const [rating, setRating] = useState<number>(0);
-  const [error, setError] = useState<string>("");
-
-  // Check if user is logged in & autofill name
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
-
-    if (!token) {
-      navigate("/login"); // redirect if not logged in
-      return;
-    }
-
-    if (user) {
-      const parsedUser = JSON.parse(user);
-      setName(parsedUser.name || "");
-    }
-  }, [navigate]);
-
-  // Handle form submission
   const handleSubmit = () => {
-    if (!service || !comments || rating === 0) {
+    if (!name || !service || !comments || rating === 0) {
       setError("Please fill out all required fields.");
       return;
     }
-
     setError("");
     console.log({ name, service, rating, comments });
     alert("Review submitted!");
+  };
+
+  const handleStarClick = (
+    event: React.MouseEvent<HTMLDivElement>,
+    index: number
+  ) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const half = x < rect.width / 2 ? 0.5 : 1;
+    setRating(index + half);
   };
 
   return (
@@ -59,13 +47,13 @@ function LeaveReview() {
             Leave a Review
           </Typography>
 
-          {/* Name field (disabled) */}
+          {/* Name input */}
           <TextField
             label="Name"
             fullWidth
             margin="normal"
             value={name}
-            disabled
+            onChange={(e) => setName(e.target.value)}
           />
 
           {/* Service select */}
@@ -87,20 +75,53 @@ function LeaveReview() {
           <Typography mt={2} mb={1}>
             Rating
           </Typography>
-          <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-            {[1, 2, 3, 4, 5].map((num) => (
-              <span
-                key={num}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                onClick={(e) => handleStarClick(e, i)}
                 style={{
+                  position: "relative",
+                  fontSize: "32px",
                   cursor: "pointer",
-                  fontSize: "28px",
-                  color: num <= rating ? "#ffb400" : "#ccc",
+                  width: "32px",
+                  height: "32px",
+                  display: "inline-block",
                 }}
-                onClick={() => setRating(num)}
               >
-                ★
-              </span>
+                {/* Empty star */}
+                <div
+                  style={{
+                    color: "#ccc",
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                  }}
+                >
+                  ★
+                </div>
+                {/* Fill star */}
+                <div
+                  style={{
+                    color: "#ffb400",
+                    overflow: "hidden",
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width:
+                      rating > i
+                        ? rating >= i + 1
+                          ? "100%"
+                          : "50%"
+                        : "0%",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  ★
+                </div>
+              </div>
             ))}
+            <Typography ml={2}>{rating.toFixed(1)}</Typography>
           </Box>
 
           {/* Comments field */}
