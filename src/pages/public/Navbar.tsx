@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Container from '@mui/material/Container';
-import logo from "../../assets/logo_notext.png";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Container from "@mui/material/Container";
+import logo from "../../assets/logo.png";
 import type { Theme } from "@emotion/react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Box,
   Button,
+  Snackbar,
+  Alert,
   type SxProps,
   Typography,
 } from "@mui/material";
@@ -28,32 +30,48 @@ const pages = [
   { label: "Services", to: "/services" },
   { label: "Contact", to: "/Contactpage" },
   { label: "FAQ", to: "/faq" },
-  {label: "Request Account", to: "/UserRegistration"},
+  { label: "Request Account", to: "/UserRegistration" },
 ];
-
 
 function Navbar() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const navigate = useNavigate();
+  const [logoutMsg, setLogoutMsg] = useState<string | null>(null);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   // On first render, try to hydrate from cookie via /users/me
   useEffect(() => {
-  let cancelled = false;
-  api.get("/users/me")
-    .then(res => !cancelled && setCurrentUser(res.data.user as User))
-    .catch(() => !cancelled && setCurrentUser(null))
-    .finally(() => !cancelled && setAuthReady(true));
-  return () => { cancelled = true; };
-}, []);
+    let cancelled = false;
+    api
+      .get("/users/me")
+      .then((res) => !cancelled && setCurrentUser(res.data.user as User))
+      .catch(() => !cancelled && setCurrentUser(null))
+      .finally(() => !cancelled && setAuthReady(true));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
       await api.post("/users/logout");
       setCurrentUser(null);
-      // optional: window.location.href = "/"; // hard redirect if you want
+      setLogoutMsg("Logged out successfully");
+      setLogoutOpen(true);
+      navigate("/", { replace: true });
     } catch {
       // ignore; keep UI as logged out
       setCurrentUser(null);
+      setLogoutMsg("Logged out successfully");
+      setLogoutOpen(true);
+      navigate("/", { replace: true });
     }
+  };
+
+  const handleLogoutClose = (_?: any, reason?: string) => {
+    if (reason === "clickaway") return;
+    setLogoutOpen(false);
+    setLogoutMsg(null);
   };
   const ImageStyle: SxProps<Theme> = {
     width: "100px",
@@ -62,86 +80,113 @@ function Navbar() {
   };
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black' }}>
-      <Container maxWidth="xl">
-        <Toolbar disableGutters>
-          <Box component="img" src={logo} alt="logo" sx={ImageStyle} />
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="#app-bar-with-responsive-menu"
-            sx={{
-              mr: 2,
-              display: { xs: 'none', md: 'flex' },
-              fontFamily: 'monospace',
-              fontWeight: 700,
-              letterSpacing: '.3rem',
-              color: 'inherit',
-              textDecoration: 'none',
-            }}
-          >
-            Fogarty Onsite Generator Service
-          </Typography>
-
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Button
-                key={page.label}//updated to use page.label
-                component={NavLink}//added NavLink component for routing
-                to={page.to}//updated to use page.to, the route path per label
-                end={page.to === '/'} //ensures exact matching for home route
-                sx={{ my: 2, color: 'black', display: 'block' }}
-              >
-                {page.label} 
-              </Button>
-            ))}
-          </Box>
-          {!authReady ? (
-          // this part needed cause navbar flashes log in button before hiding it
-          null
-        ) : currentUser ? (
-            <>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                  <Button
-                    color="inherit"
-                    component={NavLink}
-                    to="/usersettings"
-                    end
-                    sx={{ textTransform: "none" }}
-                  >
-                    Settings
-                  </Button>
-                  <Typography variant="caption" sx={{ mt: 0.5, color: "text.secondary" }}>
-                    Hello,&nbsp;<strong>{currentUser.name ?? currentUser.email}</strong>
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Cart only when logged in, and last */}
-              <Button
-                 color="inherit"
-                onClick={handleLogout}
-                //disabled={loggingOut}
-              >
-                Cart
-              </Button>
-            </>
-          ) : (
-            <Button
-              color="inherit"
-              component={NavLink}
-              to="/userlogin"
-              end
-              sx={{ textTransform: "none" }}
+    <>
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "white", color: "black" }}
+      >
+        <Container maxWidth="xl">
+          <Toolbar disableGutters>
+            <Box component="img" src={logo} alt="logo" sx={ImageStyle} />
+            <Typography
+              variant="h5"
+              noWrap
+              component="a"
+              href="#app-bar-with-responsive-menu"
+              sx={{
+                mr: 2,
+                display: { xs: "none", md: "flex" },
+                fontFamily: "monospace",
+                fontWeight: 700,
+                letterSpacing: ".3rem",
+                color: "inherit",
+                textDecoration: "none",
+              }}
             >
-              Login
-            </Button>
-          )}
-        </Toolbar>
-      </Container>
-    </AppBar>
+              Fogarty Onsite Generator Service
+            </Typography>
+
+            <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
+              {pages.map((page) => (
+                <Button
+                  key={page.label} //updated to use page.label
+                  component={NavLink} //added NavLink component for routing
+                  to={page.to} //updated to use page.to, the route path per label
+                  end={page.to === "/"} //ensures exact matching for home route
+                  sx={{ my: 2, color: "black", display: "block" }}
+                >
+                  {page.label}
+                </Button>
+              ))}
+            </Box>
+            {!authReady ? null : currentUser ? ( // this part needed cause navbar flashes log in button before hiding it
+              <>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-end",
+                    }}
+                  >
+                    <Button
+                      color="inherit"
+                      component={NavLink}
+                      to="/usersettings"
+                      end
+                      sx={{ textTransform: "none" }}
+                    >
+                      Settings
+                    </Button>
+                    <Typography
+                      variant="caption"
+                      sx={{ mt: 0.5, color: "text.secondary" }}
+                    >
+                      Hello,&nbsp;
+                      <strong>{currentUser.name ?? currentUser.email}</strong>
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Cart only when logged in, and last */}
+                <Button
+                  color="inherit"
+                  onClick={handleLogout}
+                  //disabled={loggingOut}
+                >
+                  Cart
+                </Button>
+              </>
+            ) : (
+              <Button
+                color="inherit"
+                component={NavLink}
+                to="/userlogin"
+                end
+                sx={{ textTransform: "none" }}
+              >
+                Login
+              </Button>
+            )}
+          </Toolbar>
+        </Container>
+      </AppBar>
+
+      <Snackbar
+        open={logoutOpen}
+        autoHideDuration={3000}
+        onClose={handleLogoutClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleLogoutClose}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {logoutMsg}
+        </Alert>
+      </Snackbar>
+    </>
   );
 }
 export default Navbar;

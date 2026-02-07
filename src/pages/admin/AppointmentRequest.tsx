@@ -253,56 +253,40 @@ export default function AppointmentRequest() {
     }
   ];
 
-  return (
-    <>
-      <AdminNavbar />
-      <Box sx={{ ml: "13vw", px: 4 }}>
-        <Toolbar />
-        <Typography variant="h4" gutterBottom>
-          Admin Appointment Requests
-        </Typography>
+return (
+  <>
+    <AdminNavbar />
+    <Box sx={{ ml: "13vw", px: 4, overflowX: "hidden" }}>
+      <Toolbar />
 
-        {error && <Alert severity="error">{error}</Alert>}
+      <Typography variant="h4" gutterBottom>
+        Reviewed Appointments
+      </Typography>
 
-        <Box
-          sx={{
-            height: 650,
-            width: "100%",
-            overflowX: "auto",      // horizontal scroll enabled
-            overflowY: "hidden",
-            whiteSpace: "nowrap"    // columns don't wrap
-             }}
-          >
+      {error && <Alert severity="error">{error}</Alert>}
 
-          {loading ? (
-            <Box
-              sx={{
-                display: "grid",
-                placeItems: "center",
-                height: "100%"
-              }}
-            >
-              <CircularProgress />
-            </Box>
-          ) : (
-            <DataGrid
-              rows={rows}
-              getRowId={(r) => r._id}
-              columns={columns}
-              disableRowSelectionOnClick
-              pageSizeOptions={[10, 25, 50]}
-              initialState={{
-                pagination: { paginationModel: { page: 0, pageSize: 25 } },
-                columns: { columnVisibilityModel: {} }
-              }}
-                sx={{
-                  minWidth: 1800,     // <-- Forces wide grid
-                  overflowX: "auto",  // <-- Allows sliding horizontally
-                 }}
-            />
-          )}
-        </Box>
+     <Box>  
+        {loading ? (
+          <Box sx={{ display: "grid", placeItems: "center", height: "100%" }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <DataGrid<Appointment>
+            rows={rows}
+            columns={columns}
+            getRowId={(r: Appointment) => r._id}
+            disableRowSelectionOnClick
+            pageSizeOptions={[10, 25, 50]}
+            initialState={{
+              pagination: { paginationModel: { page: 0, pageSize: 25 } }
+            }}
+            sx={{
+              minWidth: 1600
+            }}
+          />
+        )}
       </Box>
-    </>
-  );
+    </Box>
+  </>
+);
 }

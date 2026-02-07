@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 import App from "./App";
-import UserRegistration from "./pages/public/UserRegistration"; // adjust name/path if needed
 import { AuthProvider } from "./context/Appcontext";
 
 // Optional: custom MUI theme

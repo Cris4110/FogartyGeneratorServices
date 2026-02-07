@@ -1,191 +1,257 @@
+import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { Container, Box, Typography, Button, TextField } from "@mui/material";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-//defines forms input values as strings
-interface FormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  model: string;
-  serial: string;
-  notes: string;
-}
+const RequestQuote: React.FC = () => {
+  const navigate = useNavigate();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [genModel, setGenModel] = useState("");
+  const [genSerialNumber, setGenSerialNumber] = useState("");
+  const [additionalInfo, setAdditionalNotes] = useState("");
 
-function RequestQuote() {
-    //formData holds current state of form, setFormData updates state of form, strings set inital value of fields
-    const [ formData, setFormData ] = useState<FormData>({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        model: "",
-        serial: "",
-        notes: "",
-    });
+  const [responseMsg, setResponseMsg] = useState("");
 
-    //creates state objects for errors
-    const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    //handles form change, only overwrites field that is changed, leaving everything else the same
-    const handleChange = (e: { target: { name: any; value: any; }; }) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
+    const name = `${firstName} ${lastName}`.trim();
+
+    const newQuote = {
+      name,
+      email,
+      phoneNumber,
+      genModel,
+      genSerialNumber,
+      additionalInfo,
+    };
+
+    try {
+      const response = await fetch("http://localhost:3000/api/quotes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newQuote),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Show the backend error directly
+        setResponseMsg(result.message || "Error creating quote.");
+      } else {
+        setResponseMsg(result.message || "Quote created successfully!");
+        // Clear form fields after success
+        setFirstName("");
+        setLastName("");
+        setEmail("");
+        setPhoneNumber("");
+        setGenModel("");
+        setGenSerialNumber("");
+        setAdditionalNotes("");
+      }
+    } catch (error) {
+      setResponseMsg("Error connecting to server.");
+      console.error(error);
+    }
+  };
+
+  // Upon opening the page, check if user is logged in; if so, prefill form, otherwise redirect
+  useEffect(() => {
+    let cancelled = false;
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/users/me", {
+          method: "GET",
+          credentials: "include",
         });
-    };
-    // allows use of navigate function to change routes
-    const navigate = useNavigate();
-    //handles form submission
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault(); // prevents page from refreshing when pressing submit
-        // valdiates inputs and shows errors
-        const newErrors: Partial<Record<keyof FormData, string>> = {};
-        if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-        if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-        if (!formData.email.trim()) newErrors.email = "Email is required";
-        if (!formData.phone.trim()) newErrors.phone = "Phone is required";
-        if (!formData.model.trim()) newErrors.model = "Model is required";
-        if (!formData.serial.trim()) newErrors.serial = "Serial number is required";
 
-
-        setErrors(newErrors); // sets new errors
-
-        // prevents form from submitting if there are errors
-        if(Object.keys(newErrors).length > 0) {
-            return;
+        if (!res.ok) {
+          if (!cancelled) navigate("/userlogin");
+          return;
         }
-        alert("Quote request submitted!");
-        // navigates to homepage once form is submitted
-        navigate("/");
+
+        const data = await res.json();
+        const user = data.user;
+        if (!user) {
+          if (!cancelled) navigate("/userlogin");
+          return;
+        }
+
+        // Prefill fields
+        if (!cancelled) {
+          const fullName = (user.name || "").trim();
+          if (fullName) {
+            const parts = fullName.split(" ");
+            setFirstName(parts.shift() || "");
+            setLastName(parts.join(" ") || "");
+          }
+          if (user.email) setEmail(user.email);
+          if (user.phoneNumber) setPhoneNumber(user.phoneNumber);
+        }
+      } catch (err) {
+        if (!cancelled) navigate("/userlogin");
+      }
     };
 
-    return (
+    checkAuth();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
+  return (
     <>
-        <Navbar />
-        <Container maxWidth="sm" sx={{ 
-            border: '3px solid #dbdbdbff', 
-            borderRadius: '8px', 
-            padding: 4, 
-            mt: 15, 
-            mb: 15,
-            display: "flex",
-            justifyContent: "center",
-            }}>
+      {/* ===== Navbar Section ===== */}
+      <Navbar />
+      <div
+        style={{
+          fontFamily: "Arial, sans-serif",
+          padding: "2rem",
+          background: "#f9f9f9",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <h1>Request A Quote</h1>
+        </div>
 
-            {/* 
-            box is a form component, 
-            noValidate = allows handleSubmit to handle errors, 
-            autoComplete = stops suggesting previously entered inputs
-            onSumbit = connects to handleSubmit function
-            */}
-            <Box 
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center', 
-                    textAlign: 'center', 
-                    '& .MuiTextField-root': { m: 1, width: '50ch' } 
-                }}
-                component="form"
-                noValidate
-                autoComplete="off"
-                onSubmit={handleSubmit}
-            >
-                <Typography variant="h5" fontWeight={25}>
-                Request a Free Quote
-                </Typography>
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            background: "white",
+            padding: "3rem",
+            borderRadius: "12px",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+            maxWidth: "600px",
+            width: "100%",
+            margin: "2rem auto",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+            style={{
+              display: "block",
+              width: "80%", // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+            style={{
+              display: "block",
+              width: "80%", // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+            }}
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{
+              display: "block",
+              width: "80%", // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+            }}
+          />
+          <input
+            type="number"
+            placeholder="Phone Number"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            required
+            style={{
+              display: "block",
+              width: "80%", // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Generator Model"
+            value={genModel}
+            onChange={(e) => setGenModel(e.target.value)}
+            required
+            style={{
+              display: "block",
+              width: "80%", // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+            }}
+          />
 
-                {/* Input fields */}
-                <TextField
-                    required
-                    name="firstName"
-                    label="First Name"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    error={!!errors.firstName}
-                    helperText={errors.firstName}
-                />
+          <input
+            type="text"
+            placeholder="Generator Serial Number"
+            value={genSerialNumber}
+            onChange={(e) => setGenSerialNumber(e.target.value)}
+            required
+            style={{
+              display: "block",
+              width: "80%", // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+            }}
+          />
+          <textarea
+            placeholder="Additional Infromation"
+            value={additionalInfo}
+            onChange={(e) => setAdditionalNotes(e.target.value)}
+            required
+            style={{
+              display: "block",
+              width: "80%", // set width
+              margin: "0.5rem auto", // center horizontally and add spacing
+              padding: "0.75rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+              minHeight: "120px",
+              resize: "vertical",
+              fontFamily: "Arial, sans-serif",
+            }}
+          />
 
-                <TextField
-                    required
-                    name="lastName"
-                    label="Last Name"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    error={!!errors.lastName}
-                    helperText={errors.lastName}
-                />
+          <div style={{ textAlign: "center" }}>
+            <button type="submit">Submit</button>
+          </div>
+        </form>
 
-                <TextField
-                    required
-                    name="email"
-                    label="Email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    error={!!errors.email}
-                    helperText={errors.email}
-                />
-
-                <TextField
-                    required
-                    name="phone"
-                    label="Phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    error={!!errors.phone}
-                    helperText={errors.phone}
-                />
-
-                <TextField
-                    required
-                    name="model"
-                    label="Generator Model"
-                    value={formData.model}
-                    onChange={handleChange}
-                    error={!!errors.model}
-                    helperText={errors.model}
-                />
-
-                <TextField
-                    required
-                    name="serial"
-                    label="Generator Serial Number"
-                    value={formData.serial}
-                    onChange={handleChange}
-                    error={!!errors.serial}
-                    helperText={errors.serial}
-                />
-
-                <TextField
-                    name="notes"
-                    label="Extra Notes"
-                    multiline
-                    rows={5}
-                    value={formData.notes}
-                    onChange={handleChange}
-                />
-
-                {/* submit button */}
-                <Box sx={{ mt: 4, display: "flex", justifyContent: 'center', gap: 2 }}>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        sx={{width:"50%"}}
-                    >
-                        Submit
-                    </Button>
-                </Box>
-            </Box>
-        </Container>
-        <Footer />
+        {responseMsg && (
+          <p style={{ textAlign: "center", marginTop: "1rem" }}>
+            {responseMsg}
+          </p>
+        )}
+      </div>
+      <Footer />
     </>
-    );
-}
+  );
+};
 
 export default RequestQuote;

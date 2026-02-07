@@ -17,12 +17,25 @@ import {
 } from "@mui/material";
 import logo from "../../assets/logo.png";
 
+interface Generator {
+  _id: string;
+  name?: string;
+  Description?: string;
+  Stock: number;
+}
+
+interface Part {
+  _id: string;
+  Part_Name?: string;
+  Stock: number;
+}
+
 function CurrentStockPage() {
-  const [generators, setGenerators] = useState([]);
-  const [parts, setParts] = useState([]);
+  const [generators, setGenerators] = useState<Generator[]>([]);
+  const [parts, setParts] = useState<Part[]>([]);
   const [searchText, setSearchText] = useState("");
   const [sortOption, setSortOption] = useState("");
-
+  
   // Fetch Generators
   useEffect(() => {
     fetch("http://localhost:3000/api/generators")
@@ -41,21 +54,28 @@ function CurrentStockPage() {
 
   // Filter + Sort Generators
   const filteredGenerators = generators
-    .filter((gen) => gen.name.toLowerCase().includes(searchText.toLowerCase()))
-    .sort((a, b) => {
-      if (sortOption === "a-z") return a.name.localeCompare(b.name);
-      if (sortOption === "z-a") return b.name.localeCompare(a.name);
-      return 0;
-    });
+  .filter((gen) =>
+    (gen.name ?? "").toLowerCase().includes(searchText.toLowerCase())
+  )
+  .sort((a, b) => {
+    if (!a.name || !b.name) return 0;
+    if (sortOption === "a-z") return a.name.localeCompare(b.name);
+    if (sortOption === "z-a") return b.name.localeCompare(a.name);
+    return 0;
+  });
+
 
   // Filter + Sort Parts
   const filteredParts = parts
-    .filter((part) => part.type.toLowerCase().includes(searchText.toLowerCase()))
-    .sort((a, b) => {
-      if (sortOption === "a-z") return a.type.localeCompare(b.type);
-      if (sortOption === "z-a") return b.type.localeCompare(a.type);
-      return 0;
-    });
+  .filter((part) =>
+    (part.Part_Name ?? "").toLowerCase().includes(searchText.toLowerCase())
+  )
+  .sort((a, b) => {
+    if (!a.Part_Name || !b.Part_Name) return 0;
+    if (sortOption === "a-z") return a.Part_Name.localeCompare(b.Part_Name);
+    if (sortOption === "z-a") return b.Part_Name.localeCompare(a.Part_Name);
+    return 0;
+  });
 
   return (
     <>
@@ -135,7 +155,9 @@ function CurrentStockPage() {
                     <Typography variant="subtitle1" fontWeight={600}>
                       {gen.name}
                     </Typography>
-                    <Typography variant="body2">{gen.type}</Typography>
+                    <Typography variant="body2">
+                      {gen.Description ?? "No description"}
+                    </Typography>
                   </CardContent>
                   <CardActions sx={{ justifyContent: "center" }}>
                     <Button
@@ -177,11 +199,12 @@ function CurrentStockPage() {
                   ></Box>
                   <CardContent>
                     <Typography variant="subtitle1" fontWeight={600}>
-                      {part.type}
+                      {part.Part_Name}
                     </Typography>
-                    <Typography variant="h6" fontWeight={500}>
-                      ${part.cost}
+                    <Typography variant="body2">
+                      In stock: {part.Stock}
                     </Typography>
+
                   </CardContent>
                   <CardActions sx={{ justifyContent: "center" }}>
                     <Button
