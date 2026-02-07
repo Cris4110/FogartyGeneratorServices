@@ -86,112 +86,141 @@ const AdminNavbar = () => {
         </Typography>
       </Box>
 
-      <Stack spacing={3} sx={{ ml: 3, width: "100%" }}>
-        {/* Dashboard */}
-        <Typography
-          variant="h5"
-          sx={{
-            whiteSpace: "pre-line",
-            cursor: "pointer",
-            transition: "0.3s",
-            "&:hover": { color: "#1976d2" },
-          }}
-          onClick={() => handleNavigation("/admin/")}
-        >
-          Dashboard
-        </Typography>
-
-        {/* Incoming Requests */}
-        <Box sx={{ width: "100%" }}>
-          <Box
-            onClick={handleToggleIncoming}
+      <Box sx={{ maxHeight: 500, maxWidth: 250, overflowY: 'auto' , overflowX: 'hidden'}}>
+        <Stack spacing={3} sx={{ ml: 3 , width: 180 }}>
+          {/* Dashboard */}
+          <Typography
+            variant="h5"
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              whiteSpace: "pre-line",
               cursor: "pointer",
               transition: "0.3s",
               "&:hover": { color: "#1976d2" },
             }}
+            onClick={() => handleNavigation("/admin/")}
           >
-            <Typography variant="h5" sx={{ whiteSpace: "pre-line" }}>
-              {"Incoming\nRequests"}
-            </Typography>
-            {openIncoming ? <ExpandLess /> : <ExpandMore />}
+            Dashboard
+          </Typography>
+
+          {/* Incoming Requests also Quote, Appointment, and Parts Request */}
+          <Box sx={{ width: "75%" }}>
+            <Box
+              onClick={handleToggleIncoming}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                cursor: "pointer",
+                transition: "0.3s",
+                "&:hover": { color: "#1976d2" },
+              }}
+            >
+              <Typography variant="h5" sx={{ whiteSpace: "pre-line" }}>
+                {"Incoming\nRequests"}
+              </Typography>
+              {openIncoming ? <ExpandLess /> : <ExpandMore />}
+            </Box>
+
+            <Collapse in={openIncoming} timeout="auto" unmountOnExit>
+              <Stack spacing={2} sx={{ ml: 4, mt: 1 }}>
+                <Typography
+                  variant="body1"
+                  sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
+                  onClick={() => handleNavigation("/admin/incoming/quotes")}
+                >
+                  Quote Requests
+                </Typography>
+
+                <Typography
+                  variant="body1"
+                  sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
+                  onClick={() => handleNavigation("/admin/incoming/appointments")}
+                >
+                  Appointment Requests
+                </Typography>
+
+                <Typography
+                  variant="body1"
+                  sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
+                  onClick={() => handleNavigation("/admin/incoming/parts")}
+                >
+                  Part Requests
+                </Typography>
+              </Stack>
+            </Collapse>
           </Box>
 
-          <Collapse in={openIncoming} timeout="auto" unmountOnExit>
-            <Stack spacing={2} sx={{ ml: 4, mt: 1 }}>
-              <Typography
-                variant="body1"
-                sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
-                onClick={() => handleNavigation("/admin/incoming/quotes")}
-              >
-                Quote Requests
-              </Typography>
+          {/* Reviewed Appointments */}
+          <Typography
+            variant="h5"
+            sx={{
+              whiteSpace: "pre-line",
+              cursor: "pointer",
+              transition: "0.3s",
+              "&:hover": { color: "#1976d2" },
+            }}
+            onClick={() => handleNavigation("/admin/reviewed")}
+          >
+            {"Reviewed\nAppointments"}
+          </Typography>
 
-              <Typography
-                variant="body1"
-                sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
-                onClick={() => handleNavigation("/admin/incoming/appointments")}
-              >
-                Appointment Requests
-              </Typography>
+          {/* Catalog Management */}
+          <Typography
+            variant="h5"
+            sx={{
+              whiteSpace: "pre-line",
+              cursor: "pointer",
+              transition: "0.3s",
+              "&:hover": { color: "#1976d2" },
+            }}
+            onClick={() => handleNavigation("/admin/catalog-management")}
+          >
+            {"Catalog\nManagement"}
+          </Typography>
 
-              <Typography
-                variant="body1"
-                sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
-                onClick={() => handleNavigation("/admin/incoming/parts")}
-              >
-                Parts Request
-              </Typography>
-            </Stack>
-          </Collapse>
-        </Box>
+          {/* User Management */}
+          <Typography
+            variant="h5"
+            sx={{
+              whiteSpace: "pre-line",
+              cursor: "pointer",
+              transition: "0.3s",
+              "&:hover": { color: "#1976d2" },
+            }}
+            onClick={() => handleNavigation("/admin/user-management")}
+          >
+            {"User\nManagement"}
+          </Typography>
 
-        
-        <Typography
-          variant="h5"
-          sx={{
-            whiteSpace: "pre-line",
-            cursor: "pointer",
-            transition: "0.3s",
-            "&:hover": { color: "#1976d2" },
-          }}
-          onClick={() => handleNavigation("/admin/reviewed")}
-        >
-          {"Reviewed\nAppointments"}
-        </Typography>
+          {/* Inventory Management */}
+          <Typography
+            variant="h5"
+            sx={{
+              whiteSpace: "pre-line",
+              cursor: "pointer",
+              transition: "0.3s",
+              "&:hover": { color: "#1976d2" },
+            }}
+            onClick={() => handleNavigation("/admin/inven-management")}
+          >
+            {"Inventory\nManagement"}
+          </Typography>
 
-        {/* User Management */}
-        <Typography
-          variant="h5"
-          sx={{
-            whiteSpace: "pre-line",
-            cursor: "pointer",
-            transition: "0.3s",
-            "&:hover": { color: "#1976d2" },
-          }}
-          onClick={() => handleNavigation("/admin/user-management")}
-        >
-          {"User\nManagement"}
-        </Typography>
-
-        {/* Inventory Management */}
-        <Typography
-          variant="h5"
-          sx={{
-            whiteSpace: "pre-line",
-            cursor: "pointer",
-            transition: "0.3s",
-            "&:hover": { color: "#1976d2" },
-          }}
-          onClick={() => handleNavigation("/admin/inven-management")}
-        >
-          {"Inventory\nManagement"}
-        </Typography>
-      </Stack>
-
+        {/* Review Management */}
+          <Typography
+            variant="h5"
+            sx={{
+              whiteSpace: "pre-line",
+              cursor: "pointer",
+              transition: "0.3s",
+              "&:hover": { color: "#1976d2" },
+            }}
+            onClick={() => handleNavigation("/admin/review-management")}
+          >
+            {"Review\nManagement"}
+          </Typography>
+        </Stack>
+      </Box>
       {/* Logout */}
       <Box
         sx={{

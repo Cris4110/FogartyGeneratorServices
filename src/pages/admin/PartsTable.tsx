@@ -38,12 +38,12 @@ function PartsTable() {
       method: "GET"
     });
 
-    // Array of generators is returned
+    // Array of parts is returned
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
     let tmp = [data.length];
-    // Converts the generators to the list format
+    // Converts the parts to the list format
     for (let i = 0; i < data.length; i++) {
       let part = data[i];
       tmp[i] = {
@@ -62,7 +62,7 @@ function PartsTable() {
       try {
           getParts();
       } catch (err: any) {
-        console.error("Error fetching generators:", err);
+        console.error("Error fetching parts:", err);
       }
     };
     fetchDB();
