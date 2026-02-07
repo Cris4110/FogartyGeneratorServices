@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { AuthContext, type AuthContextType } from "../context/Appcontext";
+import { AuthContext } from "../context/Appcontext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,9 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [checking, setChecking] = useState(true);
   const [valid, setValid] = useState(false);
 
-  if (!ctx) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!ctx) return <Navigate to="/login" replace />;
 
   const { currentUser, setCurrentUser } = ctx;
 

@@ -4,7 +4,7 @@
   "description": "",
   "main": "CRUD_mongoose.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --open",
     "devCRUD": "nodemon CRUD_mongoose.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -22,7 +22,7 @@
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
     "@mui/system": "^7.3.5",
-    "@mui/x-data-grid": "^8.18.0",
+    "@mui/x-data-grid": "^8.27.0",
     "@mui/x-date-pickers": "^8.18.0",
     "axios": "^1.13.1",
     "bcrypt": "^6.0.0",

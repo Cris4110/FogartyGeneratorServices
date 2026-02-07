@@ -4,12 +4,9 @@ import PublicRoutes from "./routes/publicroutes";
 import AdminRoutes from "./routes/adminroutes";
 import Login from "./auth/admin/Login";
 import ProtectedRoute from "./routes/protectedroute";
-//import { AuthProvider } from "./context/Appcontext";
 import AdminRegistration from "./routes/userregroute";
-import UserRegistration from "./pages/public/UserRegistration";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-
 
 const App: React.FC = () => {
   return (
@@ -25,9 +22,6 @@ const App: React.FC = () => {
           {/* Login page */}
           <Route path="/login" element={<Login />} />
 
-          <Route path="/userreg" element={<UserRegistration />} />
-          {/* Request Quote Page */}
-      
           {/* Admin portal (protected) */}
           <Route
             path="/admin/*"

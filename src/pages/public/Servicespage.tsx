@@ -158,6 +158,8 @@ function Servicespage() {
             }}
           >
             <Button
+              component={Link}       // <-- Make it navigate
+              to="/leavereview"       // <-- Route to LeaveReview page
               variant="text"
               style={{
                 fontFamily: "Sans-serif",

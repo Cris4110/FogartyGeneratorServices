@@ -15,11 +15,12 @@ import YourAccount from "../pages/public/YourAccount";
 import YourOrders from "../pages/public/YourOrders";
 import ReturnPage from "../pages/public/ReturnPage";
 import UsernameChange from "../pages/public/UsernameChange";
-import NameChange from "../pages/public/NameChange"
-import EmailChange from "../pages/public/EmailChange"
-import PhoneNumberChange from "../pages/public/PhoneNumberChange"
-import PasswordChange from "../pages/public/PasswordChange"
-
+import NameChange from "../pages/public/NameChange";
+import EmailChange from "../pages/public/EmailChange";
+import PhoneNumberChange from "../pages/public/PhoneNumberChange";
+import PasswordChange from "../pages/public/PasswordChange";
+import LeaveReview from "../pages/public/LeaveReview";
+import ProtectedRoute from "./protectedroute"; // uppercase
 
 const PublicRoutes = () => (
   <Routes>
@@ -30,7 +31,7 @@ const PublicRoutes = () => (
     <Route path="/Services" element={<Servicespage />} />
     <Route path="/RequestQuote" element={<RequestQuote />} />
     <Route path="/RequestPart" element={<RequestPart />} />
-     
+
     <Route path="/UserSettings" element={<UserSettings />} />
     <Route path="/UserRegistration" element={<UserRegistration />} />
     <Route path="/UserLogin" element={<UserLogin />} />
@@ -45,9 +46,8 @@ const PublicRoutes = () => (
     <Route path="/EmailChange" element={<EmailChange />} />
     <Route path="/PhoneNumberChange" element={<PhoneNumberChange />} />
     <Route path="/PasswordChange" element={<PasswordChange />} />
-
+    <Route path="/leavereview" element={<LeaveReview />} />
   </Routes>
-
 );
 
 export default PublicRoutes;

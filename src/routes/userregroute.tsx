@@ -5,6 +5,7 @@ import Dashboard from "../pages/public/UserRegistration";
 const UserReg: React.FC = () => (
     <Routes>
       <Route path="/userreg" element={<Dashboard />} />
+
     </Routes>
 
 );
