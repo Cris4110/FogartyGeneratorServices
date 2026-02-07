@@ -8,10 +8,16 @@ const ReviewSchema = mongoose.Schema(
             default: ""
         },
 
-        starRating: {
+        name: {
+            type: String,
+            required: true,
+            default: ""
+        },
+
+        rating: {
             type: Number,
             required: true,
-            default: 0,
+            default: "",
             min: 1,
             max:5
             
@@ -19,6 +25,18 @@ const ReviewSchema = mongoose.Schema(
 
         comment: {
             type: String,
+            required: true,
+            default: ""
+        },
+
+        createdAt: {
+            type: Date,
+            required: true,
+            default: ""
+        },
+
+        verified: {
+            type: Boolean,
             required: true,
             default: ""
         },
