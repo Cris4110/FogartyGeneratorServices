@@ -1,27 +1,33 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { Container, Box, Typography, Button, TextField, MenuItem } from "@mui/material";
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  TextField,
+  MenuItem,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./LeaveReview.css"; // optional, for star styling
 
 function LeaveReview() {
   const navigate = useNavigate();
 
   // Form state
-  const [name, setName] = useState<string>("");
-  const [service, setService] = useState<string>("");
-  const [comments, setComments] = useState<string>("");
-  const [rating, setRating] = useState<number>(0);
-  const [error, setError] = useState<string>("");
+  const [name, setName] = useState("");
+  const [service, setService] = useState("");
+  const [comments, setComments] = useState("");
+  const [rating, setRating] = useState(0);
+  const [error, setError] = useState("");
 
-  // Check login & autofill name
+  // Check login + autofill name
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
 
     if (!token) {
-      navigate("/login"); // redirect if not logged in
+      navigate("/login");
       return;
     }
 
@@ -31,7 +37,6 @@ function LeaveReview() {
     }
   }, [navigate]);
 
-  // Handle form submission
   const handleSubmit = () => {
     if (!service || !comments || rating === 0) {
       setError("Please fill out all required fields.");
@@ -76,12 +81,16 @@ function LeaveReview() {
           </TextField>
 
           <Typography mt={2}>Rating</Typography>
-          <Box className="stars">
+          <Box sx={{ fontSize: "2rem", mb: 2 }}>
             {[1, 2, 3, 4, 5].map((num) => (
               <span
                 key={num}
-                className={num <= rating ? "star selected" : "star"}
                 onClick={() => setRating(num)}
+                style={{
+                  cursor: "pointer",
+                  color: num <= rating ? "#fbc02d" : "#ccc",
+                  marginRight: "6px",
+                }}
               >
                 ★
               </span>
