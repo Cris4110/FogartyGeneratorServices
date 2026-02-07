@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import {
@@ -7,27 +9,27 @@ import {
   Button,
   TextField,
   MenuItem,
+  Stack,
+  IconButton,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 function LeaveReview() {
   const navigate = useNavigate();
 
   // Form state
-  const [name, setName] = useState("");
-  const [service, setService] = useState("");
-  const [comments, setComments] = useState("");
-  const [rating, setRating] = useState(0);
-  const [error, setError] = useState("");
+  const [name, setName] = useState<string>("");
+  const [service, setService] = useState<string>("");
+  const [comments, setComments] = useState<string>("");
+  const [rating, setRating] = useState<number>(0);
+  const [error, setError] = useState<string>("");
 
-  // Check login + autofill name
+  // Check login & autofill name
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
 
     if (!token) {
-      navigate("/login");
+      navigate("/UserLogin"); // redirect if not logged in
       return;
     }
 
@@ -37,6 +39,7 @@ function LeaveReview() {
     }
   }, [navigate]);
 
+  // Handle form submission
   const handleSubmit = () => {
     if (!service || !comments || rating === 0) {
       setError("Please fill out all required fields.");
@@ -58,6 +61,7 @@ function LeaveReview() {
             Leave a Review
           </Typography>
 
+          {/* Name field (autofilled) */}
           <TextField
             label="Name"
             fullWidth
@@ -66,6 +70,7 @@ function LeaveReview() {
             disabled
           />
 
+          {/* Service dropdown */}
           <TextField
             select
             label="Service"
@@ -80,23 +85,21 @@ function LeaveReview() {
             <MenuItem value="maintenance">Maintenance</MenuItem>
           </TextField>
 
+          {/* Star rating */}
           <Typography mt={2}>Rating</Typography>
-          <Box sx={{ fontSize: "2rem", mb: 2 }}>
+          <Stack direction="row" spacing={1} mt={1}>
             {[1, 2, 3, 4, 5].map((num) => (
-              <span
+              <IconButton
                 key={num}
                 onClick={() => setRating(num)}
-                style={{
-                  cursor: "pointer",
-                  color: num <= rating ? "#fbc02d" : "#ccc",
-                  marginRight: "6px",
-                }}
+                sx={{ color: num <= rating ? "#FFD700" : "#ccc" }}
               >
                 ★
-              </span>
+              </IconButton>
             ))}
-          </Box>
+          </Stack>
 
+          {/* Comments */}
           <TextField
             label="Comments"
             fullWidth
@@ -107,12 +110,14 @@ function LeaveReview() {
             onChange={(e) => setComments(e.target.value)}
           />
 
+          {/* Error message */}
           {error && (
             <Typography color="error" mt={1}>
               {error}
             </Typography>
           )}
 
+          {/* Submit button */}
           <Button
             variant="contained"
             sx={{ mt: 3 }}
