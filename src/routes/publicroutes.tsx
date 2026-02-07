@@ -19,6 +19,7 @@ import NameChange from "../pages/public/NameChange"
 import EmailChange from "../pages/public/EmailChange"
 import PhoneNumberChange from "../pages/public/PhoneNumberChange"
 import PasswordChange from "../pages/public/PasswordChange"
+import LeaveReview from "../pages/public/LeaveReview";
 
 
 const PublicRoutes = () => (
@@ -45,6 +46,7 @@ const PublicRoutes = () => (
     <Route path="/EmailChange" element={<EmailChange />} />
     <Route path="/PhoneNumberChange" element={<PhoneNumberChange />} />
     <Route path="/PasswordChange" element={<PasswordChange />} />
+    <Route path="/LeaveReview" element={<LeaveReview />} />
 
   </Routes>
 
