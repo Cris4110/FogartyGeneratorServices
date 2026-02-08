@@ -1,18 +1,29 @@
-import React, { useEffect, useState } from "react";
-import {
-  Box, Typography, Toolbar, Alert, CircularProgress, Stack, Switch, IconButton, } from "@mui/material";
+import { useEffect, useState } from "react";
+import {Box, Button, Typography, Toolbar, Alert, CircularProgress, Stack, Switch, IconButton, } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import type { GridColDef, GridRowId, GridSortModel } from "@mui/x-data-grid";
+import type { GridColDef, GridRowId, GridSortModel} from "@mui/x-data-grid";
 import CheckIcon from "@mui/icons-material/Check";
 import UndoIcon from "@mui/icons-material/Undo";
 import AdminNavbar from "./AdminNavbar";
 import dayjs from "dayjs";
+import Modal from '@mui/material/Modal';
 
 
 const createdFromObjectId = (id?: string) => {
   if (!id || id.length < 8) return undefined;
   const seconds = parseInt(id.substring(0, 8), 16);
   return new Date(seconds * 1000).toISOString();
+};
+
+const modalStyling = {
+  position: "absolute",
+  inset: 0,
+  m: "auto",
+  height: "fit-content",
+  bgcolor: "white",
+  borderRadius: 2,
+  p: 4,
+  maxWidth: 600,
 };
 
 type Quote = {
@@ -27,10 +38,14 @@ type Quote = {
   createdAt?: string;
 };
 
+//Main
 export default function QuoteRequests() {
   const [rows, setRows] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
 
   // Fetch list
   useEffect(() => {
@@ -95,6 +110,37 @@ export default function QuoteRequests() {
     }
   };
 
+  //Handle Delete of Quote from Web View and Database With Error Checking
+  const handleDelete = async (id: GridRowId) => {
+    
+    const confirmed = window.confirm("Are you sure you want to delete this quote?");
+    if (!confirmed) return; //Exit if admin does not confirm
+
+    setRows((prev) => prev.filter((r) => r._id !== id));
+    try {
+      const res = await fetch(`http://localhost:3000/api/quotes/${id}`, {
+        method: "DELETE", // if PATCH isn’t available, change to POST and add matching route
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch {
+      // rollback
+      console.error("Could not delete quote");
+    }
+  };
+
+  //Modal Handle Opening and Closing
+  const handleViewOpen = (row: Quote) => {
+    setSelectedQuote(row);
+    setViewOpen(true);
+  };
+
+  const handleViewClose = () => {
+    setViewOpen(false);
+    setSelectedQuote(null);
+  };
+
+
   const columns: GridColDef<Quote>[] = [
     {
       field: "acknowledged",
@@ -135,15 +181,40 @@ export default function QuoteRequests() {
         return iso && dayjs(iso).isValid()
           ? dayjs(iso).format("MMM DD, YYYY @ h:mm A")
           : "-";
+        },
       },
-    },
    
+    // Main Quote Page Rows 
     { field: "name",            headerName: "Name",             flex: 1,   minWidth: 160 },
     { field: "email",           headerName: "Email",            flex: 1.2, minWidth: 220 },
     { field: "phoneNumber",     headerName: "Phone",            flex: 1,   minWidth: 140 },
-    { field: "genModel",        headerName: "Generator Model",  flex: 1,   minWidth: 160 },
-    { field: "genSerialNumber", headerName: "Serial Number",    flex: 1,   minWidth: 160 },
-    { field: "additionalInfo",  headerName: "Additional Info",  flex: 1.6, minWidth: 260 },
+
+    //Buttons For View and Delete
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      width: 180,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => handleViewOpen(params.row)}
+          >
+            View
+          </Button>
+          
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => handleDelete(params.row._id)}
+          >
+            Delete
+          </Button>
+        </Stack>
+      ),
+    }
   ];
 
   // Put unacknowledged on top
@@ -183,6 +254,63 @@ export default function QuoteRequests() {
           />
         </Box>
       </Box>
+
+      {/*Modal Code*/}
+      <Modal open={viewOpen} onClose={handleViewClose}>
+      <Box sx={modalStyling}>
+      <Typography variant="h6" gutterBottom>
+        Quote Request
+      </Typography>
+
+      {selectedQuote && (
+        <Stack spacing={1}>
+          <Typography><strong>Name:</strong> {selectedQuote.name}</Typography>
+          <Typography><strong>Email:</strong> {selectedQuote.email}</Typography>
+          <Typography><strong>Phone:</strong> {selectedQuote.phoneNumber}</Typography>
+
+          <Typography>
+            <strong>Created:</strong>{" "}
+            {dayjs(selectedQuote.createdAt).format("MMM DD, YYYY @ h:mm A")}
+          </Typography>
+
+          <Typography>
+            <strong>Acknowledged:</strong>{" "}
+            {selectedQuote.acknowledged ? "Yes" : "No"}
+          </Typography>
+
+          {selectedQuote.additionalInfo && (
+            <Typography>
+              <strong>Message:</strong> {selectedQuote.additionalInfo}
+            </Typography>
+          )}
+        </Stack>
+      )}
+
+      {/* Close and Acknowledge Buttons */}
+      <Box sx={{ mt: 3, textAlign: "right" }}>
+        <Button 
+          onClick={handleViewClose} 
+          variant="contained"
+          >
+          Close
+        </Button>
+
+        <Button 
+          variant="contained"
+          sx={{ml:1}}
+          disabled={selectedQuote?.acknowledged}
+          onClick={async () => {
+              if (!selectedQuote) return;
+              await handleToggleAck(selectedQuote._id, true);
+              handleViewClose();
+            }
+          }
+        >
+          Acknowledge
+        </Button>
+      </Box>
+    </Box>
+  </Modal>
     </>
   );
 }
