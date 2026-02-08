@@ -164,7 +164,7 @@ const AdminNavbar = () => {
             {"Reviewed\nAppointments"}
           </Typography>
 
-          {/* Catalog Management */}
+          {/* Catalog Management 
           <Typography
             variant="h5"
             sx={{
@@ -177,6 +177,7 @@ const AdminNavbar = () => {
           >
             {"Catalog\nManagement"}
           </Typography>
+          */}
 
           {/* User Management */}
           <Typography
