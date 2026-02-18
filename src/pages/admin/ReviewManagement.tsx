@@ -1,117 +1,178 @@
-import React, { useEffect, useState } from "react";
-import { DataGrid, type GridColDef } from '@mui/x-data-grid';
-import { CircularProgress, Stack, Typography, Box  } from "@mui/material";
+import React, { useEffect, useMemo, useState } from "react";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { CircularProgress, Stack, Typography, Box, Button } from "@mui/material";
 import Navbar from "./AdminNavbar";
+import axios from "axios";
 
-// admin review management page
+type Row = {
+  id: string;
+  name: string;
+  rating: number;
+  comment: string;
+  date: string;
+  isVerified: boolean;
+};
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
+  withCredentials: true,
+});
+
 function ReviewManagement() {
-    // tracks if the rows are loaded or not
-    const [rowsLoaded, setRowLoaded] = useState(false);
-    const handleRowsLoading = () => {
-      setRowLoaded(false);
-    }
-    const handleRowsLoaded = () => {
-      setRowLoaded(true);
-    }
+  const [rowsLoaded, setRowsLoaded] = useState(false);
+  const [rows, setRows] = useState<Row[]>([]);
+  const [savingIds, setSavingIds] = useState<Record<string, boolean>>({});
 
   const getReviews = async () => {
-    const res = await fetch("http://localhost:3000/api/reviews", {
-      method: "GET"
-    });
+    setRowsLoaded(false);
+    const res = await api.get("/reviews"); // adjust if you have an admin-only endpoint
 
-    // array of reviews is returned
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message);
+    const data = Array.isArray(res.data) ? res.data : [];
+    const mapped: Row[] = data.map((review: any) => ({
+      id: review._id,
+      name: review.name ?? "",
+      rating: Number(review.rating ?? 0),
+      comment: review.comment ?? "",
+      date: review.createdAt ? new Date(review.createdAt).toLocaleDateString() : "",
+      isVerified: Boolean(review.verified),
+    }));
 
-    let tmp = new Array(data.length);
-    // converts the reviews to the list format
-    for (let i = 0; i < data.length; i++) {
-      let review = data[i];
-      tmp[i] = {
-        id: review.id || review._id,
-        name: review.name ?? "",
-        rating: review.rating ?? "",
-        comment: review.comment ?? "",
-        date: review.createdAt ?? "",
-        isVerified: review.verified ?? false,
-      }
-    }
-    updateRows(tmp);
-    handleRowsLoaded();
-  }
+    setRows(mapped);
+    setRowsLoaded(true);
+  };
 
   useEffect(() => {
-    const fetchReviews = async () => {
+    (async () => {
       try {
-          getReviews();
-      } catch (err: any) {
+        await getReviews();
+      } catch (err) {
         console.error("Error fetching reviews:", err);
+        setRowsLoaded(true);
       }
-    };
-    fetchReviews();
+    })();
   }, []);
 
-  // column headings for table
-  const columns: GridColDef[] = [
-      { field: "name", headerName: "Name", width: 200, editable: false },
-      { field: "rating", headerName: "Rating", width: 150, editable: false },
-      { field: "date", headerName: "Date Created", width: 150, editable: false },
-      { field: "isVerified", headerName: "Verified", width: 150, editable: false },
-      { field: "comment", headerName: "Review", width: 500, editable: false },
-    ];
-    
-  // used to set up rows and update according to db
-  const [rows, updateRows] = useState([
-    { name: '', rating: 1, comment: '', date: 2022-12-12, isVerified: false },
-  ]);
+  const setSaving = (id: string, val: boolean) =>
+    setSavingIds((prev) => ({ ...prev, [id]: val }));
 
-  return ( 
+  const updateVerified = async (id: string, verified: boolean) => {
+    setSaving(id, true);
+    try {
+      // backend expects PUT /api/reviews/:id
+      const res = await api.put(`/reviews/${id}`, { verified });
+
+      // If your backend returns the updated doc:
+      const updated = res.data;
+
+      // Update UI row
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === id
+            ? {
+                ...r,
+                isVerified: Boolean(updated.verified ?? verified),
+                // optionally refresh date if you want:
+                // date: updated.createdAt ? new Date(updated.createdAt).toLocaleDateString() : r.date,
+              }
+            : r
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update review:", err);
+      // optionally show a snackbar
+    } finally {
+      setSaving(id, false);
+    }
+  };
+
+  // OPTION A: "Deny" means mark verified=false
+  const denyReview = async (id: string) => updateVerified(id, false);
+
+  // OPTION B: "Deny" means delete the review (uncomment if you want this behavior)
+  /*
+  const denyReview = async (id: string) => {
+    setSaving(id, true);
+    try {
+      await api.delete(`/reviews/${id}`);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error("Failed to delete review:", err);
+    } finally {
+      setSaving(id, false);
+    }
+  };
+  */
+
+  const columns: GridColDef[] = useMemo(
+    () => [
+      { field: "name", headerName: "Name", width: 200 },
+      { field: "rating", headerName: "Rating", width: 110 },
+      { field: "date", headerName: "Date Created", width: 160 },
+      { field: "isVerified", headerName: "Verified", width: 120, type: "boolean" },
+      { field: "comment", headerName: "Review", width: 520 },
+
+      // ✅ Actions column
+      {
+        field: "actions",
+        headerName: "Actions",
+        width: 220,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const id = params.row.id as string;
+          const verified = params.row.isVerified as boolean;
+          const saving = Boolean(savingIds[id]);
+
+          return (
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                size="small"
+                variant="contained"
+                disabled={saving || verified}
+                onClick={() => updateVerified(id, true)}
+              >
+                Verify
+              </Button>
+
+              <Button
+                size="small"
+                variant="outlined"
+                color="error"
+                disabled={saving || !verified}
+                onClick={() => denyReview(id)}
+              >
+                Deny
+              </Button>
+            </Box>
+          );
+        },
+      },
+    ],
+    [savingIds]
+  );
+
+  return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <Navbar />
-      <Box
-          sx={{ flexGrow: 1, marginLeft: "13vw", p: 8, backgroundColor: "#fafafa" }}
-      >
-        <Typography
-          variant="h4"
-          sx={{ fontWeight: "bold", mb: 4, color: "#000000ff" }}
-        >
+      <Box sx={{ flexGrow: 1, marginLeft: "13vw", p: 8, backgroundColor: "#fafafa" }}>
+        <Typography variant="h4" sx={{ fontWeight: "bold", mb: 4, color: "#000" }}>
           Review Management
         </Typography>
-        
-        <Box>
-          {/* Table settings */}
-          <div>
-          {
-            rowsLoaded ? 
-            <DataGrid
-              style={{ height: '80vh' }}
-              rows={rows}
-              columns={columns}
-              getEstimatedRowHeight={() => 200}
-              getRowHeight={() => 'auto'} 
-              hideFooterPagination={true}
-              sx={{
-                '&.MuiDataGrid-root--densityCompact .MuiDataGrid-cell': {
-                  py: 1,
-                },
-                '&.MuiDataGrid-root--densityStandard .MuiDataGrid-cell': {
-                  py: '15px',
-                },
-                '&.MuiDataGrid-root--densityComfortable .MuiDataGrid-cell': {
-                  py: '22px',
-                },
-              }}
-              pageSizeOptions={[5]}
-              disableRowSelectionOnClick
-            />
-            :
-            //While it is fetching the data a loading icon appears
-            <Stack direction="row" spacing={20} sx={{justifyContent: "center", alignItems: "center"}}>
-              <CircularProgress color="inherit" />
-            </Stack>
-          }
-          </div>
-        </Box>
+
+        {rowsLoaded ? (
+          <DataGrid
+            style={{ height: "80vh" }}
+            rows={rows}
+            columns={columns}
+            getRowHeight={() => "auto"}
+            hideFooterPagination
+            disableRowSelectionOnClick
+          />
+        ) : (
+          <Stack direction="row" sx={{ justifyContent: "center", alignItems: "center", height: "50vh" }}>
+            <CircularProgress color="inherit" />
+          </Stack>
+        )}
       </Box>
     </Box>
   );
