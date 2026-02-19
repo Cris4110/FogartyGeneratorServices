@@ -17,6 +17,7 @@ const User = require("./models/user.model");
 const userRoute = require("./routes/user.route.js");
 const Quote = require("./models/quote.model.js");
 const quoteRoute = require("./routes/quote.route.js")
+const pagecontentRoute = require("./routes/aboutpagecontent.route.js");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
@@ -42,6 +43,7 @@ app.use('/api/users', userRoute);
 app.use('/api/appointments', appointmentRoute);
 app.use('/api/manufacturers', manufacturerRoute);
 app.use('/api/quotes', quoteRoute);
+app.use('/api/pagecontent', pagecontentRoute);
 
 app.get('/', (req, res) => {
     res.send("Hello for Node API Server Updated");
