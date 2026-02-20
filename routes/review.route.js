@@ -1,9 +1,9 @@
-import express from "express";
+const express = require("express");
+const Review = require('../models/review.model');
 const router = express.Router();
-import {getReviews, getReview, createReview, updateReview, deleteReview, getPublicReviews} from "../controller/review.controller.js";
+const {getReviews, getReview, createReview, updateReview, deleteReview} = require('../controller/review.controller.js');
 
 
-router.get("/public", getPublicReviews);
 
 router.get('/', getReviews);
 
@@ -15,5 +15,4 @@ router.put("/:id", updateReview);
 
 router.delete("/:id", deleteReview);
 
-
-export default router;
+module.exports = router;

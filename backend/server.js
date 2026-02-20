@@ -2,7 +2,7 @@ require('dotenv').config()              // Load environment variables from a .en
 const express = require('express')      // Import Express (web framework)
 const app = express()                   // Create an Express application instance
 const path = require('path')            // Read PORT from environment; fallback to 3500 if not set
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3500
 
 app.use('/', express.static(path.join(__dirname, '/public')))   //allow app use use resources from public folder
 
