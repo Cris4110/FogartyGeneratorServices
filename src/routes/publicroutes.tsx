@@ -21,6 +21,7 @@ import PhoneNumberChange from "../pages/public/PhoneNumberChange";
 import PasswordChange from "../pages/public/PasswordChange";
 import LeaveReview from "../pages/public/LeaveReview";
 import ProtectedRoute from "./protectedroute"; // uppercase
+import ItemDetailPage from "../pages/public/ItemDetailPage";
 
 const PublicRoutes = () => (
   <Routes>
@@ -37,6 +38,8 @@ const PublicRoutes = () => (
     <Route path="/UserLogin" element={<UserLogin />} />
     <Route path="/Appointment" element={<Appointment />} />
     <Route path="/CurrentStockPage" element={<CurrentStockPage />} />
+    <Route path="/item/:type/:id" element={<ItemDetailPage />} />
+
     <Route path="/YourAccount" element={<YourAccount />} />
     <Route path="/YourOrders" element={<YourOrders />} />
     <Route path="/ReturnPage" element={<ReturnPage />} />

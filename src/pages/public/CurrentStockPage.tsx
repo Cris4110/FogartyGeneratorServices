@@ -16,8 +16,11 @@ import {
   CardActions,
 } from "@mui/material";
 import logo from "../../assets/logo.png";
+import StockCard from "../public/StockCard";
+
 
 interface Generator {
+  Image_Url: string | string[] | undefined;
   _id: string;
   name?: string;
   Description?: string;
@@ -25,6 +28,7 @@ interface Generator {
 }
 
 interface Part {
+  Image_Url: string | string[] | undefined;
   _id: string;
   Part_Name?: string;
   Stock: number;
@@ -128,7 +132,7 @@ function CurrentStockPage() {
           >
             <MenuItem value="">Default</MenuItem>
             <MenuItem value="a-z">A-Z</MenuItem>
-            <MenuItem value="z-a">Price Low-High <Low-High></Low-High></MenuItem>
+            <MenuItem value="z-a">Price Low-High </MenuItem>
           </TextField>
         </Box>
 
@@ -136,94 +140,37 @@ function CurrentStockPage() {
         <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
           Generators
         </Typography>
-        <Grid container spacing={4} sx={{ mb: 6 }}>
-          {filteredGenerators.length === 0 ? (
-            <Typography>No generators available</Typography>
-          ) : (
-            filteredGenerators.map((gen) => (
-              <Grid item xs={12} sm={6} md={4} key={gen._id}>
-                <Card sx={{ textAlign: "center", boxShadow: 2, borderRadius: 3, p: 2 }}>
-                  <Box
-                    sx={{
-                      backgroundColor: "#FFFACD",
-                      height: 150,
-                      borderRadius: 2,
-                      mb: 2,
-                    }}
-                  ></Box>
-                  <CardContent>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      {gen.name}
-                    </Typography>
-                    <Typography variant="body2">
-                      {gen.Description ?? "No description"}
-                    </Typography>
-                  </CardContent>
-                  <CardActions sx={{ justifyContent: "center" }}>
-                    <Button
-                      variant="contained"
-                      sx={{
-                        backgroundColor: "black",
-                        color: "white",
-                        textTransform: "none",
-                        "&:hover": { backgroundColor: "#333" },
-                      }}
-                    >
-                      Add to cart
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))
-          )}
-        </Grid>
+       <Grid container spacing={4}>
+  {filteredGenerators.map((gen) => (
+    <Grid item key={gen._id} display="flex" justifyContent="center">
+      <StockCard
+        id={gen._id}
+        type="generator"
+        title={gen.name ?? "Unnamed Generator"}
+        stock={gen.Stock}
+        Image_Url={gen.Image_Url} 
+      />
+    </Grid>
+  ))}
+</Grid>
 
         {/* Parts Section */}
         <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
           Parts
         </Typography>
         <Grid container spacing={4}>
-          {filteredParts.length === 0 ? (
-            <Typography>No parts available</Typography>
-          ) : (
-            filteredParts.map((part) => (
-              <Grid item xs={12} sm={6} md={4} key={part._id}>
-                <Card sx={{ textAlign: "center", boxShadow: 2, borderRadius: 3, p: 2 }}>
-                  <Box
-                    sx={{
-                      backgroundColor: "#FFCDD2",
-                      height: 150,
-                      borderRadius: 2,
-                      mb: 2,
-                    }}
-                  ></Box>
-                  <CardContent>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      {part.Part_Name}
-                    </Typography>
-                    <Typography variant="body2">
-                      In stock: {part.Stock}
-                    </Typography>
-
-                  </CardContent>
-                  <CardActions sx={{ justifyContent: "center" }}>
-                    <Button
-                      variant="contained"
-                      sx={{
-                        backgroundColor: "black",
-                        color: "white",
-                        textTransform: "none",
-                        "&:hover": { backgroundColor: "#333" },
-                      }}
-                    >
-                      Add to cart
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))
-          )}
-        </Grid>
+  {filteredParts.map((part) => (
+    <Grid item key={part._id} display="flex" justifyContent="center">
+      <StockCard
+        id={part._id}
+        type="part"
+        title={part.Part_Name ?? "Unnamed Part"}
+        stock={part.Stock}
+        Image_Url={part.Image_Url}
+      />
+    </Grid>
+  ))}
+</Grid>
       </Container>
 
       <Footer />
