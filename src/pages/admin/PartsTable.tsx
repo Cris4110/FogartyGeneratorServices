@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
-import { Backdrop, Button, CircularProgress, Fab, Paper, Stack, Typography } from "@mui/material";
+import { Backdrop, Button, CircularProgress, Fab, Paper, Stack, TextField, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
@@ -10,6 +10,11 @@ import { useNavigate } from "react-router-dom";
 interface PartRow {
   id: string;
   stock: number;
+  description: string;
+  image: string;
+  image2: string;
+  image3: string;
+  name: string;
 }
 
 // displays parts table for the inventory-management page
@@ -20,7 +25,7 @@ function PartsTable() {
   const handleCloseDelete = () => {
     setOpenDelete(false); // Closes the delete confirmation
   };
-  const handleConfrimDelete = () => {
+  const handleConfirmDelete = () => {
     setOpenDelete(true);  // Brings up the delete confirmation
   };
 
@@ -49,7 +54,11 @@ function PartsTable() {
       tmp[i] = {
         id:           part._id ?? part.partID,
         Part_Name:    part.Part_Name,
+        description: part.Description,
         stock: Number(part.Stock) || 0,
+        image:    part.Image_Url,
+        image2:    part.Image_Url2,
+        image3:    part.Image_Url3,
 
       }
     }
@@ -72,6 +81,11 @@ function PartsTable() {
   const updatedRow = {
     ...newRow,
     stock: Math.max(0, Number(newRow.stock)),
+    description: newRow.description,
+    image: newRow.image,
+    image2: newRow.image2,
+    image3: newRow.image3,
+    name: newRow.name
   };
 
   // Optimistic UI update
@@ -82,7 +96,7 @@ function PartsTable() {
   );
 
   // Persist to backend
-  await saveStock(updatedRow.id, updatedRow.stock);
+  await saveStock(updatedRow.id, updatedRow.stock, updatedRow.description, updatedRow.image, updatedRow.image2, updatedRow.image3, updatedRow.Part_Name);
 
   return updatedRow;
 };
@@ -90,12 +104,70 @@ function PartsTable() {
 
   /* declares name of columns and settings */
   const columns: GridColDef[] = [
-    { field: "Part_Name", headerName: "Name", width: 150, editable: true },
-    { field: "stock", headerName: "Stock", width: 150, editable: true, type: "number", description: "Click to edit stock quantity",}
+    { field: "Part_Name", headerName: "Name", width: 200, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
+    { field: "stock", headerName: "Stock", width: 150, editable: true, type: "number", description: "Click to edit stock quantity", headerAlign: 'left', align: 'left', display: 'flex' },
+    { field: "description", headerName: "Description", width: 200, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
+    // images
+    { field: "image", headerName: "Image", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
+      renderCell: (params) => {
+        return (
+          <Stack direction = "row">
+            <Box
+            component="img"
+            sx={{
+              height: 70,
+              width: 70,
+              objectFit: 'cover',
+            }}
+            alt="No Image available"
+            src={params.value}
+            />
+          </Stack>
+        )
+      } 
+    },
+
+    { field: "image2", headerName: "Image2", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
+      renderCell: (params) => {
+        return (
+          <Stack direction = "row">
+            <Box
+            component="img"
+            sx={{
+              height: 70,
+              width: 70,
+              objectFit: 'cover',
+            }}
+            alt="No Image available"
+            src={params.value}
+            />
+          </Stack>
+        )
+      } 
+    },
+
+    { field: "image3", headerName: "Image3", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
+      renderCell: (params) => {
+        return (
+          <Stack direction = "row">
+            <Box
+            component="img"
+            sx={{
+              height: 70,
+              width: 70,
+              objectFit: 'cover',
+            }}
+            alt="No Image available"
+            src={params.value}
+            />
+          </Stack>
+        )
+      } 
+    }
 
   ];
 
-  /* random data, to be replaced with data from database */
+  /* row data */
   const [rows, updateRows] = useState<PartRow[]>([]);
 
   // Tracks state of the selected parts/rows
@@ -105,12 +177,12 @@ function PartsTable() {
   });
 
 
-const saveStock = async (id: string, stock: number) => {
+const saveStock = async ( id: string, stock: number, description: string,image: string, image2: string, image3: string,Part_Name: string) => {
   try {
     const res = await fetch(`http://localhost:3000/api/parts/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ Stock: stock }) // matches DB field
+      body: JSON.stringify({ Stock: stock, Description: description, Image_Url: image, Image_Url2: image2, Image_Url3: image3, Part_Name: Part_Name }) // matches DB field
     });
 
     if (!res.ok) {
@@ -124,12 +196,19 @@ const saveStock = async (id: string, stock: number) => {
     updateRows((prev) =>
       prev.map((row) =>
         row.id === id
-          ? { ...row, stock: Number(updatedPart.Stock) }
+          ? { ...row, 
+            stock: Number(updatedPart.Stock),
+            description: updatedPart.Description,
+            image: updatedPart.Image_Url,
+            image2: updatedPart.Image_Url2,
+            image3: updatedPart.Image_Url3,
+            Part_Name: updatedPart.Part_Name
+          }
           : row
       )
     );
   } catch (err) {
-    console.error("Stock update error:", err);
+    console.error("table update error:", err);
   }
 };
 
@@ -141,7 +220,7 @@ const saveStock = async (id: string, stock: number) => {
     navigate("/admin/create-part");
   };
 
-  /* delete button has no functionality as of yet */
+  /* delete button function */
   const handleDeleteRows = () => {
     handleRowsLoading();
     (rowSelectionModel.ids).forEach(async part => {
@@ -164,21 +243,22 @@ const saveStock = async (id: string, stock: number) => {
 
   return (
     <>
-    <Box sx={{ height: 600, width: '100%'} }>
+    <Box sx={{ height: '65vh', width: '80vw' } }>
       {/* While it is fetching the data a loading icon appears */}
-      <div>
       {
         rowsLoaded ? 
         <DataGrid
+          // removed check all since it bugs with the delete function
+          sx={{
+            "& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-columnHeaderTitleContainer": {
+              display: "none"
+            }
+          }}
           rows={rows}
           columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 5,
-              },
-            },
-          }}
+          getRowHeight={() => 'auto'}
+          disableColumnResize={false} 
+          hideFooterPagination={true}
           pageSizeOptions={[5]}
           checkboxSelection
           disableRowSelectionOnClick
@@ -192,7 +272,7 @@ const saveStock = async (id: string, stock: number) => {
           <CircularProgress color="inherit" />
         </Stack>
       }
-      </div>
+
     </Box>
     
     {/* Popup for delete confirmation */}
@@ -200,22 +280,22 @@ const saveStock = async (id: string, stock: number) => {
       sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
       open={openDelete}
     >
-      <Paper sx={{width: '30%', padding: 10}}>
+      <Paper sx={{width: 400, padding: 4}}>
         <Box padding={2} sx={{textAlign: "center"}}>
-          <Typography sx={{fontWeight: 'bold', fontSize: 'h6.fontSize'}}>Delete {rowSelectionModel.ids.size} generators?</Typography>
+          <Typography sx={{fontWeight: 'bold', fontSize: 'h6.fontSize'}}>Delete {rowSelectionModel.ids.size} parts?</Typography>
         </Box>
-        <Stack direction="row" spacing={20} sx={{justifyContent: "center", alignItems: "center"}}>
-          <Button variant="contained" onClick={handleCloseDelete}>Decline</Button>
-          <Button variant="contained" onClick={handleDeleteRows}>Confirm</Button>
+        <Stack direction="row" spacing={2} sx={{justifyContent: "center", alignItems: "center"}}>
+          <Button onClick={() => setOpenDelete(false)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={handleDeleteRows}>Confirm</Button>
         </Stack>
         
       </Paper>
-    </Backdrop>
+    </Backdrop>   
     <Stack direction="row" spacing={2} sx={{ position: "fixed", top: 32, right: 32 }}>
       <Fab color="primary" aria-label="add" onClick={handleCreatePart}>
         <AddIcon />
       </Fab>
-      <Fab color="secondary" aria-label="delete" onClick={handleConfrimDelete}>
+      <Fab color="secondary" aria-label="delete" onClick={handleConfirmDelete}>
         <DeleteIcon />
       </Fab>
     </Stack>
