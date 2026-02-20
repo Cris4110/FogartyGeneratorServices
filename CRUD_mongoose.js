@@ -15,6 +15,7 @@ import pagecontentRoute from "./routes/pagecontent.route.js";
 
 dotenv.config();
 
+dotenv.config();
 
 const app = express();
 // Serve static HTML file
@@ -24,7 +25,6 @@ const app = express();
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
-
 
 //routes
 app.use('/api/admins', adminRoute);
