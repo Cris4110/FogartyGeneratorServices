@@ -1,19 +1,26 @@
-import express from "express";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-import cors from "cors";
-import cookieParser from "cookie-parser";
+const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv').config();
+const Admin = require('./models/admin.model');
+const adminRoute = require("./routes/admin.route.js");
+const Appointment = require('./models/appointment.model');
+const appointmentRoute = require("./routes/appointment.route.js");
+const Generator = require("./models/generator.model");
+const generatorRoute = require("./routes/generator.route.js");
+const Manufacturer = require("./models/manufacturer.model");
+const manufacturerRoute = require("./routes/manufacturer.route.js");
+const Part = require("./models/part.model");
+const partRoute = require("./routes/part.route.js");
+const Review = require("./models/review.model");
+const reviewRoute = require("./routes/review.route.js");
+const User = require("./models/user.model");
+const userRoute = require("./routes/user.route.js");
+const Quote = require("./models/quote.model.js");
+const quoteRoute = require("./routes/quote.route.js")
+const pagecontentRoute = require("./routes/aboutpagecontent.route.js");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
-import adminRoute from "./routes/admin.route.js";
-import appointmentRoute from "./routes/appointment.route.js";
-import generatorRoute from "./routes/generator.route.js";
-import manufacturerRoute from "./routes/manufacturer.route.js";
-import partRoute from "./routes/part.route.js";
-import reviewRoutes from "./routes/review.route.js";
-import userRoute from "./routes/user.route.js";
-import quoteRoute from "./routes/quote.route.js";
-
-dotenv.config();
 
 const app = express();
 
@@ -22,18 +29,22 @@ app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// routes
-app.use("/api/admins", adminRoute);
-app.use("/api/generators", generatorRoute);
-app.use("/api/parts", partRoute);
-app.use("/api/reviews", reviewRoutes); // ✅ FIXED (correct variable)
-app.use("/api/users", userRoute);
-app.use("/api/appointments", appointmentRoute);
-app.use("/api/manufacturers", manufacturerRoute);
-app.use("/api/quotes", quoteRoute);
 
-app.get("/", (req, res) => {
-  res.send("Hello for Node API Server Updated");
+//app.use(express.urlencoded({extended: false}));
+
+//routes
+app.use('/api/admins', adminRoute);
+app.use('/api/generators', generatorRoute);
+app.use('/api/parts', partRoute);
+app.use('/api/reviews', reviewRoute);
+app.use('/api/users', userRoute);
+app.use('/api/appointments', appointmentRoute);
+app.use('/api/manufacturers', manufacturerRoute);
+app.use('/api/quotes', quoteRoute);
+app.use('/api/pagecontent', pagecontentRoute);
+
+app.get('/', (req, res) => {
+    res.send("Hello for Node API Server Updated");
 });
 
 const PORT = process.env.PORT || 3000;
