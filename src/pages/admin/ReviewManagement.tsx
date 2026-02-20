@@ -13,10 +13,33 @@ type ReviewRow = {
       comment: string;
       date: string;
       isVerified: boolean;
-    };
+      service: string;
+};
+//unit testing for average rating calculation
+const calcVerifiedAverage = (rows: { rating: any; isVerified: boolean }[]) => {
+  const nums = rows
+    .filter((r) => r.isVerified)
+    .map((r) => Number(r.rating))
+    .filter((n) => Number.isFinite(n));
+
+  if (nums.length === 0) return null;
+  return nums.reduce((a, b) => a + b, 0) / nums.length;
+};
 
 // admin review management page
 function ReviewManagement() {
+
+  //testing
+  useEffect(() => {
+  const testRows = [
+    { rating: 5, isVerified: true },
+    { rating: 1, isVerified: false },
+    { rating: 1, isVerified: true },
+    { rating: 4.5, isVerified: true },
+  ];
+  const result = calcVerifiedAverage(testRows);
+  console.log("[MANUAL TEST] avg verified should be 3.5 ->", result);
+  }, []);
 
     //for selected tracks
     const [selectionModel, setSelectionModel] = useState<string[]>([]);
@@ -30,10 +53,7 @@ function ReviewManagement() {
     const totalReviews = rows.length;
     const verifiedReviews = rows.filter((r) => r.isVerified);
     const verifiedCount = verifiedReviews.length;
-    const avgVerified =
-      verifiedCount === 0
-        ? 0
-        : verifiedReviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / verifiedCount;
+    const avgVerified = verifiedCount === 0 ? 0 : verifiedReviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / verifiedCount;
     const avgVerifiedDisplay = verifiedCount === 0 ? "-" : avgVerified.toFixed(2);
 
     //view card
@@ -95,6 +115,7 @@ function ReviewManagement() {
       comment: review.comment ?? "",
       date: review.createdAt ? new Date(review.createdAt).toISOString().slice(0, 10) : "",
       isVerified: review.verified ?? false,
+      service: review.service ?? "N/A",
     }));
     updateRows(tmp);
     setRowLoaded(true);
@@ -169,7 +190,7 @@ function ReviewManagement() {
       //update on veriified toggle
       {
         field: "isVerified",
-        headerName: "Verified",
+        headerName: "Published",
         width: 140,
         sortable: false,
         renderCell: (params: GridRenderCellParams<any>) => {
@@ -185,7 +206,8 @@ function ReviewManagement() {
           );
         },
       },
-      { field: "comment", headerName: "Review", width: 700, editable: false },
+      { field: "service", headerName: "Service", width: 200, editable: false },
+      { field: "comment", headerName: "Review", width: 550, editable: false },
       
     ];
 
@@ -229,18 +251,18 @@ function ReviewManagement() {
           </Box>
 
           <Box sx={{ p: 2, borderRadius: 2, backgroundColor: "white", boxShadow: 1, minWidth: 180 }}>
-            <Typography variant="body2" color="text.secondary">Verified Reviews</Typography>
+            <Typography variant="body2" color="text.secondary">Published Reviews</Typography>
             <Typography variant="h5" sx={{ fontWeight: "bold" }}>{verifiedCount}</Typography>
           </Box>
 
           <Box sx={{ p: 2, borderRadius: 2, backgroundColor: "white", boxShadow: 1, minWidth: 260 }}>
-            <Typography variant="body2" color="text.secondary">Avg Verified Rating</Typography>
+            <Typography variant="body2" color="text.secondary">Avg Published Rating</Typography>
             <Typography variant="h5" sx={{ fontWeight: "bold" }}>{avgVerifiedDisplay}</Typography>
           </Box>
 
         </Stack>
 
-        <Box>
+        <Box sx = {{ flex: 1, pb: 3, minHeight:0}}>
           {/* Table settings */}
           <div>
           {
@@ -256,15 +278,10 @@ function ReviewManagement() {
               getRowHeight={() => 'auto'} 
               hideFooterPagination={true}
               sx={{
-                '&.MuiDataGrid-root--densityCompact .MuiDataGrid-cell': {
-                  py: 1,
-                },
-                '&.MuiDataGrid-root--densityStandard .MuiDataGrid-cell': {
-                  py: '15px',
-                },
-                '&.MuiDataGrid-root--densityComfortable .MuiDataGrid-cell': {
-                  py: '22px',
-                },
+                '& ,MuiDataGrid-VirtualScroller': { paddingBottom: '70px' },
+                '&.MuiDataGrid-root--densityCompact .MuiDataGrid-cell': {py: 1},
+                '&.MuiDataGrid-root--densityStandard .MuiDataGrid-cell': {py: '15px',},
+                '&.MuiDataGrid-root--densityComfortable .MuiDataGrid-cell': {py: '22px',},
               }}
               pageSizeOptions={[5]}
               disableRowSelectionOnClick
@@ -290,13 +307,16 @@ function ReviewManagement() {
                 </Typography>
 
                 <Chip
-                  label={activeReview.isVerified ? "Verified" : "Unverified"}
+                  label={activeReview.isVerified ? "Published" : "Not Published"}
                   color={activeReview.isVerified ? "success" : "default"}
                   size="small"
                 />
               </Stack>
 
               <Stack direction="row" spacing={2} alignItems="center">
+                <Typography variant="body2" color="text.secondary">
+                  Service: <b>{activeReview.service}</b>
+                </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Rating: <b>{activeReview.rating}</b>
                 </Typography>
