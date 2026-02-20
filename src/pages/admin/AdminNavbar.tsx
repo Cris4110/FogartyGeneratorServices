@@ -86,15 +86,8 @@ const AdminNavbar = () => {
         </Typography>
       </Box>
 
-      <Box
-        sx={{
-          maxHeight: 500,
-          maxWidth: 250,
-          overflowY: "auto",
-          overflowX: "hidden",
-        }}
-      >
-        <Stack spacing={3} sx={{ ml: 3, width: 180 }}>
+      <Box sx={{ maxHeight: 500, maxWidth: 250, overflowY: 'auto' , overflowX: 'hidden'}}>
+        <Stack spacing={3} sx={{ ml: 3 , width: 180 }}>
           {/* Dashboard */}
           <Typography
             variant="h5"
@@ -141,9 +134,7 @@ const AdminNavbar = () => {
                 <Typography
                   variant="body1"
                   sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
-                  onClick={() =>
-                    handleNavigation("/admin/incoming/appointments")
-                  }
+                  onClick={() => handleNavigation("/admin/incoming/appointments")}
                 >
                   Appointment Requests
                 </Typography>
@@ -216,20 +207,7 @@ const AdminNavbar = () => {
             {"Inventory\nManagement"}
           </Typography>
 
-          <Typography
-            variant="h5"
-            sx={{
-              whiteSpace: "pre-line",
-              cursor: "pointer",
-              transition: "0.3s",
-              "&:hover": { color: "#1976d2" },
-            }}
-            onClick={() => handleNavigation("/admin/edit-about")}
-          >
-            {"Edit\nAbout Page"}
-          </Typography>
-
-          {/* Review Management */}
+        {/* Review Management */}
           <Typography
             variant="h5"
             sx={{

@@ -1,68 +1,61 @@
-import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { Box, Grid, Stack, Typography, CircularProgress } from "@mui/material";
+
+import { Box, Grid, Stack, Typography } from "@mui/material";
 import logo from "../../assets/logo.png";
 
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api";
+{/* Placeholder text for the client's introduction*/}
+const text = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et 
+                dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+                ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore 
+                eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia 
+                deserunt mollit anim id est laborum.`;
+
 
 function About() {
-  const [text, setText] = useState("Loading...");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchContent();
-  }, []);
-
-  const fetchContent = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/pagecontent/about`);
-      if (!response.ok) throw new Error(await response.text());
-      const data = await response.json();
-      setText(data.content);
-    } catch (error) {
-      console.error("Failed to load content:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) return <CircularProgress />;
-
-  return (
-    <>
-      <Navbar />
-      <Grid
-        container
-        padding={15}
-        spacing={15}
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Grid>
-          <Box
-            component="img"
-            src={logo}
-            alt="Logo"
-            sx={{ width: 200, height: 200 }}
-          />
+    return (
+        <>
+        <Navbar />
+        {/* Component for the page's body - Grid layout*/}
+        <Grid
+            container
+            padding={15}
+            spacing={15}
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+        >
+            {/* Child of the component - image*/}
+            <Grid>
+                <Box
+                    component="img"
+                    src={logo}  // Placeholder image
+                    alt="Logo"
+                sx={{
+                    width: 200,
+                    height: 200,
+                }}/>
+            </Grid>
+             {/* Child of the component - stack*/}
+            <Grid>
+                <Stack
+                    spacing={5}
+                    maxWidth={500}
+                    >
+                    {/* Child of the component - typography*/}
+                    <Typography variant="h4" fontWeight={700} gutterBottom>
+                        Introduction
+                    </Typography>
+                    <Typography variant="h6" color="text.secondary">
+                        {text}
+                    </Typography>
+                </Stack>
+            </Grid>
         </Grid>
-        <Grid>
-          <Stack spacing={5} maxWidth={500}>
-            <Typography variant="h4" fontWeight={700} gutterBottom>
-              Introduction
-            </Typography>
-            <Typography variant="h6" color="text.secondary">
-              {text}
-            </Typography>
-          </Stack>
-        </Grid>
-      </Grid>
-      <Footer />
-    </>
-  );
+        <Footer/>
+        </>
+    );
 }
+
 
 export default About;
