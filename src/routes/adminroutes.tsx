@@ -9,22 +9,22 @@ import CreateGenerator from "../pages/admin/CreateGen";
 import CreatePart from "../pages/admin/CreatePart";
 import ReviewManagement from "../pages/admin/ReviewManagement";
 import QuoteRequests from "../pages/admin/QuoteRequests";
-import EditPageContent from "../pages/admin/EditPageContent";
 
 const AdminRoutes = () => (
-  <Routes>
-    <Route path="/" element={<Dashboard />} />
-    <Route path="/user-management" element={<UserManagementPage />} />
-    <Route path="/incoming/appointments" element={<AppointmentRequest />} />
-    <Route path="/inven-management" element={<InventoryManagement />} />
+    <Routes>
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/user-management" element={<UserManagementPage/>} />
+      <Route path="/incoming/appointments" element={<AppointmentRequest />} />
+      <Route path="/inven-management" element={<InventoryManagement />} />
+      
+      <Route path="/reviewed" element={<ReviewedAppointments />} />
+      <Route path="/create-gen" element={<CreateGenerator />} />
+      <Route path="/incoming/quotes" element={<QuoteRequests />} />
+      <Route path="/create-part" element={<CreatePart />} />
+      <Route path="/review-management" element={<ReviewManagement />} />
+  
+    </Routes>
 
-    <Route path="/reviewed" element={<ReviewedAppointments />} />
-    <Route path="/create-gen" element={<CreateGenerator />} />
-    <Route path="/incoming/quotes" element={<QuoteRequests />} />
-    <Route path="/create-part" element={<CreatePart />} />
-    <Route path="/review-management" element={<ReviewManagement />} />
-    <Route path="/edit-about" element={<EditPageContent />} />
-  </Routes>
 );
 
 export default AdminRoutes;

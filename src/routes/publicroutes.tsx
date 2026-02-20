@@ -20,7 +20,9 @@ import EmailChange from "../pages/public/EmailChange";
 import PhoneNumberChange from "../pages/public/PhoneNumberChange";
 import PasswordChange from "../pages/public/PasswordChange";
 import LeaveReview from "../pages/public/LeaveReview";
+import ViewReviews from "../pages/public/ViewReviews";
 import ProtectedRoute from "./protectedroute"; // uppercase
+
 
 const PublicRoutes = () => (
   <Routes>
@@ -47,6 +49,7 @@ const PublicRoutes = () => (
     <Route path="/PhoneNumberChange" element={<PhoneNumberChange />} />
     <Route path="/PasswordChange" element={<PasswordChange />} />
     <Route path="/leavereview" element={<LeaveReview />} />
+    <Route path="/ViewReviews" element={<ViewReviews />} />
   </Routes>
 );
 
