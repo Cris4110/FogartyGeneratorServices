@@ -22,7 +22,7 @@ const api = axios.create({
   withCredentials: true, // so the JWT cookie goes with requests
 });
 
-//const pages = ['Home', 'About', 'Services', 'Contact', 'FAQ'];
+//const pages = ['Home', 'About', 'Services', 'Contact', 'FAQ', 'Reviews'];
 //updated pages to include labels and paths,
 const pages = [
   { label: "Home", to: "/" },
@@ -31,6 +31,7 @@ const pages = [
   { label: "Contact", to: "/Contactpage" },
   { label: "FAQ", to: "/faq" },
   { label: "Request Account", to: "/UserRegistration" },
+  { label: "Reviews", to: "/ViewReviews" },
 ];
 
 function Navbar() {
