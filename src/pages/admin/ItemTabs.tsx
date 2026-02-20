@@ -12,7 +12,7 @@ interface TabPanelProps {
   value: number;
 }
 
-/* displays tab selected and hides the others */
+/* displays tab selected (generators/parts) and hides the others */
 function CustomTabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
