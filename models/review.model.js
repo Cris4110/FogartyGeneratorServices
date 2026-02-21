@@ -1,40 +1,52 @@
-import mongoose from "mongoose";
-import { randomUUID } from "crypto";
+const mongoose = require('mongoose');
 
-const ReviewSchema = new mongoose.Schema(
-  {
-    reviewID: {
-      type: String,
-      required: true,
-      default: () => randomUUID(),
+const ReviewSchema = mongoose.Schema(
+    {
+        reviewID: {
+            type: String,
+            required: true,
+            default: ""
+        },
+
+        name: {
+            type: String,
+            required: true,
+            default: ""
+        },
+
+        rating: {
+            type: Number,
+            required: true,
+            default: "",
+            min: 1,
+            max:5
+            
+        },
+
+        comment: {
+            type: String,
+            required: true,
+            default: ""
+        },
+
+        createdAt: {
+            type: Date,
+            required: true,
+            default: ""
+        },
+
+        verified: {
+            type: Boolean,
+            required: true,
+            default: ""
+        },
+       
     },
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-     service: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    rating: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 5,
-    },
-    comment: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    verified: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  { timestamps: true }
+    {
+        timestamps: true,
+    }
 );
 
-export default mongoose.model("Review", ReviewSchema);
+const Review = mongoose.model("Review", ReviewSchema);
+
+module.exports = Review;

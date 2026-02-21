@@ -4,8 +4,6 @@ import { Container, Grid, Box, Typography, Button } from "@mui/material";
 import logo from "../../assets/Kohler_Gen.jpg";
 import { Link } from "react-router-dom";
 import { NavLink } from "react-router-dom";
-import ReviewMarquee from "../../component/ReviewMarquee.tsx";
-import { Component } from "react";
 
 function Homepage() {
   return (
@@ -65,10 +63,6 @@ function Homepage() {
           </Grid>
         </Grid>
       </Container>
-       {/*Review Marquee*/}
-       <Container maxWidth="lg" sx={{mb:10}}>
-              <ReviewMarquee />
-       </Container>
       <Footer />
     </>
   );
