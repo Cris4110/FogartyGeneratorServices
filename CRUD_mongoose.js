@@ -13,7 +13,7 @@ import userRoute from "./routes/user.route.js";
 import quoteRoute from "./routes/quote.route.js";
 import pagecontentRoute from "./routes/pagecontent.route.js";
 
-dotenv.config();
+//dotenv.config();
 
 dotenv.config();
 
