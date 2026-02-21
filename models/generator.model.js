@@ -30,8 +30,26 @@ const GeneratorSchema = mongoose.Schema(
             type: Number,
             required: true,
             default: ""
-        }
+        },
+
+        Image_Url: {
+            type: Array,
+            requried: false,
+            default: ""
+        },
        
+        Image_Url2: {
+            type: Array,
+            requried: false,
+            default: ""
+        },
+
+        Image_Url3: {
+            type: Array,
+            requried: false,
+            default: ""
+        },
+        
     },
     {
         timestamps: true,

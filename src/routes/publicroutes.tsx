@@ -20,7 +20,10 @@ import EmailChange from "../pages/public/EmailChange";
 import PhoneNumberChange from "../pages/public/PhoneNumberChange";
 import PasswordChange from "../pages/public/PasswordChange";
 import LeaveReview from "../pages/public/LeaveReview";
+import ViewReviews from "../pages/public/ViewReviews";
 import ProtectedRoute from "./protectedroute"; // uppercase
+import ItemDetailPage from "../pages/public/ItemDetailPage";
+
 
 const PublicRoutes = () => (
   <Routes>
@@ -37,6 +40,8 @@ const PublicRoutes = () => (
     <Route path="/UserLogin" element={<UserLogin />} />
     <Route path="/Appointment" element={<Appointment />} />
     <Route path="/CurrentStockPage" element={<CurrentStockPage />} />
+    <Route path="/item/:type/:id" element={<ItemDetailPage />} />
+
     <Route path="/YourAccount" element={<YourAccount />} />
     <Route path="/YourOrders" element={<YourOrders />} />
     <Route path="/ReturnPage" element={<ReturnPage />} />
@@ -47,6 +52,7 @@ const PublicRoutes = () => (
     <Route path="/PhoneNumberChange" element={<PhoneNumberChange />} />
     <Route path="/PasswordChange" element={<PasswordChange />} />
     <Route path="/leavereview" element={<LeaveReview />} />
+    <Route path="/ViewReviews" element={<ViewReviews />} />
   </Routes>
 );
 
