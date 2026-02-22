@@ -9,6 +9,12 @@ import {
 } from "@mui/material";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
+  withCredentials: true,
+})
 
 function LeaveReview() {
   const [name, setName] = useState(""); // free input name
@@ -17,25 +23,42 @@ function LeaveReview() {
   const [rating, setRating] = useState(0); // can be 0.5, 1, 1.5, ...
   const [error, setError] = useState("");
 
-  const handleSubmit = () => {
-    if (!name || !service || !comments || rating === 0) {
-      setError("Please fill out all required fields.");
-      return;
-    }
-    setError("");
-    console.log({ name, service, rating, comments });
-    alert("Review submitted!");
-  };
+  const handleSubmit = async () => {
+  if (!name || !service || !comments || rating === 0) {
+    setError("Please fill out all required fields.");
+    return;
+  }
 
-  const handleStarClick = (
-    event: React.MouseEvent<HTMLDivElement>,
-    index: number
-  ) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const half = x < rect.width / 2 ? 0.5 : 1;
-    setRating(index + half);
-  };
+  setError("");
+
+  try {
+    await api.post("/reviews", {
+      name,
+      service,
+      rating,
+      comment: comments,
+      verified: false,
+    });
+
+    alert("Review submitted!");
+    setName("");
+    setService("");
+    setComments("");
+    setRating(0);
+  } catch (err: any) {
+    console.error("Failed to submit review:", err);
+    setError(err?.response?.data?.message ?? "Failed to submit review.");
+  }
+};
+const handleStarClick = (
+  event: React.MouseEvent<HTMLDivElement>,
+  index: number
+) => {
+  const rect = event.currentTarget.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const half = x < rect.width / 2 ? 0.5 : 1;
+  setRating(index + half);
+};
 
   return (
     <>

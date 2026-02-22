@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const passwordRegex =  /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/;
 //^(?=(?:.*[A-Z]){2,}) at least 2 uppercase letters
@@ -42,7 +42,7 @@ const AddressSchema = new mongoose.Schema(
     }
 )
 
-const UserSchema = mongoose.Schema(
+const UserSchema = new mongoose.Schema(
     {
         userID: {
             type: String,
@@ -97,6 +97,6 @@ UserSchema.methods.comparePassword = async function (candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);    
 };
 
-const User = mongoose.model("User", UserSchema);
-
-module.exports = User;
+// const User = mongoose.model("User", UserSchema);
+export default mongoose.model("User", UserSchema);
+// module.exports = User;

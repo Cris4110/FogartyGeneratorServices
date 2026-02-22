@@ -1,6 +1,6 @@
-const Review = require('../models/review.model');
+import Review from "../models/review.model.js";
 
-const getReviews = async (req, res) =>{
+export const getReviews = async (req, res) =>{
  try {
         const review = await Review.find({});
         res.status(200).json(review);
@@ -10,7 +10,7 @@ const getReviews = async (req, res) =>{
     }
 }
 
-const getReview = async (req, res) =>{
+export const getReview = async (req, res) =>{
     try {
         const {id} = req.params;
         const review = await Review.findById(id);
@@ -21,7 +21,7 @@ const getReview = async (req, res) =>{
     }
 }
 
-const createReview = async (req, res) => {
+export const createReview = async (req, res) => {
         try {
         const review = await Review.create(req.body);
         res.status(200).json({message: "New Review Created"});
@@ -31,7 +31,7 @@ const createReview = async (req, res) => {
     
 }
 
-const updateReview = async (req, res) => {
+export const updateReview = async (req, res) => {
      try {
         const {id} = req.params;
         const review = await Review.findByIdAndUpdate(id, req.body);
@@ -46,7 +46,7 @@ const updateReview = async (req, res) => {
     }
 }
 
-const deleteReview = async (req, res) => {
+export const deleteReview = async (req, res) => {
      try {
         const {id} = req.params;
         const review = await Review.findByIdAndDelete(id, req.body);
@@ -60,10 +60,21 @@ const deleteReview = async (req, res) => {
     }
 }
 
-module.exports = {
-    getReviews,
-    getReview,
-    createReview,
-    updateReview,
-    deleteReview
+// Public endpoint for homepage marquee
+export const getPublicReviews = async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit || "5", 10), 50);
+
+    const filter = {verified: true};
+
+    const reviews = await Review.find({ verified: true })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    res.status(200).json(reviews);
+  } catch (err) {
+    console.error("getPublicReviews error:", err);
+    res.status(500).json({ message: "Failed to fetch reviews" });
+  }
 };
