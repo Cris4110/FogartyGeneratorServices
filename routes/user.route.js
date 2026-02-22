@@ -1,21 +1,15 @@
 import express from "express";
-// const express = require("express");
 import User from "../models/user.model.js";
-// const User = require('../models/user.model');
-const router = express.Router();
-// const {getUsers, getUser, createUser, updateUser, deleteUser} = require('../controller/user.controller.js');
 import bcrypt from "bcrypt"
-// const bcrypt = require('bcrypt');
 import {getUsers, getUser, createUser, updateUser, deleteUser} from "../controller/user.controller.js";
-
-import jwt from 'jsonwebtoken';
-// const jwt = require("jsonwebtoken");
-const COOKIE_NAME = "access_token";
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret"; 
-
 import dotenv from "dotenv";
+import jwt from 'jsonwebtoken';
+
+const COOKIE_NAME = "access_token";
+
 dotenv.config();
-// require('dotenv').config();
+const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || "dev_secret"; 
 
 router.get("/me", requireAuth, async (req, res) => {
   // req.user.sub was set by requireAuth above
