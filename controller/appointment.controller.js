@@ -1,8 +1,10 @@
-const Appointment = require("../models/appointment.model");
-const User = require("../models/user.model");
+// const Appointment = require("../models/appointment.model");
+// const User = require("../models/user.model");
+import Appointment from "../models/appointment.model.js";
+import User from "../models/user.model.js";
 
 // GET all pending appointments
-const getAppointments = async (req, res) => {
+export const getAppointments = async (req, res) => {
   try {
     const rows = await Appointment.aggregate([
       { $match: { status: "pending" } },
@@ -55,7 +57,7 @@ const getAppointments = async (req, res) => {
 
 
 // GET all reviewed appointments
-const getReviewedAppointments = async (req, res) => {
+export const getReviewedAppointments = async (req, res) => {
   try {
     const rows = await Appointment.aggregate([
       { $match: { status: { $ne: "pending" } } },
@@ -106,7 +108,7 @@ const getReviewedAppointments = async (req, res) => {
 
 
 // GET single appointment
-const getAppointment = async (req, res) => {
+export const getAppointment = async (req, res) => {
   try {
     const appt = await Appointment.findById(req.params.id);
     if (!appt) return res.status(404).json({ message: "Not found" });
@@ -119,7 +121,7 @@ const getAppointment = async (req, res) => {
 
 
 // CREATE appointment
-const createAppointment = async (req, res) => {
+export const createAppointment = async (req, res) => {
   try {
     const {
       userID,
@@ -147,7 +149,7 @@ const createAppointment = async (req, res) => {
 
 
 // UPDATE appointment
-const updateAppointment = async (req, res) => {
+export const updateAppointment = async (req, res) => {
   try {
     const updated = await Appointment.findByIdAndUpdate(
       req.params.id,
@@ -164,7 +166,7 @@ const updateAppointment = async (req, res) => {
 
 
 // UPDATE status or reschedule
-const updateAppointmentStatus = async (req, res) => {
+export const updateAppointmentStatus = async (req, res) => {
   try {
     const { status, newAppointmentTime } = req.body;
 
@@ -189,7 +191,7 @@ const updateAppointmentStatus = async (req, res) => {
 
 
 // DELETE appointment
-const deleteAppointment = async (req, res) => {
+export const deleteAppointment = async (req, res) => {
   try {
     await Appointment.findByIdAndDelete(req.params.id);
     res.json({ message: "Deleted" });
@@ -200,13 +202,13 @@ const deleteAppointment = async (req, res) => {
 };
 
 
-// EXPORT EVERYTHING
-module.exports = {
-  getAppointments,
-  getReviewedAppointments,
-  getAppointment,
-  createAppointment,
-  updateAppointment,
-  updateAppointmentStatus,
-  deleteAppointment,
-};
+// // EXPORT EVERYTHING
+// module.exports = {
+//   getAppointments,
+//   getReviewedAppointments,
+//   getAppointment,
+//   createAppointment,
+//   updateAppointment,
+//   updateAppointmentStatus,
+//   deleteAppointment,
+// };

@@ -1,14 +1,15 @@
-const express = require("express");
-const User = require('../models/user.model');
-const router = express.Router();
-const {getUsers, getUser, createUser, updateUser, deleteUser} = require('../controller/user.controller.js');
-const bcrypt = require('bcrypt');
+import express from "express";
+import User from "../models/user.model.js";
+import bcrypt from "bcrypt"
+import {getUsers, getUser, createUser, updateUser, deleteUser} from "../controller/user.controller.js";
+import dotenv from "dotenv";
+import jwt from 'jsonwebtoken';
 
-const jwt = require("jsonwebtoken");
 const COOKIE_NAME = "access_token";
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret"; 
 
-require('dotenv').config();
+dotenv.config();
+const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || "dev_secret"; 
 
 router.get("/me", requireAuth, async (req, res) => {
   // req.user.sub was set by requireAuth above
@@ -130,4 +131,5 @@ router.post("/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-module.exports = router;
+// module.exports = router;
+export default router;
