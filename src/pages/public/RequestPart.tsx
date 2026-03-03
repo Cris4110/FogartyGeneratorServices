@@ -18,6 +18,7 @@ function RequestPart() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
   const [partName, setPart] = useState("");
   const [AdditionalInformation, setAdditionalInfo] = useState("");
   const [responseMsg, setResponseMsg] = useState("");
@@ -32,6 +33,7 @@ function RequestPart() {
       name,
       email,
       phoneNumber,
+      address,
       partName,
       AdditionalInformation,
     };
@@ -45,6 +47,8 @@ function RequestPart() {
       newErrors.email = "Email is required";
     if (!phoneNumber)
       newErrors.phoneNumber = "Phone is required";
+    if (!address)
+      newErrors.address = "Address is required";
     if (!partName)
       newErrors.partName   = "Part name is required";
 
@@ -70,6 +74,7 @@ function RequestPart() {
         setLastName("");
         setEmail("");
         setPhoneNumber("");
+        setAddress("");
         setPart("");
         setAdditionalInfo("");
       }
@@ -110,6 +115,8 @@ useEffect(() => {
           }
           if (user.email) setEmail(user.email);
           if (user.phoneNumber) setPhoneNumber(user.phoneNumber);
+          if (user.address) setAddress(user.address.street + ", " + user.address.city + ", " + user.address.state
+                      + " " + user.address.zipcode)
         }
       } catch (err) {
         if (!cancelled) navigate("/userlogin");
@@ -196,6 +203,16 @@ return (
                 onChange={(e) => setEmail(e.target.value)}
                 error={!!errors.email}
                 helperText={errors.email}
+                fullWidth
+              />
+
+              <TextField
+                label="Address"
+                name="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                error={!!errors.address}
+                helperText={errors.address}
                 fullWidth
               />
 
