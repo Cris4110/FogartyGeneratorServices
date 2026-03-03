@@ -5,9 +5,10 @@
 
 import express from "express";
 const router = express.Router();
-import {getAppointments, getReviewedAppointments, getAppointment, createAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus} from '../controller/appointment.controller.js';
+import {getAppointments, getReviewedAppointments, getAppointment, createAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, getPendingCount} from '../controller/appointment.controller.js';
 
 router.get("/reviewed", getReviewedAppointments);
+router.get("/pending-count", getPendingCount);
 router.get("/", getAppointments);
 router.get("/:id", getAppointment);
 router.post("/", createAppointment);

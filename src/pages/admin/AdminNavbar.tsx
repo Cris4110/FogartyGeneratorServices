@@ -45,8 +45,8 @@ const AdminNavbar = () => {
   return (
     <Box
       sx={{
-        width: "13vw",
-        height: "100vh",
+        width: 250,
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
@@ -56,22 +56,17 @@ const AdminNavbar = () => {
       }}
     >
       <Box
+        component="img"
+        src={logo}
+        alt="Logo"
         sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          mb: 6,
+          width: 200,
+          height: 200,
         }}
       >
-        <Box
-          component="img"
-          src={logo}
-          alt="Logo"
-          sx={{
-            width: 200,
-            height: 200,
-          }}
-        />
+      </Box>
+
+      <Box>
         <Typography
           variant="h3"
           sx={{
@@ -79,7 +74,9 @@ const AdminNavbar = () => {
             color: "#1976d2",
             whiteSpace: "nowrap",
             position: "relative",
-            top: "-100px",
+            top: "-230px",
+            marginLeft: "250px",
+            //backgroundColor: "#e5c2c2"
           }}
         >
           Admin Portal
@@ -88,7 +85,7 @@ const AdminNavbar = () => {
 
       <Box
         sx={{
-          maxHeight: 500,
+          maxHeight: "56vh",
           maxWidth: 250,
           overflowY: "auto",
           overflowX: "hidden",
