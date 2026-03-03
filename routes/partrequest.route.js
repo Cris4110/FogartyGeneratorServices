@@ -1,11 +1,13 @@
 const express = require("express");
 const Part = require('../models/partrequest.model');
-const {getPartrequests, getPartrequest, createPartrequest, updatePartrequest, deletePartrequest} = require('../controller/partrequest.controller.js');
+const {getPartrequests, getPartrequest, createPartrequest, updatePartrequest, deletePartrequest, getPendingParts} = require('../controller/partrequest.controller.js');
 const router = express.Router();
 
 
 
 router.get('/', getPartrequests);
+
+router.get('/pending-parts', getPendingParts);
 
 router.get("/:id",getPartrequest);
 

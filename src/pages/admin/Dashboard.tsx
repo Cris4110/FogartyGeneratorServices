@@ -42,12 +42,13 @@ const Dashboard = () => {
     navigate(path);
   };
 
-  const [pendingAppointCount, setAppointPendingCount] = useState<number>(0);
-  const [pendingQuoteCount, setQuotePendingCount] = useState<number>(0);
-  const [pendingItemCount, setItemPendingCount] = useState<number>(0); // waiting for parts request page to be done before implementing
+  const [pendingAppointCount, setAppointPendingCount] = useState<number>(0); // displays appointments that are status: pending
+  const [pendingQuoteCount, setQuotePendingCount] = useState<number>(0); // displays quote requests that are not acknowledged (acknowledged = false)
+  const [pendingPartCount, setPartPendingCount] = useState<number>(0); // displays part requests with status: To-do
 
   const [rowsAppoint, setRowsAppoint] = useState<ReviewedAppointment[]>([]);
   const [rowsReview, setRowsReview] = useState<ReviewRow[]>([]);
+
   const [timeframe, setTimeframe] = useState('all');
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -93,18 +94,18 @@ const Dashboard = () => {
     };
     fetchCount();
   }, []);
-  // useEffect for fetching pending part request counts (filler data, waiting for parts request page to be completed)
+  // useEffect for fetching pending part request counts
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/quotes/pending-quotes");
+        const response = await fetch("http://localhost:3000/api/partrequests/pending-parts");
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
         console.log("Data from server:", data);
-        setItemPendingCount(data.count);
+        setPartPendingCount(data.count);
 
       } catch (error) {
         console.error("Error fetching part count:", error);
@@ -452,7 +453,7 @@ const Dashboard = () => {
                   alignItems: "center",
                   //marginTop: "13vh",
                 }}>
-                <Box sx={{ // box holds the text for number of pending parts (filler data, waiting for parts request page to finish)
+                <Box sx={{ // box holds the text for number of pending parts
                   //backgroundColor: "#c67777",
                   height: "30vh",
                   width: "25vw",
@@ -467,7 +468,7 @@ const Dashboard = () => {
                       fontWeight: 'bold', 
                       color: 'primary.main' 
                     }}>
-                      {(pendingItemCount)}
+                      {(pendingPartCount)}
                     </Typography>
                   )}
                   <Typography 
@@ -632,7 +633,6 @@ const Dashboard = () => {
               display: "flex",
               justifyContent: "left",
               alignItems: "end",
-              //marginTop: "13vh",
             }}>
               
               <Box sx={{
