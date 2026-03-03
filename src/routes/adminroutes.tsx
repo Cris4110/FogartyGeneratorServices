@@ -10,12 +10,14 @@ import CreatePart from "../pages/admin/CreatePart";
 import ReviewManagement from "../pages/admin/ReviewManagement.tsx";
 import QuoteRequests from "../pages/admin/QuoteRequests";
 import EditPageContent from "../pages/admin/EditPageContent.tsx";
+import PartsRequest from "../pages/admin/PartsRequest.tsx";
 
 const AdminRoutes = () => (
     <Routes>
       <Route path="/" element={<Dashboard />} />
       <Route path="/user-management" element={<UserManagementPage/>} />
       <Route path="/incoming/appointments" element={<AppointmentRequest />} />
+      <Route path="/incoming/parts" element={<PartsRequest />} />
       <Route path="/inven-management" element={<InventoryManagement />} />
       
       <Route path="/reviewed" element={<ReviewedAppointments />} />
