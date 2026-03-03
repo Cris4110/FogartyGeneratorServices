@@ -7,21 +7,52 @@ import dayjs from "dayjs";
 
 interface ReviewedAppointment {
   _id: string;
+
   appointmentDateTime: string;
+  appointmentEndDateTime: string;
+
   newAppointmentTime?: string | null;
+  newAppointmentEndTime?: string | null;
+
   status: "accepted" | "denied" | "rescheduled";
   name: string;
   phone: string;
   email: string; 
   address: string;
   description: string;  
+  createdBy: string;
   rescheduledDateTime?: string | null;
+  rescheduledEndDateTime?: string | null;
 }
 
 const formatISO = (iso?: string | null) => {
   if (!iso) return "-";
   const dt = dayjs(iso);
   return dt.isValid() ? dt.format("MMM DD, YYYY @ h:mm A") : "-";
+};
+const formatRange = (start?: string | null, end?: string | null) => {
+  if (!start) return "-";
+  const s = dayjs(start);
+  if (!s.isValid()) return "-";
+
+  // fallback end = start + 1 hour (in case older rows don’t have end stored)
+  const e = end ? dayjs(end) : s.add(1, "hour");
+  const endToUse = e.isValid() && e.isAfter(s) ? e : s.add(1, "hour");
+
+
+  return `${s.format("MMM DD, YYYY")} @ ${s.format("h:mm A")} - ${endToUse.format("h:mm A")}`;
+};
+
+const getEffectiveStartEnd = (row: ReviewedAppointment) => {
+  const scheduledStart =
+    row.status === "rescheduled" ? row.rescheduledDateTime : row.appointmentDateTime;
+
+  const scheduledEnd =
+    row.status === "rescheduled"
+      ? row.rescheduledEndDateTime ?? row.appointmentEndDateTime
+      : row.appointmentEndDateTime;
+
+  return { scheduledStart, scheduledEnd };
 };
 
 export default function ReviewedAppointments() {
@@ -47,19 +78,22 @@ export default function ReviewedAppointments() {
 
  const columns: GridColDef<ReviewedAppointment>[] = [
   {
-    field: "original",
-    headerName: "Original Date",
+    field: "scheduledDate",
+    headerName: "Scheduled Date",
     flex: 1.3,
-    minWidth: 200,
+    minWidth: 270,
     sortable: false,
-    valueGetter: (_value, row) => formatISO(row.appointmentDateTime)
+    valueGetter: (_v, row) => {
+      const { scheduledStart, scheduledEnd } = getEffectiveStartEnd(row);
+      return formatRange(scheduledStart, scheduledEnd);
+    },
   },
 
   {
     field: "status",
     headerName: "Status",
     flex: 1,
-    minWidth: 200,
+    minWidth: 150,
     renderCell: (params) => {
       const s = params.row?.status ?? "unknown";
       const color =
@@ -76,12 +110,12 @@ export default function ReviewedAppointments() {
   },
 
   {
-    field: "newDate",
-    headerName: "New Date (If Rescheduled)",
+    field: "orginalDate",
+    headerName: "Orignal Date (If Rescheduled)",
     flex: 1.4,
     minWidth: 200,
     sortable: false,
-    valueGetter: (_value, row) => formatISO(row.rescheduledDateTime)
+    valueGetter: (_value, row) => formatISO(row.status === "rescheduled" ? row.appointmentDateTime : "-"),
     },
 
     { field: "name", headerName: "Name", flex: 1, minWidth:200, },
