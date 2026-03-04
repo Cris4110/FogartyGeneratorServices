@@ -5,11 +5,12 @@
 
 import express from "express";
 const router = express.Router();
-import {getAppointments, getReviewedAppointments, getAppointment, createAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, getBusyRanges, adminCreateAppointment} from '../controller/appointment.controller.js';
+import {getAppointments, getReviewedAppointments, getAppointment, createAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, getBusyRanges, adminCreateAppointment, getPendingCount} from '../controller/appointment.controller.js';
 
 router.get("/busy",getBusyRanges);
 router.post("/admin-create", adminCreateAppointment);
 router.get("/reviewed", getReviewedAppointments);
+router.get("/pending-count", getPendingCount);
 router.get("/", getAppointments);
 router.get("/:id", getAppointment);
 router.post("/", createAppointment);

@@ -60,10 +60,20 @@ const deletePartrequest = async (req, res) => {
     }
 }
 
+const getPendingParts = async (req, res) => {
+  try {
+    const count = await Partrequest.countDocuments({ status: "To-do" });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
     getPartrequests,
     getPartrequest,
     createPartrequest,
     updatePartrequest,
-    deletePartrequest
+    deletePartrequest,
+    getPendingParts
 };

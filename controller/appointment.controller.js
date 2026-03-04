@@ -128,6 +128,15 @@ export const getAppointments = async (req, res) => {
   }
 };
 
+// GET count for pending appointments for Dashboard
+export const getPendingCount = async (req, res) => {
+  try {
+    const count = await Appointment.countDocuments({ status: "pending" });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 // GET all reviewed appointments
 export const getReviewedAppointments = async (req, res) => {
