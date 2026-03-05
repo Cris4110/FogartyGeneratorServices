@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { getContent, updateContent } = require('../controller/pagecontent.controller.js');
+import { getContent, updateContent } from '../controller/pagecontent.controller.js';
 
 router.get('/:pageName', getContent);
 router.put('/:pageName', updateContent);
 
-module.exports = router;
+export default router;

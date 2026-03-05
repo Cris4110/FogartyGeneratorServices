@@ -17,6 +17,8 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../../firebase"; 
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
@@ -40,24 +42,45 @@ export default function Login() {
   const formValid = !emailError && !passwordError;
 
   const handleSubmit = async (e: React.FormEvent) => {
-     e.preventDefault();
-    if (submitting) return;
-    setSubmitting(true);
-    try {
-      const payload = { email: email.toLowerCase().trim(), password: password.trim() };
-      await api.post("/users/login", payload);     // sets HttpOnly cookie
-      // (optional) const me = await api.get("/users/me");
+  e.preventDefault();
+  if (submitting) return;
+  setSubmitting(true);
 
-      setSnack({ open: true, msg: "Login successful!", sev: "success" });
-      navigate("/"); // redirect home
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.response?.data?.error || "Login failed1";
-      setSnack({ open: true, msg, sev: "error" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  try {
+    // 2. Authenticate with Firebase directly
+    const userCredential = await signInWithEmailAndPassword(
+      auth, 
+      email.toLowerCase().trim(), 
+      password.trim()
+    );
+    
+    const firebaseUser = userCredential.user;
+    const idToken = await firebaseUser.getIdToken();
 
+    // 3. (Optional) Verify profile exists in MongoDB
+    // This calls your PROTECTED 'me' route we just fixed
+    const response = await api.get(`/users/me/${firebaseUser.uid}`, {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    setSnack({ open: true, msg: "Welcome back!", sev: "success" });
+    
+    // 4. Redirect home after a successful Firebase + DB check
+    setTimeout(() => navigate("/"), 1000); 
+
+  } catch (err: any) {
+    // Handle Firebase specific errors (wrong password, user not found, etc.)
+    const msg = err.code === 'auth/invalid-credential' 
+      ? "Invalid email or password" 
+      : err.message || "Login failed";
+      
+    setSnack({ open: true, msg, sev: "error" });
+  } finally {
+    setSubmitting(false);
+  }
+};
   return (
     <>
       <Navbar />

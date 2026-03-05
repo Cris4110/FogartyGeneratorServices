@@ -1,7 +1,7 @@
-const express = require("express");
-const Admin = require('../models/admin.model');
+import express from "express";
+import Admin from '../models/admin.model.js';
 const router = express.Router();
-const {getAdmins, getAdmin, createAdmin, updateAdmin, deleteAdmin, loginAdmin, checkAuth, logoutAdmin, } = require('../controller/admin.controller.js');
+import {getAdmins, getAdmin, createAdmin, updateAdmin, deleteAdmin, loginAdmin, checkAuth, logoutAdmin, } from '../controller/admin.controller.js';
 
 
 
@@ -27,4 +27,4 @@ router.delete("/:id", deleteAdmin);
 
 
 
-module.exports = router;
+export default router;

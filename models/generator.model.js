@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const GeneratorSchema = mongoose.Schema(
     {
@@ -58,4 +58,4 @@ const GeneratorSchema = mongoose.Schema(
 
 const Generator = mongoose.model("Generator", GeneratorSchema);
 
-module.exports = Generator;
+export default Generator;

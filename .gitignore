@@ -11,6 +11,11 @@
 *.sln.docstates
 *.env
 
+backend/serviceAccountKey.json
+node_modules/
+dist/
+
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

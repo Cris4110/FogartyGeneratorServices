@@ -1,7 +1,7 @@
-const Generator = require('../models/generator.model');
+import Generator from '../models/generator.model.js';
 
 // Get all generators
-const getGens = async (req, res) => {
+export const getGens = async (req, res) => {
     try {
         const generators = await Generator.find({});
         res.status(200).json(generators); // <-- return the fetched data
@@ -11,7 +11,7 @@ const getGens = async (req, res) => {
 }
 
 // Get a single generator by ID
-const getGen = async (req, res) => {
+export const getGen = async (req, res) => {
     try {
         const { id } = req.params;
         const generator = await Generator.findById(id);
@@ -25,7 +25,7 @@ const getGen = async (req, res) => {
 }
 
 // Create a new generator
-const createGen = async (req, res) => {
+export const createGen = async (req, res) => {
     try {
         const generator = await Generator.create(req.body);
         res.status(201).json({ message: "Generator created!", generator });
@@ -35,7 +35,7 @@ const createGen = async (req, res) => {
 }
 
 // Update a generator
-const updateGen = async (req, res) => {
+export const updateGen = async (req, res) => {
     try {
         const { id } = req.params;
         const updatedGen = await Generator.findByIdAndUpdate(id, req.body, { new: true });
@@ -49,7 +49,7 @@ const updateGen = async (req, res) => {
 }
 
 // Delete a generator
-const deleteGen = async (req, res) => {
+export const deleteGen = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -66,10 +66,3 @@ const deleteGen = async (req, res) => {
 };
 
 
-module.exports = {
-    getGens,
-    getGen,
-    createGen,
-    updateGen,
-    deleteGen
-};

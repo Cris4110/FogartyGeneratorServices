@@ -1,6 +1,6 @@
-const PageContent = require('../models/pagecontent.model.js');
+import PageContent from '../models/pagecontent.model.js';
 
-exports.getContent = async (req, res) => {
+export const getContent = async (req, res) => {
   try {
     const content = await PageContent.findOne({ pageName: req.params.pageName });
     if (!content) {
@@ -12,7 +12,7 @@ exports.getContent = async (req, res) => {
   }
 };
 
-exports.updateContent = async (req, res) => {
+export const updateContent = async (req, res) => {
   try {
     const updatedContent = await PageContent.findOneAndUpdate(
       { pageName: req.params.pageName },

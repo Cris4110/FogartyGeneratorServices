@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const PartSchema = mongoose.Schema(
     {
@@ -54,4 +54,4 @@ const PartSchema = mongoose.Schema(
 
 const Part = mongoose.model("Part", PartSchema);
 
-module.exports = Part;
+export default Part;

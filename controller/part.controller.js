@@ -1,6 +1,6 @@
-const Part = require('../models/part.model');
+import Part from '../models/part.model.js';
 
-const getParts = async (req, res) =>{
+export const getParts = async (req, res) =>{
  try {
         const part = await Part.find({});
         res.status(200).json(part);
@@ -10,7 +10,7 @@ const getParts = async (req, res) =>{
     }
 }
 
-const getPart = async (req, res) =>{
+export const getPart = async (req, res) =>{
     try {
         const {id} = req.params;
         const part = await Part.findById(id);
@@ -21,7 +21,7 @@ const getPart = async (req, res) =>{
     }
 }
 
-const createPart = async (req, res) => {
+export const createPart = async (req, res) => {
         try {
         const part = await Part.create(req.body);
         res.status(200).json({message: "New part added to database."});
@@ -31,7 +31,7 @@ const createPart = async (req, res) => {
     
 }
 
-const updatePart = async (req, res) => {
+export const updatePart = async (req, res) => {
      try {
         const {id} = req.params;
         const part = await Part.findByIdAndUpdate(id, req.body);
@@ -46,7 +46,7 @@ const updatePart = async (req, res) => {
     }
 }
 
-const deletePart = async (req, res) => {
+export const deletePart = async (req, res) => {
      try {
         const {id} = req.params;
         //const part = await Part.findOneAndDelete({partID: id}).select('partID');
@@ -61,11 +61,3 @@ const deletePart = async (req, res) => {
         
     }
 }
-
-module.exports = {
-    getParts,
-    getPart,
-    createPart,
-    updatePart,
-    deletePart
-};

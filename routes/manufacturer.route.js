@@ -1,7 +1,7 @@
-const express = require("express");
-const Manufacturer = require('../models/manufacturer.model.js');
+import express from "express";
+import Manufacturer from '../models/manufacturer.model.js';
 const router = express.Router();
-const {getManufacturers, getManufacturer, createManufacturer, updateManufacturer, deleteManufacturer} = require('../controller/manufacturer.controller.js');
+import {getManufacturers, getManufacturer, createManufacturer, updateManufacturer, deleteManufacturer} from '../controller/manufacturer.controller.js';
 
 
 
@@ -15,4 +15,4 @@ router.put("/:id", updateManufacturer);
 
 router.delete("/:id", deleteManufacturer);
 
-module.exports = router;
+export default router;

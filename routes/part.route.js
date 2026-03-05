@@ -1,7 +1,7 @@
-const express = require("express");
-const Part = require('../models/part.model');
+import express from "express";
+import Part from '../models/part.model.js';
 const router = express.Router();
-const {getParts, getPart, createPart, updatePart, deletePart} = require('../controller/part.controller.js');
+import {getParts, getPart, createPart, updatePart, deletePart} from '../controller/part.controller.js';
 
 
 
@@ -15,4 +15,4 @@ router.put("/:id", updatePart);
 
 router.delete("/:id", deletePart);
 
-module.exports = router;
+export default router;
