@@ -18,6 +18,7 @@ function EditPageContent() {
   const [aboutContent, setAboutContent] = useState("");
   const [faqContent, setFaqContent] = useState("");
   const [footerContent, setFooterContent] = useState("");
+  const [retentionDays, setRetentionDays] = useState("");
   // Loading state to show spinner while fetching
   const [loading, setLoading] = useState(true);
   // Tracks which section was recently saved
@@ -43,10 +44,23 @@ function EditPageContent() {
       const aboutData = await aboutRes.json();
       const faqData = await faqRes.json();
       const footerData = await footerRes.json();
+      let retentionData: any = { content: "" };
+      try {
+        const retentionRes = await fetch(
+          `${API_BASE}/pagecontent/quoteRetentionDays`,
+          { credentials: "include" },
+        );
+        if (retentionRes.ok) {
+          retentionData = await retentionRes.json();
+        }
+      } catch {
+        // ignore, we'll default to empty
+      }
 
       setAboutContent(aboutData.content || "");
       setFaqContent(faqData.content || "");
       setFooterContent(footerData.content || "");
+      setRetentionDays(retentionData.content || "");
     } catch (err) {
       setError("Failed to load content");
     } finally {
@@ -153,6 +167,39 @@ function EditPageContent() {
             sx={{ mt: 2 }}
           >
             Save Footer
+          </Button>
+        </Box>
+
+        {/* Quote retention setting */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+            Quote retention (days)
+          </Typography>
+          {saved === "quoteRetentionDays" && (
+            <Alert severity="success">Saved!</Alert>
+          )}
+          <TextField
+            type="number"
+            fullWidth
+            inputProps={{ min: 30, max: 365 }}
+            value={retentionDays}
+            onChange={(e) => setRetentionDays(e.target.value)}
+            margin="normal"
+            variant="outlined"
+          />
+          <Button
+            variant="contained"
+            onClick={() => {
+              const num = parseInt(retentionDays);
+              if (isNaN(num) || num < 30 || num > 365) {
+                setError("Retention must be between 30 and 365 days");
+                return;
+              }
+              handleSave("quoteRetentionDays", retentionDays);
+            }}
+            sx={{ mt: 2 }}
+          >
+            Save Retention
           </Button>
         </Box>
       </Box>

@@ -2,8 +2,14 @@ const PageContent = require('../models/pagecontent.model.js');
 
 exports.getContent = async (req, res) => {
   try {
-    const content = await PageContent.findOne({ pageName: req.params.pageName });
+    let content = await PageContent.findOne({ pageName: req.params.pageName });
+
+    // for retention setting return a sensible default instead of 404
     if (!content) {
+      if (req.params.pageName === 'quoteRetentionDays') {
+        // minimum allowed value 30 used as default
+        return res.json({ pageName: 'quoteRetentionDays', content: '30', updatedAt: Date.now() });
+      }
       return res.status(404).json({ message: 'Content not found' });
     }
     res.json(content);
@@ -14,10 +20,23 @@ exports.getContent = async (req, res) => {
 
 exports.updateContent = async (req, res) => {
   try {
+    // enforce numeric range for retention setting
+    if (req.params.pageName === 'quoteRetentionDays') {
+      const num = Number(req.body.content);
+      if (
+        isNaN(num) ||
+        num < 30 ||
+        num > 365 ||
+        !Number.isInteger(num)
+      ) {
+        return res.status(400).json({ message: 'Retention must be integer between 30 and 365' });
+      }
+    }
+    // upsert so new entries (e.g. quoteRetentionDays) are created if missing
     const updatedContent = await PageContent.findOneAndUpdate(
       { pageName: req.params.pageName },
-      { content: req.body.content, updatedAt: Date.now() },
-      { new: true }
+      { content: req.body.content, updatedAt: Date.now(), pageName: req.params.pageName },
+      { new: true, upsert: true }
     );
     res.json(updatedContent);
   } catch (error) {

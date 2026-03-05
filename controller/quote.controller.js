@@ -1,7 +1,33 @@
 const Quote = require('../models/quote.model');
+const PageContent = require('../models/pagecontent.model.js');
 
 const getQuotes = async (req, res) =>{
     try {
+        // before sending results remove any stale documents based on admin setting
+        let retentionDoc = await PageContent.findOne({ pageName: 'quoteRetentionDays' });
+        let days = 365; // default
+        if (retentionDoc) {
+            if (!isNaN(Number(retentionDoc.content))) {
+                days = Math.max(30, Math.min(365, Number(retentionDoc.content)));
+            }
+        } else {
+            // create persistent default value so future requests have a record
+            try {
+                await PageContent.create({ pageName: 'quoteRetentionDays', content: '30' });
+                days = 30;
+            } catch {}
+        }
+        const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+        // delete where updatedAt OR createdAt (whichever exists) is older than cutoff
+        // handles documents that may not have all timestamp fields
+        const result = await Quote.deleteMany({
+            $or: [
+                { updatedAt: { $lt: cutoff } },
+                { createdAt: { $lt: cutoff } }
+            ]
+        });
+        //console.log(`Deleted ${result.deletedCount} quotes`);
+
         const quotes = await Quote.find({}).sort({ acknowledged: 1, createdAt: 1 });
         res.status(200).json(quotes);
     } catch (error) {
