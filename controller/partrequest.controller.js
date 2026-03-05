@@ -1,6 +1,6 @@
-const Partrequest = require('../models/partrequest.model');
+import Partrequest from '../models/partrequest.model.js';
 
-const getPartrequests  = async (req, res) =>{
+export const getPartrequests  = async (req, res) =>{
  try {
         const part = await Partrequest.find({});
         res.status(200).json(part);
@@ -10,7 +10,7 @@ const getPartrequests  = async (req, res) =>{
     }
 }
 
-const getPartrequest = async (req, res) =>{
+export const getPartrequest = async (req, res) =>{
     try {
         const {id} = req.params;
         const partrequest = await Partrequest.findById(id);
@@ -21,7 +21,7 @@ const getPartrequest = async (req, res) =>{
     }
 }
 
-const createPartrequest = async (req, res) => {
+export const createPartrequest = async (req, res) => {
         try {
         const partrequest = await Partrequest.create(req.body);
         res.status(200).json({message: "New part request added."});
@@ -31,7 +31,7 @@ const createPartrequest = async (req, res) => {
     
 }
 
-const updatePartrequest = async (req, res) => {
+export const updatePartrequest = async (req, res) => {
      try {
         const {id} = req.params;
         const partrequest = await Partrequest.findByIdAndUpdate(id, req.body);
@@ -46,10 +46,10 @@ const updatePartrequest = async (req, res) => {
     }
 }
 
-const deletePartrequest = async (req, res) => {
+export const deletePartrequest = async (req, res) => {
      try {
         const {id} = req.params;
-        const partrequest = await Partrequest.findByIdAndDelete(id, req.body);
+        const partrequest = await Partrequest.findOneAndDelete(id);
         if(!partrequest){
             return res.status(404).json({message: "Part request not found"});
         }
@@ -60,20 +60,3 @@ const deletePartrequest = async (req, res) => {
     }
 }
 
-const getPendingParts = async (req, res) => {
-  try {
-    const count = await Partrequest.countDocuments({ status: "To-do" });
-    res.json({ count });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-module.exports = {
-    getPartrequests,
-    getPartrequest,
-    createPartrequest,
-    updatePartrequest,
-    deletePartrequest,
-    getPendingParts
-};

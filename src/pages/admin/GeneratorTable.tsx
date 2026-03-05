@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Box from "@mui/material/Box";
 import {
   Backdrop,
@@ -11,10 +11,8 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { DataGrid, type GridColDef, type GridRowSelectionModel } from "@mui/x-data-grid";
+import { DataGrid, type GridColDef, type GridRowSelectionModel, type GridRowId } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-
-
 
 interface GeneratorRow {
   id: string;
@@ -27,45 +25,88 @@ interface GeneratorRow {
   image3: string;
 }
 
-function GeneratorTable() {
+const SafeImage = ({ src }: { src: string }) => {
+  // 1. Use a more modern, reliable placeholder service
+  const fallback = "https://placehold.co/70x70?text=No+Image";
+  const [imgSrc, setImgSrc] = useState<string>(src || fallback);
 
+  // Sync internal state if the URL in the database changes
+  useEffect(() => {
+    // If the src looks like a double URL (common with some API errors), take the first part
+    const cleanSrc = src?.split(',')[0] || fallback;
+    setImgSrc(cleanSrc);
+  }, [src]);
+
+  return (
+    <Box
+      component="img"
+      sx={{
+        height: 70,
+        width: 70,
+        objectFit: 'cover',
+        borderRadius: 1,
+        border: '1px solid #eee',
+        my: 0.5,
+        backgroundColor: '#f5f5f5' // Shows a light grey box while loading
+      }}
+      alt="Generator"
+      src={imgSrc}
+      onError={() => {
+        // Prevent infinite loops if the fallback itself fails
+        if (imgSrc !== fallback) {
+          setImgSrc(fallback);
+        }
+      }}
+    />
+  );
+};
+
+function GeneratorTable() {
   const [rows, setRows] = useState<GeneratorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDelete, setOpenDelete] = useState(false);
-  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>();
   
-  const getSelectedIds = (): string[] => {
-  if (!rowSelectionModel) return [];
-  if ("ids" in rowSelectionModel) {
-    return Array.from(rowSelectionModel.ids).map(String);
-  }
-
-  return rowSelectionModel.map(String);
-  };
-
-  const selectedIds = getSelectedIds();
-
-  const handleCloseDelete = () => {
-    setOpenDelete(false); // Closes the delete confirmation
-  };
+  // 1. Correct Initialization for Object-based selection
+  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>(
+    { type: 'row', ids: new Set<GridRowId>() } as unknown as GridRowSelectionModel
+  );
+  
   const navigate = useNavigate();
+
+  // 2. Optimized and typed selectedIds extraction
+  const selectedIds = useMemo(() => {
+    if (!rowSelectionModel) return [];
+
+    // MUI X v7+ logic (Object with ids Set)
+    if (rowSelectionModel && 'ids' in rowSelectionModel) {
+      const idsSet = rowSelectionModel.ids as Set<GridRowId>;
+      return Array.from(idsSet).map((id: GridRowId) => String(id));
+    }
+
+    // Fallback for Array-based versions
+    if (Array.isArray(rowSelectionModel)) {
+      return (rowSelectionModel as GridRowId[]).map((id: GridRowId) => String(id));
+    }
+
+    return [];
+  }, [rowSelectionModel]);
 
   const getGens = async () => {
     setLoading(true);
     try {
       const res = await fetch("http://localhost:3000/api/generators");
+      if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
 
       const formattedRows: GeneratorRow[] = data.map((gen: any) => ({
         id: gen._id ?? gen.genID,
-        Serial_Number: gen.Serial_Number,
-        name: gen.name,
-        description: gen.Description,
+        Serial_Number: gen.Serial_Number || "",
+        name: gen.name || "",
+        description: gen.Description || "",
         stock: Number(gen.Stock) || 0,
-        image: gen.Image_Url,
-        image2: gen.Image_Url2,
-        image3: gen.Image_Url3
+        image: gen.Image_Url || "",
+        image2: gen.Image_Url2 || "",
+        image3: gen.Image_Url3 || ""
       }));
 
       setRows(formattedRows);
@@ -80,215 +121,123 @@ function GeneratorTable() {
     getGens();
   }, []);
 
-  const processRowUpdate = async (newRow: GeneratorRow) => {
-  // prevent negatives
-  const updatedRow = {
-    ...newRow,
-    stock: Math.max(0, Number(newRow.stock)),
-    Serial_Number: newRow.Serial_Number,
-    description: newRow.description,
-    name: newRow.name,
-    image: newRow.image,
-    image2: newRow.image2,
-    image3: newRow.image3,
+  const saveStock = async (row: GeneratorRow) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/generators/${row.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            Stock: row.stock, 
+            Image_Url: row.image, 
+            Image_Url2: row.image2, 
+            Image_Url3: row.image3, 
+            Serial_Number: row.Serial_Number, 
+            Description: row.description, 
+            name: row.name
+        }) 
+      });
+      if (!res.ok) throw new Error("Failed to update");
+    } catch (err: any) {
+      console.error("Update error:", err.message);
+      getGens(); 
+    }
   };
 
-  // optimistic UI update
-  setRows((prev) =>
-    prev.map((row) =>
-      row.id === updatedRow.id ? updatedRow : row
-    )
-  );
-
-  // save to DB
-  await saveStock(updatedRow.id, updatedRow.Serial_Number, updatedRow.description, updatedRow.name, updatedRow.stock, updatedRow.image, updatedRow.image2, updatedRow.image3 );
-
-  return updatedRow;
-};
-
-const saveStock = async (id: string, Serial_Number: string, description: string, name: string, stock: number, image: string, image2: string, image3: string) => {
-  try {
-    const res = await fetch(`http://localhost:3000/api/generators/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ Stock: stock, Image_Url: image,Image_Url2: image2, Image_Url3: image3, Serial_Number: Serial_Number, Description: description, name: name}) 
-    });
-
-    if (!res.ok) throw new Error("Failed to update generator");
-
-    const updatedGen = await res.json();
-
-    // Sync UI with DB response
-    setRows((prev) =>
-      prev.map((row) =>
-        row.id === id
-          ? { ...row, 
-            stock: Number(updatedGen.Stock),
-            image: updatedGen.Image_Url,
-            image2: updatedGen.Image_Url2,
-            image3: updatedGen.Image_Url3,
-            Serial_Number: updatedGen.Serial_Number,
-            description: updatedGen.Description,
-            name: updatedGen.name
-          }
-          : row
-      )
-    );
-  } catch (err) {
-    console.error("Stock update error:", err);
-  }
-};
-
-
+  const processRowUpdate = async (newRow: GeneratorRow) => {
+    const updatedRow = { ...newRow, stock: Math.max(0, Number(newRow.stock)) };
+    setRows((prev) => prev.map((row) => row.id === updatedRow.id ? updatedRow : row));
+    await saveStock(updatedRow);
+    return updatedRow;
+  };
 
   const columns: GridColDef[] = [
-    { field: "Serial_Number", headerName: "Serial Number", width: 150, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "name", headerName: "Name", width: 150, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "description", headerName: "Description", width: 250, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "stock", headerName: "Stock", width: 150, editable: true,type: "number", headerAlign: 'left', align: 'left', display: 'flex'},
-    // images
-    { field: "image", headerName: "Image", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
-      renderCell: (params) => {
-        return (
-          <Stack direction = "row">
-            <Box
-              component="img"
-              sx={{
-                height: 70,
-                width: 70,
-                objectFit: 'cover',
-              }}
-              alt="No Image available"
-              src={params.value}
-            />
-          </Stack>
-        )
-      }
+    { field: "Serial_Number", headerName: "Serial Number", width: 150, editable: true },
+    { field: "name", headerName: "Name", width: 150, editable: true },
+    { field: "description", headerName: "Description", width: 250, editable: true },
+    { field: "stock", headerName: "Stock", width: 100, editable: true, type: "number" },
+    { 
+      field: "image", 
+      headerName: "Image 1", 
+      width: 100, 
+      renderCell: (params) => <SafeImage src={params.value as string} />
     },
-    { field: "image2", headerName: "Image2", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
-      renderCell: (params) => {
-        return (
-          <Stack direction = "row">
-            <Box
-              component="img"
-              sx={{
-                height: 70,
-                width: 70,
-                objectFit: 'cover',
-              }}
-              alt="No Image available"
-              src={params.value}
-            />
-          </Stack>
-        )
-      }
+    { 
+      field: "image2", 
+      headerName: "Image 2", 
+      width: 100, 
+      renderCell: (params) => <SafeImage src={params.value as string} />
     },
-    { field: "image3", headerName: "Image3", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
-      renderCell: (params) => {
-        return (
-          <Stack direction = "row">
-            <Box
-              component="img"
-              sx={{
-                height: 70,
-                width: 70,
-                objectFit: 'cover',
-              }}
-              alt="No Image available"
-              src={params.value}
-            />
-          </Stack>
-        )
-      }
+    { 
+      field: "image3", 
+      headerName: "Image 3", 
+      width: 100, 
+      renderCell: (params) => <SafeImage src={params.value as string} />
     }
- ];
+  ];
 
-const handleDeleteRows = async () => {
-  const ids = getSelectedIds();
-  if (ids.length === 0) return;
-
-  try {
-    await Promise.all(
-      ids.map(async (genId) => {
-        const res = await fetch(
-          `http://localhost:3000/api/generators/${genId}`,
-          { method: "DELETE" }
-        );
-
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.message);
-        }
-      })
-    );
-
-    // optimistic UI update
-    setRows((prev) => prev.filter((row) => !ids.includes(row.id)));
-
-    setRowSelectionModel(undefined);
-    handleCloseDelete();
-  } catch (err) {
-    console.error("Delete error:", err);
-  }
-};
+  const handleDeleteRows = async () => {
+    try {
+      await Promise.all(
+        selectedIds.map(id => fetch(`http://localhost:3000/api/generators/${id}`, { method: "DELETE" }))
+      );
+      setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
+      setRowSelectionModel({ type: 'row', ids: new Set<GridRowId>() } as unknown as GridRowSelectionModel);
+      setOpenDelete(false);
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
 
   return (
-    <>
-      <Box sx={{ height: '65vh', width: '80vw' }}>
+    <Box sx={{ p: 4 }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>Inventory Management</Typography>
+      
+      <Box sx={{ height: '70vh', width: '100%', bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1 }}>
         {loading ? (
           <Stack sx={{ height: "100%" }} justifyContent="center" alignItems="center">
             <CircularProgress />
           </Stack>
         ) : (
           <DataGrid
-            // removed check all since it bugs with the delete function
-            sx={{
-              "& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-columnHeaderTitleContainer": {
-                display: "none"
-              }
-            }}
             rows={rows}
             columns={columns}
-            getRowHeight={() => 'auto'}
-            disableColumnResize={false} 
-            hideFooterPagination={true}
-            checkboxSelection            
-            disableRowSelectionOnClick
+            getRowHeight={() => 85}
+            checkboxSelection
+            onRowSelectionModelChange={(newSelection) => setRowSelectionModel(newSelection)}
+            rowSelectionModel={rowSelectionModel}
             processRowUpdate={processRowUpdate}
-            onRowSelectionModelChange={(newSelection) => {
-              setRowSelectionModel(newSelection);
+            slotProps={{
+              toolbar: { showQuickFilter: true }
             }}
           />
         )}
       </Box>
 
-      {/* Delete Confirmation */}
-      <Backdrop open={openDelete} sx={{ color: "#fff", zIndex: 1300 }}>
-        <Paper sx={{ width: 400, p: 4 }}>
-          <Typography align="center" sx = {{ fontWeight:"bold", fontSize: 'h6.fontSize' }}>
-            Delete {selectedIds.length} generators?
-          </Typography>
-          <Stack direction="row" spacing={4} mt={3} justifyContent="center">
-            <Button onClick={() => setOpenDelete(false)}>Cancel</Button>
-            <Button color="error" variant="contained" onClick={handleDeleteRows}>Confirm</Button>
+      <Backdrop open={openDelete} sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <Paper sx={{ p: 4, borderRadius: 2 }}>
+          <Typography variant="h6" align="center">Delete {selectedIds.length} generators?</Typography>
+          <Stack direction="row" spacing={2} mt={3} justifyContent="center">
+            <Button onClick={() => setOpenDelete(false)} variant="outlined">Cancel</Button>
+            <Button color="error" variant="contained" onClick={handleDeleteRows}>Confirm Delete</Button>
           </Stack>
         </Paper>
       </Backdrop>
 
-      {/* Action Buttons */}
-      <Stack direction="row" spacing={2} sx={{ position: "fixed", top: 32, right: 32 }}>
-        <Fab color="primary" onClick={() => navigate("/admin/create-gen")}>
-          <AddIcon />
+      <Stack direction="row" spacing={2} sx={{ position: "fixed", bottom: 32, right: 32 }}>
+        <Fab color="primary" variant="extended" onClick={() => navigate("/admin/create-gen")}>
+          <AddIcon sx={{ mr: 1 }} /> Add New
         </Fab>
-        <Fab
-          color="secondary"
-          disabled={selectedIds.length === 0}
+        <Fab 
+          color="secondary" 
+          variant="extended"
+          disabled={selectedIds.length === 0} 
           onClick={() => setOpenDelete(true)}
         >
-          <DeleteIcon />
+          <DeleteIcon sx={{ mr: 1 }} /> Delete Selected
         </Fab>
       </Stack>
-    </>
+    </Box>
   );
 }
+
 export default GeneratorTable;

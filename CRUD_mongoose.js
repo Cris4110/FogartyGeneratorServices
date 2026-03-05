@@ -3,6 +3,10 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path"; // Added for static files
+import { fileURLToPath } from "url"; // Added for path resolution
+
+// Route Imports
 import adminRoute from "./routes/admin.route.js";
 import appointmentRoute from "./routes/appointment.route.js";
 import generatorRoute from "./routes/generator.route.js";
@@ -16,18 +20,22 @@ import partrequestRoute from "./routes/partrequest.route.js";
 
 dotenv.config();
 
-dotenv.config();
-
 const app = express();
-// Serve static HTML file
-//app.use(express.static(path.join(__dirname, 'public')));
+const PORT = process.env.PORT || 3000;
 
-//middleware
+// Setup for ES Module __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// --- Middleware ---
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
-app.use(express.json());
+app.use(express.json()); // Fixes the 400 Bad Request error
 app.use(cookieParser());
 
-//routes
+// Serve static files from the 'public' folder (from your server.js logic)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// --- Routes ---
 app.use('/api/admins', adminRoute);
 app.use('/api/generators', generatorRoute);
 app.use('/api/parts', partRoute);
@@ -40,31 +48,30 @@ app.use('/api/pagecontent', pagecontentRoute);
 app.use('/api/partrequests', partrequestRoute);
 
 app.get('/', (req, res) => {
-    res.send("Hello for Node API Server Updated");
+    res.send("Hello from the Unified Node API Server!");
 });
 
-const PORT = process.env.PORT || 3000;
+// --- 404 Catch-all (Added from your server.js) ---
+app.use((req, res) => {
+    res.status(404).json({ error: '404 Not Found' });
+});
+
+// --- Database Connection ---
 const uri = process.env.MONGODB_URI;
 
-// Fail fast if the env var is not set to avoid confusing Mongoose errors
 if (!uri) {
-    console.error('MONGODB_URI is not set. Please add it to your .env or environment variables.');
-    console.error('Example .env: MONGODB_URI="mongodb+srv://user:pass@cluster0.mongodb.net/mydb?retryWrites=true&w=majority"');
+    console.error('MONGODB_URI is not set in your .env file.');
     process.exit(1);
 }
 
-(async () => {
-    try {
-        await mongoose.connect(uri);
+mongoose.connect(uri)
+    .then(() => {
         console.log('Connected to MongoDB database!');
-    } catch (err) {
-        console.error('Connection FAILED:');
-        // print the full error to aid debugging
-        console.error(err);
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.error('Database connection FAILED:', err);
         process.exit(1);
-    }
-})();
-
-app.listen(PORT, () =>{
-    console.log(`Server is running on port ${PORT}`);
-});
+    });

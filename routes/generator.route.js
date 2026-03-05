@@ -1,7 +1,7 @@
-const express = require("express");
-const Generator = require('../models/generator.model.js');
+import express from "express";
+import Generator from '../models/generator.model.js';
 const router = express.Router();
-const {getGens, getGen, createGen, updateGen, deleteGen} = require('../controller/generator.controller.js');
+import {getGens, getGen, createGen, updateGen, deleteGen} from '../controller/generator.controller.js';
 
 
 
@@ -15,4 +15,4 @@ router.put("/:id", updateGen);
 
 router.delete("/:id", deleteGen);
 
-module.exports = router;
+export default router;

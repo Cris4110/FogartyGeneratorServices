@@ -1,58 +1,26 @@
-// src/pages/admin/ReviewedAppointments.tsx
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Toolbar, CircularProgress, Alert, Chip } from "@mui/material";
-import { DataGrid, type GridColDef, type GridRenderCellParams } from "@mui/x-data-grid";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import AdminNavbar from "./AdminNavbar";
 import dayjs from "dayjs";
 
 interface ReviewedAppointment {
   _id: string;
-
   appointmentDateTime: string;
-  appointmentEndDateTime: string;
-
   newAppointmentTime?: string | null;
-  newAppointmentEndTime?: string | null;
-
   status: "accepted" | "denied" | "rescheduled";
   name: string;
   phone: string;
   email: string; 
   address: string;
   description: string;  
-  createdBy: string;
   rescheduledDateTime?: string | null;
-  rescheduledEndDateTime?: string | null;
 }
 
 const formatISO = (iso?: string | null) => {
   if (!iso) return "-";
   const dt = dayjs(iso);
   return dt.isValid() ? dt.format("MMM DD, YYYY @ h:mm A") : "-";
-};
-const formatRange = (start?: string | null, end?: string | null) => {
-  if (!start) return "-";
-  const s = dayjs(start);
-  if (!s.isValid()) return "-";
-
-  // fallback end = start + 1 hour (in case older rows don’t have end stored)
-  const e = end ? dayjs(end) : s.add(1, "hour");
-  const endToUse = e.isValid() && e.isAfter(s) ? e : s.add(1, "hour");
-
-
-  return `${s.format("MMM DD, YYYY")} @ ${s.format("h:mm A")} - ${endToUse.format("h:mm A")}`;
-};
-
-const getEffectiveStartEnd = (row: ReviewedAppointment) => {
-  const scheduledStart =
-    row.status === "rescheduled" ? row.rescheduledDateTime : row.appointmentDateTime;
-
-  const scheduledEnd =
-    row.status === "rescheduled"
-      ? row.rescheduledEndDateTime ?? row.appointmentEndDateTime
-      : row.appointmentEndDateTime;
-
-  return { scheduledStart, scheduledEnd };
 };
 
 export default function ReviewedAppointments() {
@@ -67,7 +35,8 @@ export default function ReviewedAppointments() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load appointments");
 
-        setRows(data);
+        // Ensure data is an array before setting state
+        setRows(Array.isArray(data) ? data : []);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -76,81 +45,105 @@ export default function ReviewedAppointments() {
     })();
   }, []);
 
- const columns: GridColDef<ReviewedAppointment>[] = [
-  {
-    field: "scheduledDate",
-    headerName: "Scheduled Date",
-    flex: 1.3,
-    minWidth: 270,
-    sortable: false,
-    valueGetter: (_v, row) => {
-      const { scheduledStart, scheduledEnd } = getEffectiveStartEnd(row);
-      return formatRange(scheduledStart, scheduledEnd);
+  const columns: GridColDef<ReviewedAppointment>[] = [
+    {
+      field: "appointmentDateTime", // Matched to the actual data key
+      headerName: "Original Date",
+      flex: 1.3,
+      minWidth: 200,
+      valueGetter: (value, row) => formatISO(row.appointmentDateTime)
     },
-  },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1,
+      minWidth: 150,
+      renderCell: (params) => {
+        const s = params.value?.toLowerCase() ?? "unknown";
+        const color =
+          s === "accepted"
+            ? "success"
+            : s === "denied"
+            ? "error"
+            : s === "rescheduled"
+            ? "warning"
+            : "default";
 
-  {
-    field: "status",
-    headerName: "Status",
-    flex: 1,
-    minWidth: 150,
-    renderCell: (params) => {
-      const s = params.row?.status ?? "unknown";
-      const color =
-        s === "accepted"
-          ? "success"
-          : s === "denied"
-          ? "error"
-          : s === "rescheduled"
-          ? "warning"
-          : "default";
-
-      return <Chip label={s.toUpperCase()} color={color} />;
+        return <Chip label={s.toUpperCase()} color={color as any} size="small" />;
+      }
+    },
+    {
+      field: "rescheduledDateTime", // Matched to the actual data key
+      headerName: "New Date (If Rescheduled)",
+      flex: 1.4,
+      minWidth: 200,
+      valueGetter: (value, row) => {
+        // Check both possible fields for the new date
+        return formatISO(row.rescheduledDateTime || row.newAppointmentTime);
+      }
+    },
+    { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
+    { field: "phone", headerName: "Phone", flex: 1, minWidth: 130 },
+    { field: "email", headerName: "Email", flex: 1.2, minWidth: 180 },
+    { field: "address", headerName: "Address", flex: 1.5, minWidth: 200 },
+    { 
+      field: "description", 
+      headerName: "Issue Description", 
+      flex: 2, 
+      minWidth: 250,
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontSize: '0.875rem', py: 1 }}>
+          {params.value}
+        </Typography>
+      )
     }
-  },
-
-  {
-    field: "orginalDate",
-    headerName: "Orignal Date (If Rescheduled)",
-    flex: 1.4,
-    minWidth: 200,
-    sortable: false,
-    valueGetter: (_value, row) => formatISO(row.status === "rescheduled" ? row.appointmentDateTime : "-"),
-    },
-
-    { field: "name", headerName: "Name", flex: 1, minWidth:200, },
-    { field: "phone", headerName: "Phone", flex: 1, minWidth:140,  },
-    { field: "email", headerName: "Email", flex: 1.3, minWidth:200,  },
-    { field: "address", headerName: "Address", flex: 1.6,minWidth:200,  },
-    { field: "description", headerName: "Issue Description", flex: 2, minWidth:280,  }
   ];
 
   return (
     <>
       <AdminNavbar />
-      <Box sx={{ ml: "13vw", px: 4 }}>
+      {/* ml: "13vw" matches your sidebar width */}
+      <Box sx={{ ml: "13vw", p: 4, width: "calc(100% - 13vw)" }}>
         <Toolbar />
 
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold' }}>
           Reviewed Appointments
         </Typography>
 
-        {error && <Alert severity="error">{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
-        <Box sx={{ height: 650, width: "100%" }}>
+        <Box sx={{ 
+          height: 700, 
+          width: "100%", 
+          bgcolor: 'background.paper', 
+          borderRadius: 2, 
+          boxShadow: 2,
+          overflow: 'hidden' 
+        }}>
           {loading ? (
             <Box sx={{ display: "grid", placeItems: "center", height: "100%" }}>
               <CircularProgress />
             </Box>
           ) : (
-            <DataGrid<ReviewedAppointment>
+            <DataGrid
               rows={rows}
               columns={columns}
-              getRowId={(r: ReviewedAppointment) => r._id}
+              getRowId={(r) => r._id}
               disableRowSelectionOnClick
+              density="comfortable"
               pageSizeOptions={[10, 25, 50]}
               initialState={{
-                pagination: { paginationModel: { page: 0, pageSize: 25 } }
+                pagination: { paginationModel: { page: 0, pageSize: 10 } }
+              }}
+              sx={{
+                border: "none",
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: "#f5f5f5",
+                },
               }}
             />
           )}
@@ -159,4 +152,3 @@ export default function ReviewedAppointments() {
     </>
   );
 }
-

@@ -12,16 +12,17 @@ import {
   Button,
   TextField,
   MenuItem,
-  // Import Dialog components for deletion confirmation
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Select,
 } from "@mui/material";
 import Navbar from "./AdminNavbar";
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
+import { auth } from "../../firebase";
 
 interface User {
   _id: string;
@@ -30,6 +31,7 @@ interface User {
   email: string;
   phoneNumber: string;
   address: Address;
+  role: "user" | "admin";
 }
 
 interface Address {
@@ -50,68 +52,84 @@ const UserManagementPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Add search state
   const [searchQuery, setSearchQuery] = useState("");
-  // Add sort state
   const [sortBy, setSortBy] = useState<"a-z" | "z-a" | "none">("a-z");
-
-  // State for the confirmation dialog
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get<User[]>(
-          "http://localhost:3000/api/users"
-        );
-        setUsers(response.data);
-      } catch (err: any) {
-        console.error("Error fetching users:", err);
-        setError("Failed to load users. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Helper to get fresh Firebase Token
+  const getAuthHeaders = async () => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user found");
+    const token = await user.getIdToken();
+    return { Authorization: `Bearer ${token}` };
+  };
 
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+      const response = await axios.get<User[]>("http://localhost:3000/api/users", { headers });
+      setUsers(response.data);
+      setError(null);
+    } catch (err: any) {
+      console.error("Error fetching users:", err);
+      setError("Failed to load users. Please check your admin permissions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: "user" | "admin") => {
+  try {
+    const headers = await getAuthHeaders();
+    // This sends the update to your backend
+    await axios.patch(
+      `http://localhost:3000/api/users/${userId}/role`, 
+      { role: newRole }, 
+      { headers }
+    );
+
+    // This updates the table locally so you see the change immediately
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user._id === userId ? { ...user, role: newRole } : user
+      )
+    );
+  } catch (err) {
+    console.error("Error updating role:", err);
+    setError("Failed to update user role.");
+  }
+};
+
+  useEffect(() => {
     fetchUsers();
   }, []);
 
-  // 1. Open Dialog function
   const confirmDelete = (user: User) => {
     setUserToDelete(user);
     setOpenDeleteDialog(true);
   };
 
-  // 2. Handle API Call and State Update
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
-
-    // Close the dialog and show loading (optional, for visual feedback)
     setOpenDeleteDialog(false);
 
     try {
-      // API call to delete the user by ID
-      await axios.delete(`http://localhost:3000/api/users/${userToDelete._id}`);
+      const headers = await getAuthHeaders();
+      await axios.delete(`http://localhost:3000/api/users/${userToDelete._id}`, { headers });
 
-      // SUCCESS: Update the local state by filtering out the deleted user
-      setUsers((prevUsers) =>
-        prevUsers.filter((user) => user._id !== userToDelete._id)
-      );
-
-      console.log(`User ${userToDelete.name} deleted successfully.`);
+      setUsers((prevUsers) => prevUsers.filter((u) => u._id !== userToDelete._id));
+      console.log(`User ${userToDelete.name || userToDelete.fullname} deleted.`);
     } catch (err: any) {
       console.error("Error deleting user:", err);
-      // Handle error display
-      setError(`Failed to delete user: ${userToDelete.name}.`);
+      setError(`Failed to delete user: ${userToDelete.name || userToDelete.fullname}.`);
     } finally {
-      setUserToDelete(null); // Clear the user being tracked
+      setUserToDelete(null);
     }
   };
 
-  // Derive a sorted copy (non-mutating)
-  let sortedUsers = useMemo(() => {
+  const sortedUsers = useMemo(() => {
     const filtered = users.filter((user) => {
       const query = searchQuery.toLowerCase();
       const name = (user.name ?? user.fullname ?? "").toLowerCase();
@@ -119,7 +137,8 @@ const UserManagementPage = () => {
     });
 
     const copy = [...filtered];
-    const getName = (u: User) => u.name ?? (u as any).fullname ?? "";
+    const getName = (u: User) => (u.name || u.fullname || "").toLowerCase();
+    
     if (sortBy === "a-z") {
       return copy.sort((a, b) => getName(a).localeCompare(getName(b)));
     } else if (sortBy === "z-a") {
@@ -133,36 +152,23 @@ const UserManagementPage = () => {
       <Navbar />
 
       <Box sx={{ flexGrow: 1, marginLeft: "13vw", p: 8, backgroundColor: "#fafafa" }}>
-        <Typography
-          variant="h4"
-          sx={{ fontWeight: "bold", mb: 4, color: "#000000ff" }}
-        >
+        <Typography variant="h4" sx={{ fontWeight: "bold", mb: 4, color: "#000" }}>
           User Management
         </Typography>
 
-        {/* Search + Sort Bar: */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 2,
-            mb: 2,
-          }}
-        >
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 2 }}>
           <TextField
-            placeholder="Search..."
+            placeholder="Search users..."
             variant="outlined"
             fullWidth
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-            }}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             sx={{ backgroundColor: "white", borderRadius: 1 }}
           />
           <TextField
             select
             label="Sort By:"
-            value={sortBy} // use state
+            value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             sx={{ width: "30%", backgroundColor: "white", borderRadius: 1 }}
           >
@@ -183,34 +189,28 @@ const UserManagementPage = () => {
             backgroundColor: "#fff",
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
+            alignItems: loading ? "center" : "stretch",
             justifyContent: loading ? "center" : "flex-start",
           }}
         >
           {loading ? (
             <CircularProgress />
           ) : error ? (
-            <Typography color="error">{error}</Typography>
+            <Box sx={{ textAlign: 'center' }}>
+                <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>
+                <Button variant="contained" onClick={fetchUsers}>Retry</Button>
+            </Box>
           ) : (
             <TableContainer>
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>
-                      Name
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>
-                      Email
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>
-                      Phone Number
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>
-                      Address
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>
-                      Actions
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Phone</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Address</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", fontSize: "1rem" }}>Role</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -218,61 +218,62 @@ const UserManagementPage = () => {
                     <TableRow key={user._id} hover>
                       <TableCell>{user.name || user.fullname}</TableCell>
                       <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.phoneNumber}</TableCell>
+                      <TableCell>{user.phoneNumber || "N/A"}</TableCell>
                       <TableCell>{formatAddress(user.address)}</TableCell>
-                      {/*<TableCell>{user.address}</TableCell>*/}
+                      <TableCell>
+                        <Select
+                          size="small"
+                          value={user.role || "user"}
+                          onChange={(e) => handleRoleChange(user._id, e.target.value as "user" | "admin")}
+                          sx={{ 
+                            minWidth: 100,
+                            fontWeight: user.role === 'admin' ? 'bold' : 'normal',
+                            color: user.role === 'admin' ? 'primary.main' : 'inherit'
+                          }}
+                        >
+                          <MenuItem value="user">User</MenuItem>
+                          <MenuItem value="admin">Admin</MenuItem>
+                        </Select>
+                      </TableCell>
+
                       <TableCell>
                         <Button
                           variant="outlined"
                           color="error"
+                          size="small"
                           onClick={() => confirmDelete(user)}
                         >
-                          Delete User
+                          Delete
                         </Button>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              {sortedUsers.length === 0 && (
-                <Box sx={{ textAlign: "center", p: 4 }}>
-                  <Typography variant="subtitle1" color="textSecondary">
-                    No users found matching your criteria.
-                  </Typography>
-                </Box>
+              {sortedUsers.length === 0 && !loading && (
+                <Typography sx={{ textAlign: "center", p: 4 }} color="textSecondary">
+                  No users found matching your search.
+                </Typography>
               )}
             </TableContainer>
           )}
         </Paper>
       </Box>
-      {/* User Deletion Confirmation Dialog */}
-      <Dialog
-        open={openDeleteDialog}
-        onClose={() => setOpenDeleteDialog(false)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to permanently delete user:
-            <Typography component="span" sx={{ fontWeight: "bold" }}>
-              {userToDelete?.name || userToDelete?.fullname}?
-            </Typography>
-            <p>This action cannot be undone.</p>
+          <DialogContentText>
+            Are you sure you want to delete{" "}
+            <strong>{userToDelete?.name || userToDelete?.fullname}</strong>?
+            This action cannot be undone.
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteUser}
-            color="error"
-            variant="contained"
-            autoFocus
-          >
-            Delete
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button onClick={handleDeleteUser} color="error" variant="contained">
+            Delete Permanently
           </Button>
         </DialogActions>
       </Dialog>

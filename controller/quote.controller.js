@@ -1,6 +1,6 @@
-const Quote = require('../models/quote.model');
+import Quote from '../models/quote.model.js';
 
-const getQuotes = async (req, res) =>{
+export const getQuotes = async (req, res) =>{
     try {
         const quotes = await Quote.find({}).sort({ acknowledged: 1, createdAt: 1 });
         res.status(200).json(quotes);
@@ -9,7 +9,7 @@ const getQuotes = async (req, res) =>{
     }
 }
 
-const getQuote = async (req, res) =>{
+export const getQuote = async (req, res) =>{
     try {
         const {id} = req.params;
         const quote = await Quote.findById(id);
@@ -20,7 +20,7 @@ const getQuote = async (req, res) =>{
     }
 }
 
-const createQuote = async (req, res) => {
+export const createQuote = async (req, res) => {
         try {
         const quote = await Quote.create(req.body);
         res.status(200).json({message: "New Quote Created"});
@@ -30,7 +30,7 @@ const createQuote = async (req, res) => {
     
 }
 
-const updateQuote = async (req, res) => {
+export const updateQuote = async (req, res) => {
      try {
         const {id} = req.params;
         const quote = await Quote.findByIdAndUpdate(id, req.body);
@@ -45,7 +45,7 @@ const updateQuote = async (req, res) => {
     }
 }
 
-const deleteQuote = async (req, res) => {
+export const deleteQuote = async (req, res) => {
      try {
         const {id} = req.params;
         const quote = await Quote.findByIdAndDelete(id, req.body);
@@ -59,7 +59,7 @@ const deleteQuote = async (req, res) => {
     }
 }
 
-const setAcknowledged = async (req, res) => {
+export const setAcknowledged = async (req, res) => {
   try {
     const { id } = req.params;
     const { acknowledged } = req.body;
@@ -74,22 +74,3 @@ const setAcknowledged = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 }
-
-const getPendingQuotes = async (req, res) => {
-  try {
-    const count = await Quote.countDocuments({ acknowledged: "false" });
-    res.json({ count });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-module.exports = {
-    getQuotes,
-    getQuote,
-    createQuote,
-    updateQuote,
-    deleteQuote,
-    setAcknowledged,
-    getPendingQuotes
-};

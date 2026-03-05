@@ -1,13 +1,11 @@
-const express = require("express");
-const Part = require('../models/partrequest.model');
-const {getPartrequests, getPartrequest, createPartrequest, updatePartrequest, deletePartrequest, getPendingParts} = require('../controller/partrequest.controller.js');
+import express from "express";
+import Part from '../models/partrequest.model.js';
+import {getPartrequests, getPartrequest, createPartrequest, updatePartrequest, deletePartrequest} from '../controller/partrequest.controller.js';
 const router = express.Router();
 
 
 
 router.get('/', getPartrequests);
-
-router.get('/pending-parts', getPendingParts);
 
 router.get("/:id",getPartrequest);
 
@@ -17,4 +15,4 @@ router.put("/:id", updatePartrequest);
 
 router.delete("/:id", deletePartrequest);
 
-module.exports = router;
+export default router;

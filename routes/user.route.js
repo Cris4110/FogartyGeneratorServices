@@ -1,135 +1,78 @@
 import express from "express";
 import User from "../models/user.model.js";
-import bcrypt from "bcrypt"
-import {getUsers, getUser, createUser, updateUser, deleteUser} from "../controller/user.controller.js";
-import dotenv from "dotenv";
-import jwt from 'jsonwebtoken';
+import { getUsers, getUser, createUser, updateUser, deleteUser, updateUserRole} from "../controller/user.controller.js";
+import { verifyFirebaseToken } from "../backend/middleware/auth.ts"; 
 
-const COOKIE_NAME = "access_token";
-
-dotenv.config();
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret"; 
 
-router.get("/me", requireAuth, async (req, res) => {
-  // req.user.sub was set by requireAuth above
-    const user = await User.findById(req.user.sub).select("name email role userID phoneNumber address");
-   if (!user) return res.status(404).json({ error: "user not found" });
-  res.json({
-    user: {
-      id: String(user._id),
-      name: user.name,
-      email: user.email,
-      userID: user.userID,    
-      phoneNumber: user.phoneNumber,
-      address: user.address,    
+router.post("/", createUser); 
+
+router.post("/login", verifyFirebaseToken, (req, res) => {
+    res.status(200).json({ message: "Authenticated", user: req.user });
+})
+
+// Protected routes: require a valid Firebase token
+router.get('/', verifyFirebaseToken, getUsers);
+router.get("/:id", verifyFirebaseToken, getUser);
+router.put("/:id", verifyFirebaseToken, updateUser);
+router.delete("/:id", verifyFirebaseToken, deleteUser);
+
+router.patch('/:id/role', verifyFirebaseToken, updateUserRole);
+
+router.get("/me/:id", verifyFirebaseToken, async (req, res) => {
+    try {
+        const { id } = req.params; 
+        
+        // Security check: ensure the logged-in user is requesting THEIR OWN data
+        if (req.user.uid !== id) {
+            return res.status(403).json({ error: "Access denied: Unauthorized UID" });
+        }
+
+        const user = await User.findById(id).select("name email role userID phoneNumber address");
+        
+        if (!user) return res.status(404).json({ error: "user not found" });
+        
+        res.json({
+            user: {
+                id: String(user._id),
+                name: user.name,
+                email: user.email,
+                userID: user.userID, 
+                role: user.role,   
+                phoneNumber: user.phoneNumber,
+                address: user.address,    
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-  });
 });
-
-router.get('/', getUsers);
-
-router.get("/:id",getUser);
-
-router.post("/", createUser);
-
-
-
-router.put("/:id", updateUser);
-
-router.delete("/:id", deleteUser);
-
-
-
-//SIGNUP (create user account securely)
-router.post('/signup', async (req, res) => {
+router.patch('/:id/role', verifyFirebaseToken, async (req, res) => {
   try {
-    const { name, userID, password, email, phoneNumber } = req.body;
+    const { id } = req.params;
+    const { role } = req.body;
 
-    // Check if email already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Email already registered.' });
+    // Validate role input
+    if (!['user', 'admin'].includes(role)) {
+      return res.status(400).json({ message: "Invalid role type" });
     }
 
-    const newUser = new User({ name, userID, password, email, phoneNumber });
-    await newUser.save();
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { role: role },
+      { new: true } // Returns the updated document
+    );
 
-    res.status(201).json({ message: 'User registered successfully!' });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// helper to sign
-function signToken(userId, email) {
-  return jwt.sign(
-    { sub: String(userId), email },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES || "12h" }
-  );
-}
-// middleware to require auth
-function requireAuth(req, res, next) {
-  const token = req.cookies?.[COOKIE_NAME];
-  if (!token) return res.status(401).json({ error: "unauthorized" });
-  try {
-    req.user = jwt.verify(token, JWT_SECRET); // { sub, email, iat, exp }
-    next();
-  } catch {
-    return res.status(401).json({ error: "unauthorized" });
-  }
-}
-
-//LOGIN (authenticate user)
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Find User by email
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Compare plain password with hashed password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid password.' });
-    }
-
-    const token = signToken(user._id, user.email);
-
-    // HttpOnly cookie (secure=false for localhost; true in production over HTTPS)
-    res.cookie(COOKIE_NAME, token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 1000*60*60*12 // 12h (or 1000*60*3 for 3 minutes testing)
-      //12 hours = 1000 milliseconds * 60 seconds * 60 minutes * 12 hours
-    });
-
-    res.status(200).json({
-      message: 'Login successful!',
-      user: { id: String(user._id), name: user.name, email: user.email }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Backend Role Error:", error);
+    res.status(500).json({ message: "Server error updating role" });
   }
 });
 
 
-
-
-router.post("/logout", (req, res) => {
-  res.clearCookie(COOKIE_NAME, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
-  res.json({ ok: true });
-});
-
-// module.exports = router;
 export default router;

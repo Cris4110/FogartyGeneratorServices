@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Box,
   Button,
@@ -9,11 +9,10 @@ import {
 } from "@mui/material";
 import type { Theme } from "@emotion/react";
 import { useNavigate } from "react-router-dom";
-//import logo from "../assets/admin/logo.png"; // update path to your actual logo
-//import { AuthContext } from "../../App"; // or adjust import path if your context differs
-//import { AuthContext } from "../../context/Appcontext";
 import logo from "../../assets/logo.png";
-import { AuthContext } from "../../context/Appcontext";
+import { useAuth } from "../../context/Appcontext";
+import { auth } from "../../firebase"; 
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const ContainerStyle: SxProps<Theme> = {
   display: "flex",
@@ -24,85 +23,78 @@ const ContainerStyle: SxProps<Theme> = {
   maxWidth: "450px",
 };
 
-const TitleStyle: SxProps<Theme> = {
-  alignSelf: "center",
-};
-
-const ImageStyle: SxProps<Theme> = {
-  width: "120px",
-  height: "120px",
-  alignSelf: "center",
-};
-
-const FormStyle: SxProps<Theme> = {
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-};
-
-const TextFieldStyle: SxProps<Theme> = {
-  width: "350px",
-  height: "90px",
-};
-
-const SubmitButtonStyle: SxProps<Theme> = {
-  width: "150px",
-  height: "50px",
-};
-
+const TitleStyle: SxProps<Theme> = { alignSelf: "center" };
+const ImageStyle: SxProps<Theme> = { width: "120px", height: "120px", alignSelf: "center" };
+const FormStyle: SxProps<Theme> = { display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" };
+const TextFieldStyle: SxProps<Theme> = { width: "350px", height: "90px" };
+const SubmitButtonStyle: SxProps<Theme> = { width: "150px", height: "50px" };
 
 const Login: React.FC = () => {
   const firstRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-  //const auth = useContext(AuthContext);
-  const { setCurrentUser } = useContext(AuthContext);
-  const [username, setUsername] = useState("");
+  const { setCurrentUser } = useAuth(); // setCurrentUser is available from useAuth
+  
+  const [email, setEmail] = useState(""); 
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [isError, setIsError] = useState(false);
+
+  const handleClearError = () => {
+  setIsError(false);
+  setErrorMsg("");
+}
 
   useEffect(() => {
     firstRef.current?.focus();
   }, []);
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value);
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
+  setIsError(false);
+  setErrorMsg("");
 
   try {
-    const res = await fetch("http://localhost:3000/api/admins/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userID: username, password }),
-      credentials: "include"
+    // 1. Authenticate with Firebase
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const firebaseUser = userCredential.user;
+    
+    // 2. Get the Token (Crucial for fixing the 401 error)
+    const idToken = await firebaseUser.getIdToken();
+
+    // 3. Optional: Verify Admin Status with your Backend
+    // This ensures that even if they have a valid email/pass, 
+    // they actually exist in your 'users' collection.
+    const response = await fetch(`http://localhost:3000/api/users/me/${firebaseUser.uid}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${idToken}`, // Send the token to your middleware
+        "Content-Type": "application/json"
+      }
     });
 
-    const data = await res.json();
+    if (!response.ok) {
+      // If the backend returns 401/403/404
+      throw new Error("You are not authorized to access the Admin panel.");
+    }
 
-    if (!res.ok) throw new Error(data.message);
-
-    setCurrentUser(data.admin);
+    const userData = await response.json();
     
+    // 4. Update Global State & Navigate
+    setCurrentUser(userData.user); 
     navigate("/admin");
+    
   } catch (err: any) {
     console.error("Login error:", err);
     setIsError(true);
-    setErrorMsg(err.message);
+    
+    // Handle specific Firebase error codes for better UX
+    if (err.code === "auth/invalid-credential") {
+      setErrorMsg("Invalid email or password.");
+    } else {
+      setErrorMsg(err.message || "An error occurred during login.");
+    }
   }
 };
-
-  const handleClearError = () => {
-    setIsError(false);
-    setErrorMsg("");
-  };
 
   return (
     <Box
@@ -117,20 +109,20 @@ const Login: React.FC = () => {
     >
       <Stack direction="column" spacing="20px" sx={ContainerStyle}>
         <Box component="img" src={logo} alt="logo" sx={ImageStyle} />
-          <Typography variant="h4" sx={TitleStyle}>
-          Login
-          </Typography>
-          <Box component="form" onSubmit={handleSubmit} sx={FormStyle}>
+        <Typography variant="h4" sx={TitleStyle}>Admin Login</Typography>
+        
+        <Box component="form" onSubmit={handleSubmit} sx={FormStyle}>
           <TextField
-            ref={firstRef}
+            inputRef={firstRef}
             sx={TextFieldStyle}
-            label="Username"
-            placeholder="Enter Username"
-            name="user"
-            value={username}
-            onChange={handleUsernameChange}
+            label="Email"
+            placeholder="admin@example.com"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             onFocus={handleClearError}
             error={isError}
+            required
           />
           <TextField
             sx={TextFieldStyle}
@@ -138,9 +130,10 @@ const Login: React.FC = () => {
             placeholder="Enter password"
             type="password"
             value={password}
-            onChange={handlePasswordChange}
+            onChange={(e) => setPassword(e.target.value)}
             onFocus={handleClearError}
             error={isError}
+            required
           />
           <Button
             type="submit"
@@ -152,7 +145,7 @@ const Login: React.FC = () => {
           </Button>
         </Box>
         {errorMsg && (
-          <Typography variant="body1" color="red">
+          <Typography variant="body1" color="red" sx={{ textAlign: "center", mt: 1 }}>
             {errorMsg}
           </Typography>
         )}
