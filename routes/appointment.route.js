@@ -1,0 +1,35 @@
+
+import express from "express";
+const router = express.Router();
+import Appointment from '../models/appointment.model.js';
+import {getAppointments, getReviewedAppointments, getAppointment, createAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus} from '../controller/appointment.controller.js';
+
+router.get("/reviewed", getReviewedAppointments);
+router.get("/", getAppointments);
+router.get("/:id", getAppointment);
+router.post("/", createAppointment);
+router.put("/:id", updateAppointment);
+router.put("/:id/status", updateAppointmentStatus);
+router.delete("/:id", deleteAppointment);
+// Update appointment status
+router.patch('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, rescheduledDateTime } = req.body;
+
+    // This is the line that was failing because 'Appointment' was undefined
+    const updated = await Appointment.findByIdAndUpdate(
+      id,
+      { status, rescheduledDateTime },
+      { new: true }
+    );
+
+    if (!updated) return res.status(404).json({ message: "Appointment not found" });
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+// module.exports = router;
+export default router;
