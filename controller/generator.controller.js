@@ -27,7 +27,14 @@ const getGen = async (req, res) => {
 // Create a new generator
 const createGen = async (req, res) => {
     try {
-        const generator = await Generator.create(req.body);
+        const imagePaths = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+
+        const generatorData = {
+            ...req.body,
+            images: imagePaths // Stores the whole array (up to 10)
+        };
+
+        const generator = await Generator.create(generatorData);
         res.status(201).json({ message: "Generator created!", generator });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -38,7 +45,13 @@ const createGen = async (req, res) => {
 const updateGen = async (req, res) => {
     try {
         const { id } = req.params;
-        const updatedGen = await Generator.findByIdAndUpdate(id, req.body, { new: true });
+        let updateData = { ...req.body };
+
+        if (req.files && req.files.length > 0) {
+            updateData.images = req.files.map(file => `/uploads/${file.filename}`);
+        }
+        
+        const updatedGen = await Generator.findByIdAndUpdate(id, updateData, { new: true });
         if (!updatedGen) {
             return res.status(404).json({ message: "Generator not found" });
         }

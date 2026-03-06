@@ -22,17 +22,15 @@ interface GeneratorRow {
   name: string;
   description: string;
   stock: number;
-  image: string;
-  image2: string;
-  image3: string;
+  images: string[];
 }
-
 function GeneratorTable() {
 
   const [rows, setRows] = useState<GeneratorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDelete, setOpenDelete] = useState(false);
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>();
+  const navigate = useNavigate();
   
   const getSelectedIds = (): string[] => {
   if (!rowSelectionModel) return [];
@@ -48,7 +46,7 @@ function GeneratorTable() {
   const handleCloseDelete = () => {
     setOpenDelete(false); // Closes the delete confirmation
   };
-  const navigate = useNavigate();
+
 
   const getGens = async () => {
     setLoading(true);
@@ -63,9 +61,7 @@ function GeneratorTable() {
         name: gen.name,
         description: gen.Description,
         stock: Number(gen.Stock) || 0,
-        image: gen.Image_Url,
-        image2: gen.Image_Url2,
-        image3: gen.Image_Url3
+        images: gen.images || []
       }));
 
       setRows(formattedRows);
@@ -88,9 +84,7 @@ function GeneratorTable() {
     Serial_Number: newRow.Serial_Number,
     description: newRow.description,
     name: newRow.name,
-    image: newRow.image,
-    image2: newRow.image2,
-    image3: newRow.image3,
+    images: newRow.images
   };
 
   // optimistic UI update
@@ -101,17 +95,25 @@ function GeneratorTable() {
   );
 
   // save to DB
-  await saveStock(updatedRow.id, updatedRow.Serial_Number, updatedRow.description, updatedRow.name, updatedRow.stock, updatedRow.image, updatedRow.image2, updatedRow.image3 );
+  await saveStock(updatedRow.id, updatedRow.Serial_Number, updatedRow.description, updatedRow.name, updatedRow.stock, updatedRow.images);
 
   return updatedRow;
 };
 
-const saveStock = async (id: string, Serial_Number: string, description: string, name: string, stock: number, image: string, image2: string, image3: string) => {
+const saveStock = async (id: string, Serial_Number: string, description: string, name: string, stock: number, images: string[]) => {
   try {
+    const formData = new FormData();
+    formData.append("Stock", stock.toString());
+    formData.append("Serial_Number", Serial_Number);
+    formData.append("Description", description);
+    formData.append("name", name);
+    images.forEach((img, idx) => {
+      formData.append(`image${idx + 1}`, img);
+    });
+
     const res = await fetch(`http://localhost:3000/api/generators/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ Stock: stock, Image_Url: image,Image_Url2: image2, Image_Url3: image3, Serial_Number: Serial_Number, Description: description, name: name}) 
+      body: formData,
     });
 
     if (!res.ok) throw new Error("Failed to update generator");
@@ -124,9 +126,7 @@ const saveStock = async (id: string, Serial_Number: string, description: string,
         row.id === id
           ? { ...row, 
             stock: Number(updatedGen.Stock),
-            image: updatedGen.Image_Url,
-            image2: updatedGen.Image_Url2,
-            image3: updatedGen.Image_Url3,
+            images: updatedGen.images || [],
             Serial_Number: updatedGen.Serial_Number,
             description: updatedGen.Description,
             name: updatedGen.name
@@ -142,66 +142,24 @@ const saveStock = async (id: string, Serial_Number: string, description: string,
 
 
   const columns: GridColDef[] = [
-    { field: "Serial_Number", headerName: "Serial Number", width: 150, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "name", headerName: "Name", width: 150, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "description", headerName: "Description", width: 250, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "stock", headerName: "Stock", width: 150, editable: true,type: "number", headerAlign: 'left', align: 'left', display: 'flex'},
-    // images
-    { field: "image", headerName: "Image", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
-      renderCell: (params) => {
-        return (
-          <Stack direction = "row">
-            <Box
-              component="img"
-              sx={{
-                height: 70,
-                width: 70,
-                objectFit: 'cover',
-              }}
-              alt="No Image available"
-              src={params.value}
-            />
-          </Stack>
-        )
-      }
-    },
-    { field: "image2", headerName: "Image2", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
-      renderCell: (params) => {
-        return (
-          <Stack direction = "row">
-            <Box
-              component="img"
-              sx={{
-                height: 70,
-                width: 70,
-                objectFit: 'cover',
-              }}
-              alt="No Image available"
-              src={params.value}
-            />
-          </Stack>
-        )
-      }
-    },
-    { field: "image3", headerName: "Image3", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
-      renderCell: (params) => {
-        return (
-          <Stack direction = "row">
-            <Box
-              component="img"
-              sx={{
-                height: 70,
-                width: 70,
-                objectFit: 'cover',
-              }}
-              alt="No Image available"
-              src={params.value}
-            />
-          </Stack>
-        )
-      }
+    { field: "Serial_Number", headerName: "Serial Number", width: 150, editable: true },
+    { field: "name", headerName: "Name", width: 150, editable: true },
+    { field: "description", headerName: "Description", width: 250, editable: true },
+    { field: "stock", headerName: "Stock", width: 150, editable: true, type: "number" },
+    { 
+      field: "images",
+      headerName: "Images",
+      width: 200,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          {params.value.map((img: string, idx: number) => (
+            <Box key={idx} component="img" src={img} sx={{ height: 70, width: 70, objectFit: "cover" }} alt="No Image" />
+          ))}
+        </Stack>
+      )
     }
- ];
+  ];
+
 
 const handleDeleteRows = async () => {
   const ids = getSelectedIds();

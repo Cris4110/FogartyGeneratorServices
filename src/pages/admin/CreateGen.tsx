@@ -7,16 +7,41 @@ const CreateGen: React.FC = () => {
     const [Description, setDescription] = useState("");
     const [Stock, setStock] = useState("");
     const [responseMsg, setResponseMsg] = useState("");
-    const navigate = useNavigate();
+
+      // Logic for stacking up to 10 images
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const navigate = useNavigate();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setSelectedFiles((prev) => [...prev, ...newFiles].slice(0, 10));
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
 const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+        // Use FormData for file uploads
+    const formData = new FormData();
+    formData.append("genID", genID);
+    formData.append("name", name);
+    formData.append("Description", Description);
+    formData.append("Stock", Stock);
+    formData.append("Serial_Number", Serial_Number);
+
+    // Append each stacked file
+    selectedFiles.forEach((file) => {
+      formData.append("images", file); // Must match backend key for generators
+    });
 
     try {
         const response = await fetch("http://localhost:3000/api/generators", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ genID, name, Description, Stock, Serial_Number }),
+            body: formData,
         });
 
         const result = await response.json();
@@ -33,6 +58,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             setDescription("");
             setStock("");
             setSerial_Number("");
+            setSelectedFiles([]);
             navigate("/admin/inven-management")
         }
     } catch (error) {
@@ -124,15 +150,74 @@ const handleSubmit = async (e: React.FormEvent) => {
                 border: "1px solid #ccc",
                 }}
             />
+            {/* Image Upload Section */}
+          <div style={{ width: "80%", margin: "1rem auto" }}>
+            <label style={{ fontSize: "0.8rem", color: "#666" }}>
+              Upload Images ({selectedFiles.length}/10):
+            </label>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
+              style={{ display: "block", marginTop: "0.5rem" }}
+            />
+
+            {/* List of files ready for upload */}
+            <div style={{ marginTop: "10px" }}>
+              {selectedFiles.map((file, index) => (
+                <div
+                  key={index}
+                  style={{
+                    fontSize: "0.75rem",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    background: "#f4f4f4",
+                    padding: "4px",
+                    marginBottom: "3px",
+                    border: "1px solid #ddd",
+                  }}
+                >
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "180px" }}>
+                    {file.name}
+                  </span>
+                  <span
+                    onClick={() => removeFile(index)}
+                    style={{ color: "red", cursor: "pointer", fontWeight: "bold" }}
+                  >
+                    X
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         
         <div style={{ textAlign: "center" }}>
-            <button type="submit">Add Generator</button>
-        </div>
-    </form>
-    {responseMsg && <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>}
-    </div>
-
+            <button
+              type="submit"
+              style={{
+                backgroundColor: "#d32f2f", // OG Red
+                color: "white",
+                border: "none",
+                borderRadius: "0px", // Red Square button
+                padding: "0.75rem 1.5rem",
+                width: "80%",
+                fontWeight: "bold",
+                cursor: "pointer",
+                textTransform: "uppercase",
+                marginTop: "1rem"
+              }}
+            >
+              Add Generator
+            </button>
+          </div>
+        </form>
+        {responseMsg && (
+          <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>
+        )}
+      </div>
     </>
+
   );
 };
 

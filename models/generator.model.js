@@ -32,22 +32,10 @@ const GeneratorSchema = mongoose.Schema(
             default: ""
         },
 
-        Image_Url: {
-            type: Array,
-            requried: false,
-            default: ""
-        },
-       
-        Image_Url2: {
-            type: Array,
-            requried: false,
-            default: ""
-        },
-
-        Image_Url3: {
-            type: Array,
-            requried: false,
-            default: ""
+        images: {
+            type: [String],
+            required: true,
+            default: []
         },
         
     },

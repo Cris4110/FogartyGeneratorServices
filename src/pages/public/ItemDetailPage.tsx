@@ -60,9 +60,9 @@ export default function ItemDetailPage() {
     );
   }
 
-const images = Array.isArray(item.Image_Url)
-  ? item.Image_Url
-  : [item.Image_Url];
+  const images = Array.isArray(item.images) && item.images.length > 0
+    ? item.images
+    : ["/placeholder.jpg"];
 
   const inStock = item.Stock > 0;
 
