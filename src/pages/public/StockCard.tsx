@@ -6,7 +6,7 @@ interface StockCardProps {
   type: "generator" | "part";
   title: string;
   stock: number;
-  Image_Url?: string[] | string;
+  images?: string[];
 }
 
 export default function StockCard({
@@ -14,14 +14,13 @@ export default function StockCard({
   type,
   title,
   stock,
-  Image_Url,
+  images,
 }: StockCardProps) {
   const navigate = useNavigate();
 
 
-  const previewImage = Array.isArray(Image_Url)
-    ? Image_Url[0]
-    : Image_Url;
+  const previewImage = images && images.length > 0 ? images[0] : "/placeholder.jpg";
+
 
   return (
     <Card

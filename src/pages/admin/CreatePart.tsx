@@ -5,20 +5,38 @@ const CreatePart: React.FC = () => {
     const [partID, setPartid] = useState("");
     const [Stock, setStock] = useState("");
     const [Part_Name, setPart_Name] = useState("");
+    const [Description, setDescription] = useState("");
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [responseMsg, setResponseMsg] = useState("");
     const navigate = useNavigate();
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            setSelectedFiles((prev) => [...prev, ...newFiles].slice(0, 10));
+        }
+    };
 
+    const removeFile = (index: number) => {
+        setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    };
 
 const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-        
+    
+        const formData = new FormData();
+        formData.append("Part_Name", Part_Name);
+        formData.append("Stock", Stock);
+        formData.append("Description", Description);
+
+        selectedFiles.forEach((file) => {
+            formData.append("images", file); // Must match backend key
+        });
 
     try {
         const response = await fetch("http://localhost:3000/api/parts", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ partID, Part_Name, Stock }),
+            body: formData,
         });
         const result = await response.json();
 
@@ -92,13 +110,51 @@ const handleSubmit = async (e: React.FormEvent) => {
                 border: "1px solid #ccc",
                 }}
             />
+            {/* File Upload Section - Centered to match text inputs */}
+                <div style={{ width: "80%", margin: "1rem auto" }}>
+                    <label style={{ fontSize: "0.8rem", color: "#666" }}>
+                        Images ({selectedFiles.length}/10):
+                    </label>
+                    <input 
+                        type="file" 
+                        multiple 
+                        accept="image/*" 
+                        onChange={handleFileChange} 
+                        style={{ marginTop: "0.5rem", display: "block" }} 
+                    />
+                    
+                    {/* Visual list of chosen files */}
+                    <div style={{ marginTop: "10px" }}>
+                        {selectedFiles.map((file, index) => (
+                            <div key={index} style={{ fontSize: "0.75rem", display: "flex", justifyContent: "space-between", background: "#f4f4f4", padding: "4px", marginBottom: "3px", border: "1px solid #ddd" }}>
+                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "180px" }}>{file.name}</span>
+                                <span onClick={() => removeFile(index)} style={{ color: "red", cursor: "pointer", fontWeight: "bold" }}>X</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
         
         <div style={{ textAlign: "center" }}>
-            <button type="submit">Add Part</button>
+                    <button 
+                        type="submit"
+                        style={{
+                            backgroundColor: "#d32f2f", // Red
+                            color: "white",             // White text
+                            border: "none",
+                            borderRadius: "0px",        // Square
+                            padding: "0.75rem 1.5rem",
+                            width: "80%",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                            textTransform: "uppercase"
+                        }}
+                    >
+                        Add Part
+                    </button>
+                </div>
+            </form>
+            {responseMsg && <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>}
         </div>
-    </form>
-    {responseMsg && <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>}
-    </div>
 
     </>
   );

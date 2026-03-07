@@ -20,27 +20,16 @@ const PartSchema = mongoose.Schema(
             default: ""
         },
 
-        Image_Url: {
-            type: String,
-            requried: false,
-            default: ""
-        },
 
-        Image_Url2: {
-            type: String,
-            requried: false,
-            default: ""
-        },
-
-        Image_Url3: {
-            type: String,
-            requried: false,
-            default: ""
+        images: {
+            type: [String],
+            required: true,
+            default: []
         },
 
         Description: {
             type: String,
-            requried: false,
+            required: false,
             default: ""
         },
        
