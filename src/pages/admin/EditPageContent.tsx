@@ -18,6 +18,8 @@ function EditPageContent() {
   const [aboutContent, setAboutContent] = useState("");
   const [faqContent, setFaqContent] = useState("");
   const [footerContent, setFooterContent] = useState("");
+  const [quoteRetentionDays, setQuoteRetentionDays] = useState("");
+  const [appointmentRetentionDays, setAppointmentRetentionDays] = useState("");
   // Loading state to show spinner while fetching
   const [loading, setLoading] = useState(true);
   // Tracks which section was recently saved
@@ -43,10 +45,28 @@ function EditPageContent() {
       const aboutData = await aboutRes.json();
       const faqData = await faqRes.json();
       const footerData = await footerRes.json();
+      let quoteData: any = { content: "" };
+      let apptData: any = { content: "" };
+      try {
+        const [quoteRes, apptRes] = await Promise.all([
+          fetch(`${API_BASE}/pagecontent/quoteRetentionDays`, {
+            credentials: "include",
+          }),
+          fetch(`${API_BASE}/pagecontent/appointmentRetentionDays`, {
+            credentials: "include",
+          }),
+        ]);
+        if (quoteRes.ok) quoteData = await quoteRes.json();
+        if (apptRes.ok) apptData = await apptRes.json();
+      } catch {
+        // ignore, we'll default to empty
+      }
 
       setAboutContent(aboutData.content || "");
       setFaqContent(faqData.content || "");
       setFooterContent(footerData.content || "");
+      setQuoteRetentionDays(quoteData.content || "");
+      setAppointmentRetentionDays(apptData.content || "");
     } catch (err) {
       setError("Failed to load content");
     } finally {
@@ -153,6 +173,72 @@ function EditPageContent() {
             sx={{ mt: 2 }}
           >
             Save Footer
+          </Button>
+        </Box>
+
+        {/* Quote retention setting */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+            Quote retention (days)
+          </Typography>
+          {saved === "quoteRetentionDays" && (
+            <Alert severity="success">Saved!</Alert>
+          )}
+          <TextField
+            type="number"
+            fullWidth
+            inputProps={{ min: 30, max: 365 }}
+            value={quoteRetentionDays}
+            onChange={(e) => setQuoteRetentionDays(e.target.value)}
+            margin="normal"
+            variant="outlined"
+          />
+          <Button
+            variant="contained"
+            onClick={() => {
+              const num = parseInt(quoteRetentionDays);
+              if (isNaN(num) || num < 30 || num > 365) {
+                setError("Retention must be between 30 and 365 days");
+                return;
+              }
+              handleSave("quoteRetentionDays", quoteRetentionDays);
+            }}
+            sx={{ mt: 2 }}
+          >
+            Save Retention
+          </Button>
+        </Box>
+
+        {/* Appointment retention setting */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+            Appointment retention (days)
+          </Typography>
+          {saved === "appointmentRetentionDays" && (
+            <Alert severity="success">Saved!</Alert>
+          )}
+          <TextField
+            type="number"
+            fullWidth
+            inputProps={{ min: 30, max: 365 }}
+            value={appointmentRetentionDays}
+            onChange={(e) => setAppointmentRetentionDays(e.target.value)}
+            margin="normal"
+            variant="outlined"
+          />
+          <Button
+            variant="contained"
+            onClick={() => {
+              const num = parseInt(appointmentRetentionDays);
+              if (isNaN(num) || num < 30 || num > 365) {
+                setError("Retention must be between 30 and 365 days");
+                return;
+              }
+              handleSave("appointmentRetentionDays", appointmentRetentionDays);
+            }}
+            sx={{ mt: 2 }}
+          >
+            Save Retention
           </Button>
         </Box>
       </Box>
