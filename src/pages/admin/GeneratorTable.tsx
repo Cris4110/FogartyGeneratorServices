@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Box from "@mui/material/Box";
 import {
   Backdrop,
@@ -11,10 +11,8 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { DataGrid, type GridColDef, type GridRowSelectionModel } from "@mui/x-data-grid";
+import { DataGrid, type GridColDef, type GridRowSelectionModel, type GridRowId } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-
-
 
 interface GeneratorRow {
   id: string;
@@ -26,22 +24,60 @@ interface GeneratorRow {
 }
 function GeneratorTable() {
 
+  // Sync internal state if the URL in the database changes
+  useEffect(() => {
+    // If the src looks like a double URL (common with some API errors), take the first part
+    const cleanSrc = src?.split(',')[0] || fallback;
+    setImgSrc(cleanSrc);
+  }, [src]);
+
+  return (
+    <Box
+      component="img"
+      sx={{
+        height: 70,
+        width: 70,
+        objectFit: 'cover',
+        borderRadius: 1,
+        border: '1px solid #eee',
+        my: 0.5,
+        backgroundColor: '#f5f5f5' // Shows a light grey box while loading
+      }}
+      alt="Generator"
+      src={imgSrc}
+      onError={() => {
+        // Prevent infinite loops if the fallback itself fails
+        if (imgSrc !== fallback) {
+          setImgSrc(fallback);
+        }
+      }}
+    />
+  );
+};
+
+function GeneratorTable() {
   const [rows, setRows] = useState<GeneratorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDelete, setOpenDelete] = useState(false);
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>();
   const navigate = useNavigate();
   
-  const getSelectedIds = (): string[] => {
-  if (!rowSelectionModel) return [];
-  if ("ids" in rowSelectionModel) {
-    return Array.from(rowSelectionModel.ids).map(String);
-  }
+  // 1. Correct Initialization for Object-based selection
+  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>(
+    { type: 'row', ids: new Set<GridRowId>() } as unknown as GridRowSelectionModel
+  );
+  
+  const navigate = useNavigate();
 
-  return rowSelectionModel.map(String);
-  };
+  // 2. Optimized and typed selectedIds extraction
+  const selectedIds = useMemo(() => {
+    if (!rowSelectionModel) return [];
 
-  const selectedIds = getSelectedIds();
+    // MUI X v7+ logic (Object with ids Set)
+    if (rowSelectionModel && 'ids' in rowSelectionModel) {
+      const idsSet = rowSelectionModel.ids as Set<GridRowId>;
+      return Array.from(idsSet).map((id: GridRowId) => String(id));
+    }
 
   const handleCloseDelete = () => {
     setOpenDelete(false); // Closes the delete confirmation
@@ -52,14 +88,14 @@ function GeneratorTable() {
     setLoading(true);
     try {
       const res = await fetch("http://localhost:3000/api/generators");
+      if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
 
       const formattedRows: GeneratorRow[] = data.map((gen: any) => ({
         id: gen._id ?? gen.genID,
-        Serial_Number: gen.Serial_Number,
-        name: gen.name,
-        description: gen.Description,
+        Serial_Number: gen.Serial_Number || "",
+        name: gen.name || "",
+        description: gen.Description || "",
         stock: Number(gen.Stock) || 0,
         images: gen.images || []
       }));
@@ -161,92 +197,69 @@ const saveStock = async (id: string, Serial_Number: string, description: string,
   ];
 
 
-const handleDeleteRows = async () => {
-  const ids = getSelectedIds();
-  if (ids.length === 0) return;
-
-  try {
-    await Promise.all(
-      ids.map(async (genId) => {
-        const res = await fetch(
-          `http://localhost:3000/api/generators/${genId}`,
-          { method: "DELETE" }
-        );
-
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.message);
-        }
-      })
-    );
-
-    // optimistic UI update
-    setRows((prev) => prev.filter((row) => !ids.includes(row.id)));
-
-    setRowSelectionModel(undefined);
-    handleCloseDelete();
-  } catch (err) {
-    console.error("Delete error:", err);
-  }
-};
+  const handleDeleteRows = async () => {
+    try {
+      await Promise.all(
+        selectedIds.map(id => fetch(`http://localhost:3000/api/generators/${id}`, { method: "DELETE" }))
+      );
+      setRows((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
+      setRowSelectionModel({ type: 'row', ids: new Set<GridRowId>() } as unknown as GridRowSelectionModel);
+      setOpenDelete(false);
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
 
   return (
-    <>
-      <Box sx={{ height: '65vh', width: '80vw' }}>
+    <Box sx={{ p: 4 }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>Inventory Management</Typography>
+      
+      <Box sx={{ height: '70vh', width: '100%', bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1 }}>
         {loading ? (
           <Stack sx={{ height: "100%" }} justifyContent="center" alignItems="center">
             <CircularProgress />
           </Stack>
         ) : (
           <DataGrid
-            // removed check all since it bugs with the delete function
-            sx={{
-              "& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-columnHeaderTitleContainer": {
-                display: "none"
-              }
-            }}
             rows={rows}
             columns={columns}
-            getRowHeight={() => 'auto'}
-            disableColumnResize={false} 
-            hideFooterPagination={true}
-            checkboxSelection            
-            disableRowSelectionOnClick
+            getRowHeight={() => 85}
+            checkboxSelection
+            onRowSelectionModelChange={(newSelection) => setRowSelectionModel(newSelection)}
+            rowSelectionModel={rowSelectionModel}
             processRowUpdate={processRowUpdate}
-            onRowSelectionModelChange={(newSelection) => {
-              setRowSelectionModel(newSelection);
+            slotProps={{
+              toolbar: { showQuickFilter: true }
             }}
           />
         )}
       </Box>
 
-      {/* Delete Confirmation */}
-      <Backdrop open={openDelete} sx={{ color: "#fff", zIndex: 1300 }}>
-        <Paper sx={{ width: 400, p: 4 }}>
-          <Typography align="center" sx = {{ fontWeight:"bold", fontSize: 'h6.fontSize' }}>
-            Delete {selectedIds.length} generators?
-          </Typography>
-          <Stack direction="row" spacing={4} mt={3} justifyContent="center">
-            <Button onClick={() => setOpenDelete(false)}>Cancel</Button>
-            <Button color="error" variant="contained" onClick={handleDeleteRows}>Confirm</Button>
+      <Backdrop open={openDelete} sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <Paper sx={{ p: 4, borderRadius: 2 }}>
+          <Typography variant="h6" align="center">Delete {selectedIds.length} generators?</Typography>
+          <Stack direction="row" spacing={2} mt={3} justifyContent="center">
+            <Button onClick={() => setOpenDelete(false)} variant="outlined">Cancel</Button>
+            <Button color="error" variant="contained" onClick={handleDeleteRows}>Confirm Delete</Button>
           </Stack>
         </Paper>
       </Backdrop>
 
-      {/* Action Buttons */}
-      <Stack direction="row" spacing={2} sx={{ position: "fixed", top: 32, right: 32 }}>
-        <Fab color="primary" onClick={() => navigate("/admin/create-gen")}>
-          <AddIcon />
+      <Stack direction="row" spacing={2} sx={{ position: "fixed", bottom: 32, right: 32 }}>
+        <Fab color="primary" variant="extended" onClick={() => navigate("/admin/create-gen")}>
+          <AddIcon sx={{ mr: 1 }} /> Add New
         </Fab>
-        <Fab
-          color="secondary"
-          disabled={selectedIds.length === 0}
+        <Fab 
+          color="secondary" 
+          variant="extended"
+          disabled={selectedIds.length === 0} 
           onClick={() => setOpenDelete(true)}
         >
-          <DeleteIcon />
+          <DeleteIcon sx={{ mr: 1 }} /> Delete Selected
         </Fab>
       </Stack>
-    </>
+    </Box>
   );
 }
+
 export default GeneratorTable;

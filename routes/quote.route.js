@@ -1,15 +1,14 @@
-const express = require("express");
-const Quote = require('../models/quote.model');
+import express from "express";
+import Quote from '../models/quote.model.js';
 const router = express.Router();
-const {getQuotes, getQuote, createQuote, updateQuote, deleteQuote, setAcknowledged, getPendingQuotes} = require('../controller/quote.controller.js');
-const { set } = require("mongoose");
+import {getQuotes, getQuote, createQuote, updateQuote, deleteQuote, setAcknowledged} from '../controller/quote.controller.js';
+import { set } from "mongoose";
 
 router.get("/", getQuotes);
-router.get("/pending-quotes", getPendingQuotes);
 router.get("/:id", getQuote);
 router.post("/", createQuote);
 router.put("/:id", updateQuote);
 router.delete("/:id", deleteQuote);
 router.patch("/:id/acknowledge", setAcknowledged);
 
-module.exports = router;
+export default router;

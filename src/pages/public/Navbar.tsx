@@ -1,193 +1,189 @@
-import { useEffect, useState } from "react";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Container from "@mui/material/Container";
-import logo from "../../assets/logo.png";
-import type { Theme } from "@emotion/react";
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { auth } from "../../firebase"; 
+import { signOut } from "firebase/auth";
+import { useAuth } from "../../context/Appcontext"; 
+import logo from "../../assets/logo.png";
 import {
+  AppBar,
+  Toolbar,
+  Container,
   Box,
   Button,
   Snackbar,
   Alert,
-  type SxProps,
   Typography,
+  type SxProps,
 } from "@mui/material";
+import type { Theme } from "@emotion/react";
 
-type User = { id: string; name?: string; email: string; role?: string };
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
-  withCredentials: true, // so the JWT cookie goes with requests
-});
-
-//const pages = ['Home', 'About', 'Services', 'Contact', 'FAQ', 'Reviews'];
-//updated pages to include labels and paths,
-const pages = [
-  { label: "Home", to: "/" },
-  { label: "About", to: "/about" },
-  { label: "Services", to: "/services" },
-  { label: "Contact", to: "/Contactpage" },
-  { label: "FAQ", to: "/faq" },
-  { label: "Request Account", to: "/UserRegistration" },
-  { label: "Reviews", to: "/ViewReviews" },
-];
+const ImageStyle: SxProps<Theme> = {
+  width: "100px",
+  height: "100px",
+  alignSelf: "center",
+};
 
 function Navbar() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [authReady, setAuthReady] = useState(false);
+  const { currentUser, setCurrentUser, authReady, isAdmin } = useAuth(); 
   const navigate = useNavigate();
   const [logoutMsg, setLogoutMsg] = useState<string | null>(null);
   const [logoutOpen, setLogoutOpen] = useState(false);
-  // On first render, try to hydrate from cookie via /users/me
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .get("/users/me")
-      .then((res) => !cancelled && setCurrentUser(res.data.user as User))
-      .catch(() => !cancelled && setCurrentUser(null))
-      .finally(() => !cancelled && setAuthReady(true));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+
+  const pages = [
+    { label: "Home", to: "/" },
+    { label: "About", to: "/about" },
+    { label: "Services", to: "/services" },
+    { label: "Contact", to: "/Contactpage" },
+    { label: "FAQ", to: "/faq" },
+    { label: "Reviews", to: "/ViewReviews" },
+  ];
 
   const handleLogout = async () => {
     try {
-      await api.post("/users/logout");
+      await signOut(auth);
       setCurrentUser(null);
       setLogoutMsg("Logged out successfully");
       setLogoutOpen(true);
       navigate("/", { replace: true });
-    } catch {
-      // ignore; keep UI as logged out
+    } catch (error) {
+      console.error("Logout error:", error);
       setCurrentUser(null);
-      setLogoutMsg("Logged out successfully");
-      setLogoutOpen(true);
-      navigate("/", { replace: true });
+      navigate("/userlogin");
     }
   };
 
   const handleLogoutClose = (_?: any, reason?: string) => {
     if (reason === "clickaway") return;
     setLogoutOpen(false);
-    setLogoutMsg(null);
-  };
-  const ImageStyle: SxProps<Theme> = {
-    width: "100px",
-    height: "100px",
-    alignSelf: "center",
   };
 
   return (
     <>
-      <AppBar
-        position="static"
-        sx={{ backgroundColor: "white", color: "black" }}
-      >
+      <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 1 }}>
         <Container maxWidth="xl">
-          <Toolbar disableGutters>
-            <Box component="img" src={logo} alt="logo" sx={ImageStyle} />
-            <Typography
-              variant="h5"
-              noWrap
-              component="a"
-              href="#app-bar-with-responsive-menu"
-              sx={{
-                mr: 2,
-                display: { xs: "none", md: "flex" },
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "inherit",
-                textDecoration: "none",
-              }}
+          <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+            {/* Logo and Brand */}
+            <Box 
+              component={NavLink} 
+              to="/" 
+              sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}
             >
-              Fogarty Onsite Generator Service
-            </Typography>
+              <Box component="img" src={logo} alt="logo" sx={ImageStyle} />
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{
+                  mr: 2,
+                  display: { xs: "none", md: "flex" },
+                  fontFamily: "monospace",
+                  fontWeight: 700,
+                  letterSpacing: ".1rem",
+                }}
+              >
+                Fogarty Onsite
+              </Typography>
+            </Box>
 
-            <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
+            {/* Main Navigation Links */}
+            <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" }, ml: 2 }}>
               {pages.map((page) => (
                 <Button
-                  key={page.label} //updated to use page.label
-                  component={NavLink} //added NavLink component for routing
-                  to={page.to} //updated to use page.to, the route path per label
-                  end={page.to === "/"} //ensures exact matching for home route
-                  sx={{ my: 2, color: "black", display: "block" }}
+                  key={page.label}
+                  component={NavLink}
+                  to={page.to}
+                  end={page.to === "/"}
+                  sx={{ 
+                    my: 2, 
+                    color: "black", 
+                    display: "block",
+                    "&.active": { fontWeight: 'bold', color: 'primary.main' } 
+                  }}
                 >
                   {page.label}
                 </Button>
               ))}
+
+              {!currentUser && (
+                <Button
+                  component={NavLink}
+                  to="/UserRegistration"
+                  sx={{ my: 2, color: "black", display: "block" }}
+                >
+                  Request Account
+                </Button>
+              )}
             </Box>
-            {!authReady ? null : currentUser ? ( // this part needed cause navbar flashes log in button before hiding it
-              <>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "flex-end",
-                    }}
-                  >
+
+            {/* Auth Section (Right Side) */}
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {!authReady ? (
+                <Box sx={{ width: 40 }} /> 
+              ) : currentUser ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                  
+                  {/* ADMIN BUTTON: Ensures visibility next to user info */}
+                  {isAdmin && (
                     <Button
-                      color="inherit"
                       component={NavLink}
-                      to="/usersettings"
-                      end
-                      sx={{ textTransform: "none" }}
+                      to="/admin/dashboard"
+                      variant="contained"
+                      color="error"
+                      size="small"
+                      sx={{ 
+                        textTransform: "none", 
+                        fontWeight: "bold",
+                        px: 2,
+                        display: { xs: "none", sm: "flex" } 
+                      }}
+                    >
+                      Admin Dashboard
+                    </Button>
+                  )}
+
+                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                    <Button 
+                      component={NavLink} 
+                      to="/usersettings" 
+                      sx={{ textTransform: "none", color: 'black', p: 0, minWidth: 0, fontSize: '0.8rem' }}
                     >
                       Settings
                     </Button>
-                    <Typography
-                      variant="caption"
-                      sx={{ mt: 0.5, color: "text.secondary" }}
-                    >
-                      Hello,&nbsp;
-                      <strong>{currentUser.name ?? currentUser.email}</strong>
+                    <Typography variant="caption" sx={{ color: "text.secondary", lineHeight: 1, fontWeight: 500 }}>
+                      {currentUser.name || currentUser.email}
                     </Typography>
                   </Box>
+                  <Button color="error" variant="outlined" size="small" onClick={handleLogout}>
+                    Logout
+                  </Button>
                 </Box>
-
-                {/* Cart only when logged in, and last */}
-                <Button
-                  color="inherit"
-                  onClick={handleLogout}
-                  //disabled={loggingOut}
+              ) : (
+                <Button 
+                  color="primary" 
+                  variant="contained"
+                  component={NavLink} 
+                  to="/userlogin"
+                  sx={{ textTransform: "none" }}
                 >
-                  Cart
+                  Login
                 </Button>
-              </>
-            ) : (
-              <Button
-                color="inherit"
-                component={NavLink}
-                to="/userlogin"
-                end
-                sx={{ textTransform: "none" }}
-              >
-                Login
-              </Button>
-            )}
+              )}
+            </Box>
           </Toolbar>
         </Container>
       </AppBar>
 
-      <Snackbar
-        open={logoutOpen}
-        autoHideDuration={3000}
-        onClose={handleLogoutClose}
+      <Snackbar 
+        open={logoutOpen} 
+        autoHideDuration={3000} 
+        onClose={handleLogoutClose} 
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert
-          onClose={handleLogoutClose}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
+        <Alert onClose={handleLogoutClose} severity="success" sx={{ width: "100%" }}>
           {logoutMsg}
         </Alert>
       </Snackbar>
     </>
   );
 }
+
 export default Navbar;

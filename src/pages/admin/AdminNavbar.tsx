@@ -1,36 +1,36 @@
 import { Box, Typography, Button, Stack, Collapse } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
-import { useContext, useState } from "react";
-import { AuthContext } from "../../context/Appcontext";
+import { useState } from "react";
 import logo from "../../assets/logo.png";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { auth as firebaseAuth } from "../../firebase";
+import { signOut } from "firebase/auth";
+import { useAuth } from "../../context/Appcontext";
 
 const SubmitButtonStyle: SxProps<Theme> = {
   width: "150px",
   height: "50px",
+  fontWeight: "bold",
+  textTransform: "none"
 };
 
 const AdminNavbar = () => {
   const navigate = useNavigate();
-  const auth = useContext(AuthContext);
+  const { setCurrentUser } = useAuth(); 
   const [openIncoming, setOpenIncoming] = useState(false);
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/admins/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await signOut(firebaseAuth);
+      // Optional: If you have a specific backend logout route, keep this. 
+      // Otherwise, Firebase signOut is usually enough.
+      await fetch("http://localhost:3000/api/admins/logout", { method: "POST" });
 
-      if (res.ok) {
-        auth?.setCurrentUser(null);
-        navigate("/login");
-      } else {
-        console.error("Failed to logout:", await res.text());
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
+      setCurrentUser(null);
+      navigate("/"); // Redirect to home/login after logout
+    } catch (err) {
+      console.error("Logout failed:", err);
     }
   };
 
@@ -42,219 +42,89 @@ const AdminNavbar = () => {
     setOpenIncoming((prev) => !prev);
   };
 
+  const linkStyle: SxProps<Theme> = {
+    whiteSpace: "pre-line",
+    cursor: "pointer",
+    fontSize: "1.1rem",
+    transition: "0.3s",
+    "&:hover": { color: "#1976d2", transform: "translateX(5px)" },
+  };
+
   return (
     <Box
       sx={{
-        width: 250,
-        height: "100%",
+        width: "15vw", // Slightly wider for readability
+        height: "100vh",
         display: "flex",
         flexDirection: "column",
-        alignItems: "flex-start",
-        backgroundColor: "#f5f5f5",
-        p: 4,
+        backgroundColor: "#f8f9fa",
+        borderRight: "1px solid #ddd",
+        p: 3,
         position: "fixed",
+        left: 0,
+        top: 0,
       }}
     >
-      <Box
-        component="img"
-        src={logo}
-        alt="Logo"
-        sx={{
-          width: 200,
-          height: 200,
-        }}
-      >
-      </Box>
-
-      <Box>
-        <Typography
-          variant="h3"
-          sx={{
-            fontWeight: "bold",
-            color: "#1976d2",
-            whiteSpace: "nowrap",
-            position: "relative",
-            top: "-230px",
-            marginLeft: "250px",
-            //backgroundColor: "#e5c2c2"
-          }}
-        >
+      {/* Logo Section */}
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
+        <Box component="img" src={logo} alt="Logo" sx={{ width: 120, height: 120, mb: 1 }} />
+        <Typography variant="h6" sx={{ fontWeight: "bold", color: "#1976d2", textAlign: "center" }}>
           Admin Portal
         </Typography>
       </Box>
 
-      <Box
-        sx={{
-          maxHeight: "56vh",
-          maxWidth: 250,
-          overflowY: "auto",
-          overflowX: "hidden",
-        }}
-      >
-        <Stack spacing={3} sx={{ ml: 3, width: 180 }}>
-          {/* Dashboard */}
-          <Typography
-            variant="h5"
-            sx={{
-              whiteSpace: "pre-line",
-              cursor: "pointer",
-              transition: "0.3s",
-              "&:hover": { color: "#1976d2" },
-            }}
-            onClick={() => handleNavigation("/admin/")}
-          >
+      {/* Navigation Links */}
+      <Box sx={{ flexGrow: 1, overflowY: "auto" }}>
+        <Stack spacing={2.5}>
+          
+          {/* Matches path="/dashboard" in adminroutes.tsx */}
+          <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/dashboard")}>
             Dashboard
           </Typography>
 
-          {/* Incoming Requests also Quote, Appointment, and Parts Request */}
-          <Box sx={{ width: "75%" }}>
-            <Box
-              onClick={handleToggleIncoming}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                cursor: "pointer",
-                transition: "0.3s",
-                "&:hover": { color: "#1976d2" },
-              }}
-            >
-              <Typography variant="h5" sx={{ whiteSpace: "pre-line" }}>
-                {"Incoming\nRequests"}
-              </Typography>
+          {/* Incoming Requests Dropdown */}
+          <Box>
+            <Box onClick={handleToggleIncoming} sx={{ ...linkStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="inherit">Incoming Requests</Typography>
               {openIncoming ? <ExpandLess /> : <ExpandMore />}
             </Box>
-
             <Collapse in={openIncoming} timeout="auto" unmountOnExit>
-              <Stack spacing={2} sx={{ ml: 4, mt: 1 }}>
-                <Typography
-                  variant="body1"
-                  sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
-                  onClick={() => handleNavigation("/admin/incoming/quotes")}
-                >
+              <Stack spacing={1.5} sx={{ ml: 2, mt: 1, borderLeft: "2px solid #1976d2", pl: 2 }}>
+                <Typography variant="body2" sx={linkStyle} onClick={() => handleNavigation("/admin/incoming/quotes")}>
                   Quote Requests
                 </Typography>
-
-                <Typography
-                  variant="body1"
-                  sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
-                  onClick={() =>
-                    handleNavigation("/admin/incoming/appointments")
-                  }
-                >
+                <Typography variant="body2" sx={linkStyle} onClick={() => handleNavigation("/admin/incoming/appointments")}>
                   Appointment Requests
-                </Typography>
-
-                <Typography
-                  variant="body1"
-                  sx={{ cursor: "pointer", "&:hover": { color: "#1976d2" } }}
-                  onClick={() => handleNavigation("/admin/incoming/parts")}
-                >
-                  Part Requests
                 </Typography>
               </Stack>
             </Collapse>
           </Box>
 
-          {/* Reviewed Appointments */}
-          <Typography
-            variant="h5"
-            sx={{
-              whiteSpace: "pre-line",
-              cursor: "pointer",
-              transition: "0.3s",
-              "&:hover": { color: "#1976d2" },
-            }}
-            onClick={() => handleNavigation("/admin/reviewed")}
-          >
-            {"Reviewed\nAppointments"}
+          <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/reviewed")}>
+            Reviewed Appointments
           </Typography>
 
-          {/* Catalog Management 
-          <Typography
-            variant="h5"
-            sx={{
-              whiteSpace: "pre-line",
-              cursor: "pointer",
-              transition: "0.3s",
-              "&:hover": { color: "#1976d2" },
-            }}
-            onClick={() => handleNavigation("/admin/catalog-management")}
-          >
-            {"Catalog\nManagement"}
-          </Typography>
-          */}
-
-          {/* User Management */}
-          <Typography
-            variant="h5"
-            sx={{
-              whiteSpace: "pre-line",
-              cursor: "pointer",
-              transition: "0.3s",
-              "&:hover": { color: "#1976d2" },
-            }}
-            onClick={() => handleNavigation("/admin/user-management")}
-          >
-            {"User\nManagement"}
+          <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/user-management")}>
+            User Management
           </Typography>
 
-          {/* Inventory Management */}
-          <Typography
-            variant="h5"
-            sx={{
-              whiteSpace: "pre-line",
-              cursor: "pointer",
-              transition: "0.3s",
-              "&:hover": { color: "#1976d2" },
-            }}
-            onClick={() => handleNavigation("/admin/inven-management")}
-          >
-            {"Inventory\nManagement"}
+          <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/inven-management")}>
+            Inventory Management
           </Typography>
 
-          <Typography
-            variant="h5"
-            sx={{
-              whiteSpace: "pre-line",
-              cursor: "pointer",
-              transition: "0.3s",
-              "&:hover": { color: "#1976d2" },
-            }}
-            onClick={() => handleNavigation("/admin/edit-about")}
-          >
-            {"Edit\nAbout Page"}
+          <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/edit-about")}>
+            Edit About Page
           </Typography>
 
-          {/* Review Management */}
-          <Typography
-            variant="h5"
-            sx={{
-              whiteSpace: "pre-line",
-              cursor: "pointer",
-              transition: "0.3s",
-              "&:hover": { color: "#1976d2" },
-            }}
-            onClick={() => handleNavigation("/admin/review-management")}
-          >
-            {"Review\nManagement"}
+          <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/review-management")}>
+            Review Management
           </Typography>
         </Stack>
       </Box>
-      {/* Logout */}
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: 50,
-          left: 50,
-        }}
-      >
-        <Button
-          variant="contained"
-          color="primary"
-          sx={SubmitButtonStyle}
-          onClick={handleLogout}
-        >
+
+      {/* Logout at Bottom */}
+      <Box sx={{ pt: 2, borderTop: "1px solid #ddd", display: "flex", justifyContent: "center" }}>
+        <Button variant="contained" color="error" sx={SubmitButtonStyle} onClick={handleLogout}>
           Logout
         </Button>
       </Box>

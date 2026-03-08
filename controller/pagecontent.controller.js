@@ -1,6 +1,6 @@
-const PageContent = require('../models/pagecontent.model.js');
+import PageContent from '../models/pagecontent.model.js';
 
-exports.getContent = async (req, res) => {
+export const getContent = async (req, res) => {
   try {
     let content = await PageContent.findOne({ pageName: req.params.pageName });
 
@@ -18,7 +18,7 @@ exports.getContent = async (req, res) => {
   }
 };
 
-exports.updateContent = async (req, res) => {
+export const updateContent = async (req, res) => {
   try {
     // enforce numeric range for retention settings
     if (

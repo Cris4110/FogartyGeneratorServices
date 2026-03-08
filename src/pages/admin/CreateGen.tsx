@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+// 1. Import your API helper
+import { apiRequest } from "../../utils/api"; 
+
 const CreateGen: React.FC = () => {
     const [genID, setGenid] = useState("");
     const [Serial_Number, setSerial_Number] = useState("");
@@ -44,15 +47,18 @@ const handleSubmit = async (e: React.FormEvent) => {
             body: formData,
         });
 
-        const result = await response.json();
-        
+        try {
+            // 2. Use apiRequest instead of fetch
+            // This automatically handles the "http://localhost:3000/api" prefix and Auth headers
+            const result = await apiRequest("/generators", {
+                method: "POST",
+                body: JSON.stringify({ genID, name, Description, Stock, Serial_Number }),
+            });
 
-        if (!response.ok) {
-            // Show the backend error directly
-            setResponseMsg(result.message || "Error adding Generator.");
-            } else {
+            // If apiRequest doesn't throw, it was successful
             setResponseMsg(result.message || "Generator added successfully!");
-            // Clear form fields after success
+            
+            // Clear form fields
             setGenid("");
             setName("");
             setDescription("");
@@ -61,48 +67,24 @@ const handleSubmit = async (e: React.FormEvent) => {
             setSelectedFiles([]);
             navigate("/admin/inven-management")
         }
-    } catch (error) {
-        setResponseMsg("Error connecting to server.");
-        console.error(error);
-    }
-};
+    };
 
-  return (
-    <>
-    <div style={{ fontFamily: "Arial, sans-serif", padding: "2rem" }}>
-        <div style={{ textAlign: "center" }}>
-        <h1>Fogarty Onsite</h1>
-        <h1>Generator Service</h1>
-        </div>
-
-        <form
-            onSubmit={handleSubmit}
-            style={{
-            background: "white",
-            padding: "2rem",
-            borderRadius: "8px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-            maxWidth: "400px",
-            margin: "auto",
-            }}
-        >
+    return (
+        <div style={{ fontFamily: "Arial, sans-serif", padding: "2rem" }}>
             <div style={{ textAlign: "center" }}>
-            <h3>Add a generator</h3>
+                <h1>Fogarty Onsite</h1>
+                <h1>Generator Service</h1>
             </div>
 
-            <input
-            type="text"
-            placeholder="Serial Number"
-            value={Serial_Number}
-            onChange={(e) => setSerial_Number(e.target.value)}
-            required
-            style={{
-                display: "block",
-                width: "80%",       // set width
-                margin: "0.5rem auto", // center horizontally and add spacing
-                padding: "0.5rem",
-                borderRadius: "4px",
-                border: "1px solid #ccc",
+            <form
+                onSubmit={handleSubmit}
+                style={{
+                    background: "white",
+                    padding: "2rem",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                    maxWidth: "400px",
+                    margin: "auto",
                 }}
             />
             <input

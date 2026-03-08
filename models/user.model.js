@@ -1,12 +1,4 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
-
-const passwordRegex =  /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/;
-//^(?=(?:.*[A-Z]){2,}) at least 2 uppercase letters
-//(?=(?:.*[a-z]){2,}) at least 2 lowercase letters
-//(?=(?:.*\d){2,}) at least 2 digits
-//(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}) at least 2 special chars and these are the authrized character
-//.{12,}$ minimum total length of 12 characters
 
 const stateAbbreviations = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
@@ -16,87 +8,65 @@ const stateAbbreviations = [
   "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
 ];
 
-const AddressSchema = new mongoose.Schema(
-    {
-        street: {
-            type: String,
-            required: true,
-            default: ""
-        },
-        city: {
-            type: String,
-            required: true,
-            default: ""
-        },
-        state: {
-            type: String,
-            required: true,
-            uppercase: true,
-            enum: stateAbbreviations
-        },
-        zipcode: {
-            type: String,
-            required: true,
-            default: ""
-        }
-    }
-)
+const AddressSchema = new mongoose.Schema({
+  street: { type: String, required: true, default: "" },
+  city: { type: String, required: true, default: "" },
+  state: { 
+    type: String, 
+    required: true, 
+    uppercase: true, 
+    enum: stateAbbreviations 
+  },
+  zipcode: { type: String, required: true, default: "" }
+});
 
 const UserSchema = new mongoose.Schema(
-    {
-        userID: {
-            type: String,
-            required: true,
-            unique: true
-        },
-
-        name: {
-            type: String,
-            required: true,
-            default: ""
-        },
-
-        password: {
-            type: String,
-            required: true,
-            validate: {
-                validator: function (value) {
-                    return passwordRegex.test(value);
-                },
-                message:
-                "Password must be at least 12 characters long and include at least 2 uppercase letters, 2 lowercase letters, 2 numbers, and 2 special characters.",
-            },
-        },
-
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-            lowercase: true,
-            match: [/^\S+@\S+\.\S+$/, "Invalid email."],
-        },
-
-        phoneNumber: {
-            type: Number,
-            required: true,
-            match: [/^\+?[0-9\s\-()]{10,15}$/, "Invalid phone number."],
-        }, 
-        address: {
-            type : AddressSchema,
-            required: false
-        },       
+  {
+    _id: {
+      type: String, // Stores the Firebase UID
+      required: true,
     },
-    {
-        timestamps: true,
-        discriminatorKey: "userType", 
-    }
+    userID: {
+      type: String,
+      required: true,
+      unique: true 
+    },
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user"
+    },
+    name: {
+      type: String,
+      required: true,
+      default: ""
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      match: [/^\S+@\S+\.\S+$/, "Invalid email."],
+    },
+    phoneNumber: {
+      type: String, // Changed to String to support Regex and leading zeros
+      required: true,
+      match: [/^\+?[0-9\s\-()]{10,15}$/, "Invalid phone number."],
+    },
+    password: {
+      type: String,
+      required: false, // Firebase handles passwords; MongoDB does not need them
+    },
+    address: {
+      type: AddressSchema,
+      required: false
+    },
+
+  },
+  {
+    timestamps: true,
+    discriminatorKey: "userType",
+  },
 );
 
-//method to compare password during login 
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-    return bcrypt.compare(candidatePassword, this.password);    
-};
-
-// const User = mongoose.model("User", UserSchema);
 export default mongoose.model("User", UserSchema);
-// module.exports = User;

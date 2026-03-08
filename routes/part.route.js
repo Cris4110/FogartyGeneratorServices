@@ -1,9 +1,9 @@
-const express = require("express");
-const Part = require('../models/part.model');
+import express from "express";
+import Part from '../models/part.model.js';
 const router = express.Router();
+import {getParts, getPart, createPart, updatePart, deletePart} from '../controller/part.controller.js';
 const multer = require('multer');
 const path = require('path');
-const {getParts, getPart, createPart, updatePart, deletePart} = require('../controller/part.controller.js');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -27,4 +27,4 @@ router.put("/:id", upload.array('images', 10), updatePart);
 
 router.delete("/:id", deletePart);
 
-module.exports = router;
+export default router;

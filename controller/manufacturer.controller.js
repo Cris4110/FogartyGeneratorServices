@@ -1,6 +1,6 @@
-const Manufacturer = require('../models/manufacturer.model');
+import Manufacturer from '../models/manufacturer.model.js';
 
-const getManufacturers = async (req, res) =>{
+export const getManufacturers = async (req, res) =>{
  try {
         const man = await Manufacturer.find({});
         res.status(200).json(man);
@@ -10,7 +10,7 @@ const getManufacturers = async (req, res) =>{
     }
 }
 
-const getManufacturer = async (req, res) =>{
+export const getManufacturer = async (req, res) =>{
     try {
         const {id} = req.params;
         const man = await Manufacturer.findById(id);
@@ -21,7 +21,7 @@ const getManufacturer = async (req, res) =>{
     }
 }
 
-const createManufacturer = async (req, res) => {
+export const createManufacturer = async (req, res) => {
         try {
         const man = await Manufacturer.create(req.body);
         res.status(200).json({message: "Manufacturer created!"})
@@ -31,7 +31,7 @@ const createManufacturer = async (req, res) => {
     
 }
 
-const updateManufacturer = async (req, res) => {
+export const updateManufacturer = async (req, res) => {
      try {
         const {id} = req.params;
         const man = await Generator.findByIdAndUpdate(id, req.body);
@@ -46,7 +46,7 @@ const updateManufacturer = async (req, res) => {
     }
 }
 
-const deleteManufacturer = async (req, res) => {
+export const deleteManufacturer = async (req, res) => {
      try {
         const {id} = req.params;
         const gen = await Generator.findByIdAndDelete(id, req.body);
@@ -58,12 +58,4 @@ const deleteManufacturer = async (req, res) => {
         res.status(500).json({message: error.message});
         
     }
-}
-
-module.exports = {
-    getManufacturer,
-    getManufacturers,
-    createManufacturer,
-    updateManufacturer,
-    deleteManufacturer
 };

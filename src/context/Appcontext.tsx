@@ -1,16 +1,27 @@
 import React, { createContext, useState, useEffect, type ReactNode } from "react";
+import { auth } from "../firebase"; 
+import { onAuthStateChanged, signOut, type User as FirebaseUser } from "firebase/auth";
+import axios from "axios";
 
-export interface User {
+// 1. Define the User type
+export type User = {
   _id: string;
   userID: string;
   name: string;
   email: string;
-}
+  role: "user" | "admin";
+  photoURL?: string;
+  phoneNumber?: string; 
+  address?: any;        
+};
 
+// 2. Define the Context interface
 export interface AuthContextType {
   currentUser: User | null;
-  setCurrentUser: (user: User | null) => void;
-  logout: () => void;
+  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
+  logout: () => Promise<void>;
+  authReady: boolean;
+  isAdmin: boolean; 
   loading: boolean;
 }
 
@@ -18,49 +29,77 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+  const [loading, setLoading] = useState(true); // Tracks the DB fetch process
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/api/admins/checkAuth", {
-          method: "GET",
-          credentials: "include",
-        });
+    // Listen for Firebase Auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      setLoading(true); // Start loading whenever auth state changes
+      
+      if (firebaseUser) {
+        try {
+          const token = await firebaseUser.getIdToken();
 
-        if (res.ok) {
-          const data = await res.json();
-          setCurrentUser(data.admin);
-        } else {
-          setCurrentUser(null);
+          // Fetch the full profile from MongoDB
+          const res = await axios.get(`http://localhost:3000/api/users/me/${firebaseUser.uid}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          setCurrentUser(res.data.user);
+        } catch (error) {
+          console.error("Context Sync Error:", error);
+          
+          // Fallback basic info
+          setCurrentUser({
+            _id: firebaseUser.uid,
+            userID: firebaseUser.uid,
+            name: firebaseUser.displayName || "User",
+            email: firebaseUser.email || "",
+            role: "user", 
+          });
         }
-      } catch (err) {
-        console.error("Auth check failed:", err);
+      } else {
         setCurrentUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
+      
+      // Crucial: Finalize both states
+      setAuthReady(true);
+      setLoading(false); 
+    });
 
-    checkAuth();
+    return () => unsubscribe();
   }, []);
 
   const logout = async () => {
     try {
-      await fetch("http://localhost:3000/api/admins/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await signOut(auth);
     } catch (err) {
       console.error("Logout failed:", err);
-    } finally {
-      setCurrentUser(null);
     }
   };
 
+  // Derived state: true if user exists and has admin role
+  const isAdmin = currentUser?.role === "admin";
+
   return (
-    <AuthContext.Provider value={{ currentUser, setCurrentUser, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      currentUser, 
+      setCurrentUser, 
+      logout, 
+      authReady, 
+      isAdmin, 
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };

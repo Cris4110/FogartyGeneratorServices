@@ -1,8 +1,8 @@
-const Admin = require('../models/admin.model');
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+import Admin from '../models/admin.model.js';
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
-const getAdmins = async (req, res) =>{
+export const getAdmins = async (req, res) =>{
  try {
         const admin = await Admin.find({});
         res.status(200).json(admin);
@@ -12,7 +12,7 @@ const getAdmins = async (req, res) =>{
     }
 }
 
-const getAdmin = async (req, res) =>{
+export const getAdmin = async (req, res) =>{
     try {
         const {id} = req.params;
         const admin = await Admin.findById(id);
@@ -23,7 +23,7 @@ const getAdmin = async (req, res) =>{
     }
 }
 
-const createAdmin = async (req, res) => {
+export const createAdmin = async (req, res) => {
   try {
     const { name, userID, password, email, phoneNumber } = req.body;
 
@@ -58,7 +58,7 @@ const createAdmin = async (req, res) => {
   }
 };
 
-const updateAdmin = async (req, res) => {
+export const updateAdmin = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = { ...req.body };
@@ -89,7 +89,7 @@ const updateAdmin = async (req, res) => {
   }
 };
 
-const deleteAdmin = async (req, res) => {
+export const deleteAdmin = async (req, res) => {
      try {
         const {id} = req.params;
         const admin = await Admin.findByIdAndDelete(id, req.body);
@@ -103,7 +103,7 @@ const deleteAdmin = async (req, res) => {
     }
 }
 
-const loginAdmin = async (req, res) => {
+export const loginAdmin = async (req, res) => {
   try {
     const { userID, password } = req.body;
 
@@ -150,7 +150,7 @@ const loginAdmin = async (req, res) => {
   }
 };
 
-const checkAuth = async (req, res) => {
+export const checkAuth = async (req, res) => {
   try {
     const token = req.cookies.token;
     if (!token) return res.status(401).json({ message: "Not authenticated" });
@@ -174,7 +174,7 @@ const checkAuth = async (req, res) => {
 }
 
 // admin logout for navbar logout button
-const logoutAdmin = (req, res) => {
+export const logoutAdmin = (req, res) => {
   res.clearCookie("token", {
       httpOnly: true,
       secure: false, 
@@ -184,13 +184,3 @@ const logoutAdmin = (req, res) => {
   return res.status(200).json({ message: "Logged out" });
 };
 
-module.exports = {
-    getAdmins,
-    getAdmin,
-    createAdmin,
-    updateAdmin,
-    deleteAdmin,
-    loginAdmin,
-    checkAuth,
-    logoutAdmin,
-};

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const PartRequestSchema  = mongoose.Schema(
     {
@@ -19,11 +19,6 @@ const PartRequestSchema  = mongoose.Schema(
             required: true,
             default: ""
         },
-        address: {
-            type: String,
-            required: false, // for admins
-            default: "",
-        },
         partName: {
             type: String,
             required: true,
@@ -35,12 +30,6 @@ const PartRequestSchema  = mongoose.Schema(
             requried: false,
             default: ""
         },
-        status: {
-            type: String,
-            required: false,
-            enum: ["Completed", "In-Progress", "To-do", "Denied"],
-            default: "To-do"
-        }
        
     },
     {
@@ -52,4 +41,4 @@ const PartRequestSchema  = mongoose.Schema(
 
 const Partrequest = mongoose.model("Partrequest", PartRequestSchema);
 
-module.exports = Partrequest;
+export default Partrequest;

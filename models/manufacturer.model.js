@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const manufacturerSchema = mongoose.Schema(
     {
@@ -21,4 +21,4 @@ const manufacturerSchema = mongoose.Schema(
 
 const Manufacturer = mongoose.model("Manufacturer", manufacturerSchema);
 
-module.exports = Manufacturer;
+export default Manufacturer;

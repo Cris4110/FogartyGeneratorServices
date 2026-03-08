@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const QuoteSchema = mongoose.Schema ({
     name: {
@@ -47,4 +47,4 @@ const QuoteSchema = mongoose.Schema ({
 
 const Quote = mongoose.model("Quote", QuoteSchema);
 
-module.exports = Quote;
+export default Quote;

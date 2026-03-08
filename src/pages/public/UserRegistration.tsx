@@ -1,18 +1,19 @@
 import React, { useState } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-//import {AppBar, Toolbar, Box, Button, Typography, Container} from "@mui/material";
-
+// 1. Import Firebase Auth
+import { auth } from "../../firebase"; 
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const UserRegistration: React.FC = () => {
   const [fname, setFname] = useState("");
   const [lname, setLname] = useState("");
-  const [userID, setUserID] = useState("");
+  const [userID, setUserID] = useState(""); // This can now be the Firebase UID
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [password, setPassword] = useState(""); 
+  const [password, setPassword] = useState("");
 
-  //Address Fields
+  // Address Fields
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
@@ -20,57 +21,66 @@ const UserRegistration: React.FC = () => {
 
   const [responseMsg, setResponseMsg] = useState("");
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResponseMsg("Creating account...");
 
-  const name = `${fname} ${lname}`;
-  const address ={
-    street:street.trim(),
-    city: city.trim(),
-    state: state.trim(),
-    zipcode: zipcode.trim(),
-  };
+    try {
+      // 2. Create User in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
 
-  const newUser ={
-    name, 
-    userID,
-    email,
-    phoneNumber,
-    password,
-    address,
-  }
-  try {
-    const response = await fetch("http://localhost:3000/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newUser),
-    });
+      // 3. Prepare the data for MongoDB
+      const name = `${fname} ${lname}`;
+      const address = {
+        street: street.trim(),
+        city: city.trim(),
+        state: state.trim(),
+        zipcode: zipcode.trim(),
+      };
 
-    const result = await response.json();
+      const newUser = {
+        _id: firebaseUser.uid, // Use Firebase UID as the primary key for MongoDB
+        name,
+        userID: firebaseUser.uid, // Linking the two systems
+        email,
+        phoneNumber,
+        address,
+      };
+const idToken = await firebaseUser.getIdToken();
+      // 4. Send the data to your Node.js API
+const response = await fetch("http://localhost:3000/api/users", {
+              method: "POST",
+              headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${idToken}` // 👈 ADD THIS HEADER
+              },
+  body: JSON.stringify(newUser),
+})
+      const result = await response.json();
 
-    if (!response.ok) {
-      // Show the backend error directly
-      setResponseMsg(result.message || "Error creating user.");
-    } else {
-      setResponseMsg(result.message || "User created successfully!");
-      // Clear form fields after success
-      setFname("");
-      setLname("");
-      setUserID("");
-      setEmail("");
-      setPhoneNumber("");
-      setPassword("");
-      setStreet("");
-      setCity("");
-      setState("");
-      setZipcode("");
+      if (!response.ok) {
+        setResponseMsg(result.message || "Firebase account created, but database sync failed.");
+      } else {
+        setResponseMsg("Account created successfully!");
+        // Clear fields
+        setFname("");
+        setLname("");
+        setUserID("");
+        setEmail("");
+        setPhoneNumber("");
+        setPassword("");
+        setStreet("");
+        setCity("");
+        setState("");
+        setZipcode("");
+      }
+    } catch (error: any) {
+      // Handle Firebase-specific errors (e.g., email already in use)
+      setResponseMsg(error.message || "Error connecting to server.");
+      console.error(error);
     }
-
-  } catch (error) {
-    setResponseMsg("Error connecting to server.");
-    console.error(error);
-  }
-};
+  };
 
   return (
     <>

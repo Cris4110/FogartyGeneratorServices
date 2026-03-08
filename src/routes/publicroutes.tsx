@@ -21,38 +21,39 @@ import PhoneNumberChange from "../pages/public/PhoneNumberChange";
 import PasswordChange from "../pages/public/PasswordChange";
 import LeaveReview from "../pages/public/LeaveReview";
 import ViewReviews from "../pages/public/ViewReviews";
-import ProtectedRoute from "./protectedroute"; // uppercase
 import ItemDetailPage from "../pages/public/ItemDetailPage";
-
+import ProtectedRoute from "../component/ProtectedRoute";
 
 const PublicRoutes = () => (
   <Routes>
+    {/* --- Truly Public Routes --- */}
     <Route path="/" element={<Homepage />} />
     <Route path="/about" element={<About />} />
     <Route path="/FAQ" element={<FAQ />} />
     <Route path="/ContactPage" element={<ContactPage />} />
     <Route path="/Services" element={<Servicespage />} />
-    <Route path="/RequestQuote" element={<RequestQuote />} />
-    <Route path="/RequestPart" element={<RequestPart />} />
-
-    <Route path="/UserSettings" element={<UserSettings />} />
     <Route path="/UserRegistration" element={<UserRegistration />} />
     <Route path="/UserLogin" element={<UserLogin />} />
-    <Route path="/Appointment" element={<Appointment />} />
     <Route path="/CurrentStockPage" element={<CurrentStockPage />} />
     <Route path="/item/:type/:id" element={<ItemDetailPage />} />
-
-    <Route path="/YourAccount" element={<YourAccount />} />
-    <Route path="/YourOrders" element={<YourOrders />} />
-    <Route path="/ReturnPage" element={<ReturnPage />} />
-
-    <Route path="/UsernameChange" element={<UsernameChange />} />
-    <Route path="/NameChange" element={<NameChange />} />
-    <Route path="/EmailChange" element={<EmailChange />} />
-    <Route path="/PhoneNumberChange" element={<PhoneNumberChange />} />
-    <Route path="/PasswordChange" element={<PasswordChange />} />
-    <Route path="/leavereview" element={<LeaveReview />} />
     <Route path="/ViewReviews" element={<ViewReviews />} />
+
+    {/* --- Authenticated User Routes (Requires Login) --- */}
+    <Route element={<ProtectedRoute adminOnly={false} />}>
+      <Route path="/RequestQuote" element={<RequestQuote />} />
+      <Route path="/RequestPart" element={<RequestPart />} />
+      <Route path="/UserSettings" element={<UserSettings />} />
+      <Route path="/Appointment" element={<Appointment />} />
+      <Route path="/YourAccount" element={<YourAccount />} />
+      <Route path="/YourOrders" element={<YourOrders />} />
+      <Route path="/ReturnPage" element={<ReturnPage />} />
+      <Route path="/UsernameChange" element={<UsernameChange />} />
+      <Route path="/NameChange" element={<NameChange />} />
+      <Route path="/EmailChange" element={<EmailChange />} />
+      <Route path="/PhoneNumberChange" element={<PhoneNumberChange />} />
+      <Route path="/PasswordChange" element={<PasswordChange />} />
+      <Route path="/leavereview" element={<LeaveReview />} />
+    </Route>
   </Routes>
 );
 

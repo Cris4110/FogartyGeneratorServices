@@ -1,9 +1,9 @@
-const express = require("express");
-const Generator = require('../models/generator.model.js');
+import express from "express";
+import Generator from '../models/generator.model.js';
 const router = express.Router();
+import {getGens, getGen, createGen, updateGen, deleteGen} from '../controller/generator.controller.js';
 const multer = require('multer');
 const path = require('path');
-const {getGens, getGen, createGen, updateGen, deleteGen} = require('../controller/generator.controller.js');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -27,4 +27,4 @@ router.put("/:id", upload.array('images', 10), updateGen);
 
 router.delete("/:id", deleteGen);
 
-module.exports = router;
+export default router;
