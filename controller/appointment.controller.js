@@ -388,6 +388,14 @@ export const adminCreateAppointment = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+export const getPendingCount = async (req, res) => {
+  try {
+    const count = await Appointment.countDocuments({ status: "pending" });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 
 // // EXPORT EVERYTHING

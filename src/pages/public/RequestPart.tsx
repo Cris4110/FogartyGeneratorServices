@@ -1,159 +1,268 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { Box, Typography, Button, TextField } from "@mui/material";
-import { useState } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Paper,
+  Stack,
+  Divider,
+} from "@mui/material";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-interface PartRequestData {
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  part: string;
-}
 
 function RequestPart() {
-  const [formData, setFormData] = useState<PartRequestData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    part: "",
-  });
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [partName, setPart] = useState("");
+  const [AdditionalInformation, setAdditionalInfo] = useState("");
+  const [responseMsg, setResponseMsg] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof PartRequestData, string>>
-  >({});
+  // Handles form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = `${firstName} ${lastName}`.trim();
 
-  const handleChange = (e: { target: { name: any; value: any } }) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const newPartrequest = {
+      name,
+      email,
+      phoneNumber,
+      address,
+      partName,
+      AdditionalInformation,
+    };
+
+    const newErrors: Partial<Record<string, string>> = {};
+    if (!firstName)
+      newErrors.firstName = "First name is required";
+    if (!lastName)
+      newErrors.lastName = "Last name is required";
+    if (!email)
+      newErrors.email = "Email is required";
+    if (!phoneNumber)
+      newErrors.phoneNumber = "Phone is required";
+    if (!address)
+      newErrors.address = "Address is required";
+    if (!partName)
+      newErrors.partName   = "Part name is required";
+
+    setErrors(newErrors as Record<string, string>);
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/api/partrequests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newPartrequest),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        // Show the backend error directly
+        setResponseMsg(result.message || "Error creating part request.");
+      } else {
+        setResponseMsg(result.message || "Part request created successfully!");
+        // Clear form fields after success
+        setFirstName("");
+        setLastName("");
+        setEmail("");
+        setPhoneNumber("");
+        setAddress("");
+        setPart("");
+        setAdditionalInfo("");
+      }
+    } catch (error) {
+      setResponseMsg("Error connecting to server.");
+      console.error(error);
+    }
   };
 
   const navigate = useNavigate();
 
-  //handles form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // prevents page from refreshing when pressing submit
-    // valdiates inputs and shows errors
-    const newErrors: Partial<Record<keyof PartRequestData, string>> = {};
-    if (!formData.firstName.trim())
-      newErrors.firstName = "First name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-    if (!formData.email.trim()) newErrors.email = "Email is required";
-    if (!formData.phone.trim()) newErrors.phone = "Phone is required";
-    if (!formData.part.trim()) newErrors.part = "Part is required";
+  
+useEffect(() => {
+    let cancelled = false;
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/users/me", {
+          method: "GET",
+          credentials: "include",
+        });
 
-    setErrors(newErrors); // sets new errors
+        if (!res.ok) return;
 
-    // prevents form from submitting if there are errors
-    if (Object.keys(newErrors).length > 0) {
-      return;
-    }
-    alert("Quote request submitted!");
-    // navigates to homepage once form is submitted
-    navigate("/");
-  };
+        const data = await res.json();
+        const user = data.user;
+        if (!user) {
+          if (!cancelled) navigate("/userlogin");
+          return;
+        }
 
-  return (
+        // Prefill fields
+        if (!cancelled) {
+          const fullName = (user.name || "").trim();
+          if (fullName) {
+            const parts = fullName.split(" ");
+            setFirstName(parts.shift() || "");
+            setLastName(parts.join(" ") || "");
+          }
+          if (user.email) setEmail(user.email);
+          if (user.phoneNumber) setPhoneNumber(user.phoneNumber);
+          if (user.address) setAddress(user.address.street + ", " + user.address.city + ", " + user.address.state
+                      + " " + user.address.zipcode)
+        }
+      } catch (err) {
+        if (!cancelled) navigate("/userlogin");
+      }
+    };
+
+    checkAuth();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+  
+return (
     <>
       <Navbar />
+
       <Box
         sx={{
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
           justifyContent: "center",
-          mt: 15,
-          mb: 30,
-          textAlign: "center",
-          backgroundColor: "lightgray",
-          width: "70%",
-          height: "350px",
-          marginLeft: "auto",
-          marginRight: "auto",
-          marginBottom: "150px",
-          padding: "20px",
+          alignItems: "center",
+          minHeight: "80vh",
+          backgroundColor: "#f5f6f8",
+          padding: 4,
         }}
       >
-        <Typography
-          variant="h3"
-          fontWeight={700}
-          align="center"
-          gutterBottom
-          marginBottom="50px"
+        <Paper
+          elevation={6}
+          sx={{
+            width: "100%",
+            maxWidth: "600px",
+            padding: 5,
+            borderRadius: 3,
+          }}
         >
-          Request Part
-        </Typography>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            required
-            placeholder="First Name"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            error={!!errors.firstName}
-            helperText={errors.firstName}
-            fullWidth
-          />
-          <TextField
-            placeholder="Last Name"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            error={!!errors.lastName}
-            helperText={errors.lastName}
-            fullWidth
-          />
-          <TextField
-            placeholder="Phone Number"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            error={!!errors.phone}
-            helperText={errors.phone}
-            fullWidth
-          />
-          <TextField
-            placeholder="Email"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            error={!!errors.email}
-            helperText={errors.email}
-            fullWidth
-          />
-          <TextField
-            placeholder="Part"
-            name="part"
-            value={formData.part}
-            onChange={handleChange}
-            error={!!errors.part}
-            helperText={errors.part}
-            fullWidth
-          />
-          <Box sx={{ textAlign: "center", mb: 10, height: "10px" }}>
-            <Button
-              variant="contained"
-              type="submit"
-              style={{
-                backgroundColor: "#000000ff",
-                color: "white",
-                fontWeight: "bold",
-                padding: "10px 20px",
-                textTransform: "none",
-                marginTop: "75px",
-                marginBottom: "0px",
-                width: "200px",
-              }}
-            >
-              Submit Request
-            </Button>
-          </Box>
-        </form>
+          <Typography
+            variant="h4"
+            fontWeight={700}
+            gutterBottom
+            align="center"
+          >
+            Part Request Form
+          </Typography>
+
+          <Divider sx={{ mb: 4 }} />
+
+          <form onSubmit={handleSubmit}>
+            <Stack spacing={3}>
+              <TextField
+                label="First Name"
+                name="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                error={!!errors.firstName}
+                helperText={errors.firstName}
+                fullWidth
+              />
+
+              <TextField
+                label="Last Name"
+                name="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                error={!!errors.lastName}
+                helperText={errors.lastName}
+                fullWidth
+              />
+
+              <TextField
+                label="Phone Number"
+                name="phone"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                error={!!errors.phoneNumber}
+                helperText={errors.phoneNumber}
+                fullWidth
+              />
+
+              <TextField
+                label="Email"
+                type="email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                error={!!errors.email}
+                helperText={errors.email}
+                fullWidth
+              />
+
+              <TextField
+                label="Address"
+                name="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                error={!!errors.address}
+                helperText={errors.address}
+                fullWidth
+              />
+
+              <TextField
+                label="Part Name"
+                name="part"
+                value={partName}
+                onChange={(e) => setPart(e.target.value)}
+                error={!!errors.partName}
+                helperText={errors.partName}
+                fullWidth
+              />
+
+              {/* Optional Field */}
+              <TextField
+                label="Additional Information (Optional)"
+                name="additionalInformation"
+                value={AdditionalInformation}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                multiline
+                rows={4}
+                fullWidth
+              />
+
+              <Button
+                variant="contained"
+                type="submit"
+                size="large"
+                sx={{
+                  backgroundColor: "#1f2937",
+                  padding: "12px",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  fontSize: "16px",
+                  borderRadius: 2,
+                  "&:hover": {
+                    backgroundColor: "#111827",
+                  },
+                }}
+              >
+                Submit Request
+              </Button>
+            </Stack>
+          </form>
+          {responseMsg && (
+          <p style={{ textAlign: "center", marginTop: "1rem" }}>
+            {responseMsg}
+          </p>
+        )}
+        </Paper>
       </Box>
       <Footer />
     </>

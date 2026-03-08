@@ -100,3 +100,11 @@ export const setAcknowledged = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 }
+export const getPendingQuotes = async (req, res) => {
+  try {
+    const count = await Quote.countDocuments({ acknowledged: false });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
