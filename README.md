@@ -162,10 +162,13 @@ Generator Equipment API response example:
 |Method |Endpoint|  Description|    Auth|
 |-------|--------|-------------|:-----------:|
 |POST   |/api/appointments  |Create appointment request|    User
-|GET    |/api/appointments  |Get all pending appointments|  Admin
+|GET    |/api/appointments  |Get all pending appointments (old requests older than the configured retention will be deleted automatically)|  Admin
 |PUT    |/api/appointments/:id/approve| Approve appointment|    Admin
 |PUT    |/api/appointments/:id/deny|    Deny/delete appointment|    Admin
 |DELETE |/api/appointments/:id|Remove appointment   |Admin|
+
+**Configuration:**
+- Retention period for quotes and appointments is stored in the `pagecontent` collection under the names `quoteRetentionDays` and `appointmentRetentionDays`. Values must be integer days between 30 and 365; the admin interface under "Edit Page Content" lets you update them.
 
 
 🛠️ Generator API
