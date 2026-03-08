@@ -20,15 +20,15 @@ import StockCard from "../public/StockCard";
 
 
 interface Generator {
-  Image_Url: string | string[] | undefined;
   _id: string;
   name?: string;
   Description?: string;
   Stock: number;
+  images?: string[];
 }
 
 interface Part {
-  Image_Url: string | string[] | undefined;
+  images?: string[];
   _id: string;
   Part_Name?: string;
   Stock: number;
@@ -148,7 +148,7 @@ function CurrentStockPage() {
         type="generator"
         title={gen.name ?? "Unnamed Generator"}
         stock={gen.Stock}
-        Image_Url={gen.Image_Url} 
+        images={gen.images} 
       />
     </Grid>
   ))}
@@ -166,7 +166,7 @@ function CurrentStockPage() {
         type="part"
         title={part.Part_Name ?? "Unnamed Part"}
         stock={part.Stock}
-        Image_Url={part.Image_Url}
+        images={part.images}
       />
     </Grid>
   ))}

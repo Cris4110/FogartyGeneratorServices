@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
-import { Backdrop, Button, CircularProgress, Fab, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Backdrop, Button, CircularProgress, Fab, Paper, Stack, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
@@ -11,9 +11,7 @@ interface PartRow {
   id: string;
   stock: number;
   description: string;
-  image: string;
-  image2: string;
-  image3: string;
+  images: string[];
   name: string;
 }
 
@@ -47,7 +45,7 @@ function PartsTable() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    let tmp = [data.length];
+    let tmp = new Array(data.length);
     // Converts the parts to the list format
     for (let i = 0; i < data.length; i++) {
       let part = data[i];
@@ -56,9 +54,7 @@ function PartsTable() {
         Part_Name:    part.Part_Name,
         description: part.Description,
         stock: Number(part.Stock) || 0,
-        image:    part.Image_Url,
-        image2:    part.Image_Url2,
-        image3:    part.Image_Url3,
+        images: part.images || []
 
       }
     }
@@ -82,9 +78,7 @@ function PartsTable() {
     ...newRow,
     stock: Math.max(0, Number(newRow.stock)),
     description: newRow.description,
-    image: newRow.image,
-    image2: newRow.image2,
-    image3: newRow.image3,
+    images: newRow.images,
     name: newRow.name
   };
 
@@ -96,75 +90,35 @@ function PartsTable() {
   );
 
   // Persist to backend
-  await saveStock(updatedRow.id, updatedRow.stock, updatedRow.description, updatedRow.image, updatedRow.image2, updatedRow.image3, updatedRow.Part_Name);
+  await saveStock(updatedRow.id, updatedRow.stock, updatedRow.description, updatedRow.images, updatedRow.Part_Name);
 
   return updatedRow;
 };
 
 
   /* declares name of columns and settings */
-  const columns: GridColDef[] = [
-    { field: "Part_Name", headerName: "Name", width: 200, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "stock", headerName: "Stock", width: 150, editable: true, type: "number", description: "Click to edit stock quantity", headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "description", headerName: "Description", width: 200, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    // images
-    { field: "image", headerName: "Image", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
-      renderCell: (params) => {
-        return (
-          <Stack direction = "row">
+    const columns: GridColDef[] = [
+    { field: "Part_Name", headerName: "Name", width: 200, editable: true },
+    { field: "stock", headerName: "Stock", width: 150, editable: true, type: "number" },
+    { field: "description", headerName: "Description", width: 200, editable: true },
+    { 
+      field: "images",
+      headerName: "Images",
+      width: 200,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          {params.value.map((img: string, idx: number) => (
             <Box
-            component="img"
-            sx={{
-              height: 70,
-              width: 70,
-              objectFit: 'cover',
-            }}
-            alt="No Image available"
-            src={params.value}
+              key={idx}
+              component="img"
+              src={img}
+              sx={{ height: 70, width: 70, objectFit: "cover" }}
+              alt="No Image"
             />
-          </Stack>
-        )
-      } 
-    },
-
-    { field: "image2", headerName: "Image2", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
-      renderCell: (params) => {
-        return (
-          <Stack direction = "row">
-            <Box
-            component="img"
-            sx={{
-              height: 70,
-              width: 70,
-              objectFit: 'cover',
-            }}
-            alt="No Image available"
-            src={params.value}
-            />
-          </Stack>
-        )
-      } 
-    },
-
-    { field: "image3", headerName: "Image3", width: 150, editable: true, type: "string", headerAlign: 'left', align: 'left', display: 'flex', 
-      renderCell: (params) => {
-        return (
-          <Stack direction = "row">
-            <Box
-            component="img"
-            sx={{
-              height: 70,
-              width: 70,
-              objectFit: 'cover',
-            }}
-            alt="No Image available"
-            src={params.value}
-            />
-          </Stack>
-        )
-      } 
+          ))}
+        </Stack>
+      )
     }
-
   ];
 
   /* row data */
@@ -177,12 +131,19 @@ function PartsTable() {
   });
 
 
-const saveStock = async ( id: string, stock: number, description: string,image: string, image2: string, image3: string,Part_Name: string) => {
+const saveStock = async ( id: string, stock: number, description: string,images: string[],Part_Name: string) => {
   try {
+    const formData = new FormData();
+    formData.append("Stock", stock.toString());
+    formData.append("Description", description);
+    formData.append("Part_Name", Part_Name);
+    images.forEach((img, idx) => {
+      formData.append(`image${idx + 1}`, img);
+    });
+
     const res = await fetch(`http://localhost:3000/api/parts/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ Stock: stock, Description: description, Image_Url: image, Image_Url2: image2, Image_Url3: image3, Part_Name: Part_Name }) // matches DB field
+      body: formData,
     });
 
     if (!res.ok) {
@@ -199,9 +160,7 @@ const saveStock = async ( id: string, stock: number, description: string,image: 
           ? { ...row, 
             stock: Number(updatedPart.Stock),
             description: updatedPart.Description,
-            image: updatedPart.Image_Url,
-            image2: updatedPart.Image_Url2,
-            image3: updatedPart.Image_Url3,
+            images: updatedPart.images || [],
             Part_Name: updatedPart.Part_Name
           }
           : row

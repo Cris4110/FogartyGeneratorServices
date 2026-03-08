@@ -20,15 +20,9 @@ interface GeneratorRow {
   name: string;
   description: string;
   stock: number;
-  image: string;
-  image2: string;
-  image3: string;
+  images: string[];
 }
-
-const SafeImage = ({ src }: { src: string }) => {
-  // 1. Use a more modern, reliable placeholder service
-  const fallback = "https://placehold.co/70x70?text=No+Image";
-  const [imgSrc, setImgSrc] = useState<string>(src || fallback);
+function GeneratorTable() {
 
   // Sync internal state if the URL in the database changes
   useEffect(() => {
@@ -65,6 +59,8 @@ function GeneratorTable() {
   const [rows, setRows] = useState<GeneratorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDelete, setOpenDelete] = useState(false);
+  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>();
+  const navigate = useNavigate();
   
   // 1. Correct Initialization for Object-based selection
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>(
@@ -83,13 +79,10 @@ function GeneratorTable() {
       return Array.from(idsSet).map((id: GridRowId) => String(id));
     }
 
-    // Fallback for Array-based versions
-    if (Array.isArray(rowSelectionModel)) {
-      return (rowSelectionModel as GridRowId[]).map((id: GridRowId) => String(id));
-    }
+  const handleCloseDelete = () => {
+    setOpenDelete(false); // Closes the delete confirmation
+  };
 
-    return [];
-  }, [rowSelectionModel]);
 
   const getGens = async () => {
     setLoading(true);
@@ -104,9 +97,7 @@ function GeneratorTable() {
         name: gen.name || "",
         description: gen.Description || "",
         stock: Number(gen.Stock) || 0,
-        image: gen.Image_Url || "",
-        image2: gen.Image_Url2 || "",
-        image3: gen.Image_Url3 || ""
+        images: gen.images || []
       }));
 
       setRows(formattedRows);
@@ -121,59 +112,90 @@ function GeneratorTable() {
     getGens();
   }, []);
 
-  const saveStock = async (row: GeneratorRow) => {
-    try {
-      const res = await fetch(`http://localhost:3000/api/generators/${row.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            Stock: row.stock, 
-            Image_Url: row.image, 
-            Image_Url2: row.image2, 
-            Image_Url3: row.image3, 
-            Serial_Number: row.Serial_Number, 
-            Description: row.description, 
-            name: row.name
-        }) 
-      });
-      if (!res.ok) throw new Error("Failed to update");
-    } catch (err: any) {
-      console.error("Update error:", err.message);
-      getGens(); 
-    }
+  const processRowUpdate = async (newRow: GeneratorRow) => {
+  // prevent negatives
+  const updatedRow = {
+    ...newRow,
+    stock: Math.max(0, Number(newRow.stock)),
+    Serial_Number: newRow.Serial_Number,
+    description: newRow.description,
+    name: newRow.name,
+    images: newRow.images
   };
 
-  const processRowUpdate = async (newRow: GeneratorRow) => {
-    const updatedRow = { ...newRow, stock: Math.max(0, Number(newRow.stock)) };
-    setRows((prev) => prev.map((row) => row.id === updatedRow.id ? updatedRow : row));
-    await saveStock(updatedRow);
-    return updatedRow;
-  };
+  // optimistic UI update
+  setRows((prev) =>
+    prev.map((row) =>
+      row.id === updatedRow.id ? updatedRow : row
+    )
+  );
+
+  // save to DB
+  await saveStock(updatedRow.id, updatedRow.Serial_Number, updatedRow.description, updatedRow.name, updatedRow.stock, updatedRow.images);
+
+  return updatedRow;
+};
+
+const saveStock = async (id: string, Serial_Number: string, description: string, name: string, stock: number, images: string[]) => {
+  try {
+    const formData = new FormData();
+    formData.append("Stock", stock.toString());
+    formData.append("Serial_Number", Serial_Number);
+    formData.append("Description", description);
+    formData.append("name", name);
+    images.forEach((img, idx) => {
+      formData.append(`image${idx + 1}`, img);
+    });
+
+    const res = await fetch(`http://localhost:3000/api/generators/${id}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("Failed to update generator");
+
+    const updatedGen = await res.json();
+
+    // Sync UI with DB response
+    setRows((prev) =>
+      prev.map((row) =>
+        row.id === id
+          ? { ...row, 
+            stock: Number(updatedGen.Stock),
+            images: updatedGen.images || [],
+            Serial_Number: updatedGen.Serial_Number,
+            description: updatedGen.Description,
+            name: updatedGen.name
+          }
+          : row
+      )
+    );
+  } catch (err) {
+    console.error("Stock update error:", err);
+  }
+};
+
+
 
   const columns: GridColDef[] = [
     { field: "Serial_Number", headerName: "Serial Number", width: 150, editable: true },
     { field: "name", headerName: "Name", width: 150, editable: true },
     { field: "description", headerName: "Description", width: 250, editable: true },
-    { field: "stock", headerName: "Stock", width: 100, editable: true, type: "number" },
+    { field: "stock", headerName: "Stock", width: 150, editable: true, type: "number" },
     { 
-      field: "image", 
-      headerName: "Image 1", 
-      width: 100, 
-      renderCell: (params) => <SafeImage src={params.value as string} />
-    },
-    { 
-      field: "image2", 
-      headerName: "Image 2", 
-      width: 100, 
-      renderCell: (params) => <SafeImage src={params.value as string} />
-    },
-    { 
-      field: "image3", 
-      headerName: "Image 3", 
-      width: 100, 
-      renderCell: (params) => <SafeImage src={params.value as string} />
+      field: "images",
+      headerName: "Images",
+      width: 200,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          {params.value.map((img: string, idx: number) => (
+            <Box key={idx} component="img" src={img} sx={{ height: 70, width: 70, objectFit: "cover" }} alt="No Image" />
+          ))}
+        </Stack>
+      )
     }
   ];
+
 
   const handleDeleteRows = async () => {
     try {

@@ -2,10 +2,38 @@
 // const User = require("../models/user.model");
 import Appointment from "../models/appointment.model.js";
 import User from "../models/user.model.js";
+import PageContent from '../models/pagecontent.model.js';
 
 // GET all pending appointments
 export const getAppointments = async (req, res) => {
   try {
+    // before sending results remove any stale documents based on admin setting
+    let retentionDoc = await PageContent.findOne({ pageName: 'appointmentRetentionDays' });
+    let days = 365; // default
+    if (retentionDoc) {
+      if (!isNaN(Number(retentionDoc.content))) {
+        days = Math.max(30, Math.min(365, Number(retentionDoc.content)));
+      }
+    } else {
+      // create persistent default value so future requests have a record
+      try {
+        await PageContent.create({ pageName: 'appointmentRetentionDays', content: '30' });
+        days = 30;
+      } catch {}
+    }
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    // delete documents whose effective date (rescheduled if present, otherwise requested) is before the cutoff
+    const delResult = await Appointment.deleteMany({
+      $expr: {
+        $lt: [
+          { $ifNull: ["$rescheduledDateTime", "$appointmentDateTime"] },
+          cutoff,
+        ],
+      },
+    });
+    // log for diagnostics; can remove once retention is confirmed
+    console.debug(`appointment retention: removed ${delResult.deletedCount} docs (cutoff=${cutoff.toISOString()})`);
+
     const rows = await Appointment.aggregate([
       { $match: { status: "pending" } },
 
@@ -59,6 +87,29 @@ export const getAppointments = async (req, res) => {
 // GET all reviewed appointments
 export const getReviewedAppointments = async (req, res) => {
   try {
+    // apply same retention cleanup for reviewed appointments as well
+    let retentionDoc = await PageContent.findOne({ pageName: 'appointmentRetentionDays' });
+    let days = 365; // default
+    if (retentionDoc) {
+      if (!isNaN(Number(retentionDoc.content))) {
+        days = Math.max(30, Math.min(365, Number(retentionDoc.content)));
+      }
+    } else {
+      try {
+        await PageContent.create({ pageName: 'appointmentRetentionDays', content: '30' });
+        days = 30;
+      } catch {}
+    }
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const delResult = await Appointment.deleteMany({
+      $expr: {
+        $lt: [
+          { $ifNull: ["$rescheduledDateTime", "$appointmentDateTime"] },
+          cutoff,
+        ],
+      },
+    });
+
     const rows = await Appointment.aggregate([
       { $match: { status: { $ne: "pending" } } },
 
