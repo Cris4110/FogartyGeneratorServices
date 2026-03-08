@@ -109,7 +109,6 @@ export const getReviewedAppointments = async (req, res) => {
         ],
       },
     });
-    console.debug(`appointment retention (reviewed): removed ${delResult.deletedCount} docs (cutoff=${cutoff.toISOString()})`);
 
     const rows = await Appointment.aggregate([
       { $match: { status: { $ne: "pending" } } },
