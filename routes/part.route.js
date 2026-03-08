@@ -2,8 +2,8 @@ import express from "express";
 import Part from '../models/part.model.js';
 const router = express.Router();
 import {getParts, getPart, createPart, updatePart, deletePart} from '../controller/part.controller.js';
-const multer = require('multer');
-const path = require('path');
+import multer from 'multer';
+import path from 'path';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {

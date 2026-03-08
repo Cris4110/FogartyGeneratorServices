@@ -1,5 +1,5 @@
 import Quote from '../models/quote.model.js';
-const PageContent = require('../models/pagecontent.model.js');
+import PageContent from '../models/pagecontent.model.js';
 
 export const getQuotes = async (req, res) =>{
     try {

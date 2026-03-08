@@ -35,25 +35,26 @@ const handleSubmit = async (e: React.FormEvent) => {
             formData.append("images", file); // Must match backend key
         });
 
-    try {
-        const response = await fetch("http://localhost:3000/api/parts", {
-            method: "POST",
-            body: formData,
-        });
-        const result = await response.json();
-
-        if (!response.ok) {
-            // Show the backend error directly
-            setResponseMsg(result.message || "Error adding Generator.");
+        try {
+            const response = await fetch("http://localhost:3000/api/parts", {
+                method: "POST",
+                body: formData,
+            });
+            const result = await response.json();
+    
+            if (!response.ok) {
+                // Show the backend error directly
+                setResponseMsg(result.message || "Error adding Generator.");
             } else {
-            setResponseMsg(result.message || "Generator added successfully!");
-            // Clear form fields after success
-            setPartid("");
-            setStock("");
-            setPart_Name("");
-            
-            // Redirect back to inventory management
-            navigate("/admin/inven-management");
+                setResponseMsg(result.message || "Generator added successfully!");
+                // Clear form fields after success
+                setPartid("");
+                setStock("");
+                setPart_Name("");
+                
+                // Redirect back to inventory management
+                navigate("/admin/inven-management");
+            }
         } catch (error) {
             // apiRequest throws an Error if response.ok is false
             setResponseMsg(error instanceof Error ? error.message : "Error connecting to server.");
@@ -78,8 +79,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                     maxWidth: "400px",
                     margin: "auto",
                 }}
-            />
-            {/* File Upload Section - Centered to match text inputs */}
+            >
+                {/* File Upload Section - Centered to match text inputs */}
                 <div style={{ width: "80%", margin: "1rem auto" }}>
                     <label style={{ fontSize: "0.8rem", color: "#666" }}>
                         Images ({selectedFiles.length}/10):
@@ -103,7 +104,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     </div>
                 </div>
         
-        <div style={{ textAlign: "center" }}>
+                <div style={{ textAlign: "center" }}>
                     <button 
                         type="submit"
                         style={{
@@ -124,6 +125,8 @@ const handleSubmit = async (e: React.FormEvent) => {
             </form>
             {responseMsg && <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>}
         </div>
+    );
+};
 
 // Reusable style for your inputs
 const inputStyle = {

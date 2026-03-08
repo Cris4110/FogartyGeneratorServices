@@ -42,34 +42,31 @@ const handleSubmit = async (e: React.FormEvent) => {
     });
 
     try {
-        const response = await fetch("http://localhost:3000/api/generators", {
+        // 2. Use apiRequest instead of fetch
+        // This automatically handles the "http://localhost:3000/api" prefix and Auth headers
+        const result = await apiRequest("/generators", {
             method: "POST",
             body: formData,
         });
 
-        try {
-            // 2. Use apiRequest instead of fetch
-            // This automatically handles the "http://localhost:3000/api" prefix and Auth headers
-            const result = await apiRequest("/generators", {
-                method: "POST",
-                body: JSON.stringify({ genID, name, Description, Stock, Serial_Number }),
-            });
+        // If apiRequest doesn't throw, it was successful
+        setResponseMsg(result.message || "Generator added successfully!");
+        
+        // Clear form fields
+        setGenid("");
+        setName("");
+        setDescription("");
+        setStock("");
+        setSerial_Number("");
+        setSelectedFiles([]);
+        navigate("/admin/inven-management");
+    } catch (error) {
+        setResponseMsg("Error adding generator. Please try again.");
+        console.error(error);
+    }
+};
 
-            // If apiRequest doesn't throw, it was successful
-            setResponseMsg(result.message || "Generator added successfully!");
-            
-            // Clear form fields
-            setGenid("");
-            setName("");
-            setDescription("");
-            setStock("");
-            setSerial_Number("");
-            setSelectedFiles([]);
-            navigate("/admin/inven-management")
-        }
-    };
-
-    return (
+return (
         <div style={{ fontFamily: "Arial, sans-serif", padding: "2rem" }}>
             <div style={{ textAlign: "center" }}>
                 <h1>Fogarty Onsite</h1>
@@ -86,7 +83,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     maxWidth: "400px",
                     margin: "auto",
                 }}
-            />
+            >
             <input
             type="text"
             placeholder="Generator Name"
@@ -172,35 +169,33 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
               ))}
             </div>
-          </div>
+                  </div>
+                
+                <div style={{ textAlign: "center" }}>
+                    <button
+                      type="submit"
+                      style={{
+                        backgroundColor: "#d32f2f", // OG Red
+                        color: "white",
+                        border: "none",
+                        borderRadius: "0px", // Red Square button
+                        padding: "0.75rem 1.5rem",
+                        width: "80%",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        textTransform: "uppercase",
+                        marginTop: "1rem"
+                      }}
+                    >
+                      Add Generator
+                    </button>
+                  </div>
+                    </form>
+                    {responseMsg && (
+                      <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>
+                    )}
+                </div>
+            );
+        };
         
-        <div style={{ textAlign: "center" }}>
-            <button
-              type="submit"
-              style={{
-                backgroundColor: "#d32f2f", // OG Red
-                color: "white",
-                border: "none",
-                borderRadius: "0px", // Red Square button
-                padding: "0.75rem 1.5rem",
-                width: "80%",
-                fontWeight: "bold",
-                cursor: "pointer",
-                textTransform: "uppercase",
-                marginTop: "1rem"
-              }}
-            >
-              Add Generator
-            </button>
-          </div>
-        </form>
-        {responseMsg && (
-          <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>
-        )}
-      </div>
-    </>
-
-  );
-};
-
 export default CreateGen;

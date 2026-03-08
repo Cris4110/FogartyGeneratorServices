@@ -2,8 +2,7 @@ import express from "express";
 import Generator from '../models/generator.model.js';
 const router = express.Router();
 import {getGens, getGen, createGen, updateGen, deleteGen} from '../controller/generator.controller.js';
-const multer = require('multer');
-const path = require('path');
+import multer from 'multer';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {

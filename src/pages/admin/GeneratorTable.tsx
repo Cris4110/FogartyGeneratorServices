@@ -22,47 +22,11 @@ interface GeneratorRow {
   stock: number;
   images: string[];
 }
-function GeneratorTable() {
-
-  // Sync internal state if the URL in the database changes
-  useEffect(() => {
-    // If the src looks like a double URL (common with some API errors), take the first part
-    const cleanSrc = src?.split(',')[0] || fallback;
-    setImgSrc(cleanSrc);
-  }, [src]);
-
-  return (
-    <Box
-      component="img"
-      sx={{
-        height: 70,
-        width: 70,
-        objectFit: 'cover',
-        borderRadius: 1,
-        border: '1px solid #eee',
-        my: 0.5,
-        backgroundColor: '#f5f5f5' // Shows a light grey box while loading
-      }}
-      alt="Generator"
-      src={imgSrc}
-      onError={() => {
-        // Prevent infinite loops if the fallback itself fails
-        if (imgSrc !== fallback) {
-          setImgSrc(fallback);
-        }
-      }}
-    />
-  );
-};
 
 function GeneratorTable() {
   const [rows, setRows] = useState<GeneratorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDelete, setOpenDelete] = useState(false);
-  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>();
-  const navigate = useNavigate();
-  
-  // 1. Correct Initialization for Object-based selection
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>(
     { type: 'row', ids: new Set<GridRowId>() } as unknown as GridRowSelectionModel
   );
@@ -78,6 +42,9 @@ function GeneratorTable() {
       const idsSet = rowSelectionModel.ids as Set<GridRowId>;
       return Array.from(idsSet).map((id: GridRowId) => String(id));
     }
+
+    return [];
+  }, [rowSelectionModel]);
 
   const handleCloseDelete = () => {
     setOpenDelete(false); // Closes the delete confirmation
