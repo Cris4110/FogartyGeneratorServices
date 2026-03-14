@@ -66,10 +66,15 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
-    const user = await User.findOneAndUpdate({ userID: id }, updateData, { new: true });
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.status(200).json(user);
+    const updateData = req.body.newData;
+
+    if (updateData.password) {
+      res.status(200).json({message: "User updated successfully"}); // Confirms password updated
+    } else {
+        const user = await User.findOneAndUpdate({ userID: id }, updateData, { new: true });
+        if (!user) return res.status(404).json({ message: "User not found" });
+        res.status(200).json({message: "User updated successfully"});
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

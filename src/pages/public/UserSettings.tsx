@@ -1,25 +1,12 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
+import { useAuth } from "../../context/Appcontext"; 
+import { auth } from "../../firebase"; 
 
 import { Backdrop, Box, Button, Grid, InputLabel, MenuItem, OutlinedInput, Paper, Select, Stack, TextField, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
-
-interface User {
-  id: string;
-  userID: string;
-  name?: string;
-  email: string;
-  phoneNumber?: string;
-  address: Address;
-};
-
-interface Address {
-  street: string;
-  city: string;
-  state: string;
-  zipcode: string;
-}
+import { useState } from "react";
+import { signInWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider, verifyBeforeUpdateEmail, deleteUser } from "firebase/auth";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
@@ -29,8 +16,7 @@ const api = axios.create({
 // Regular Expression section
 const passwordRegex = /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/
 const nameRegex = /[~`!@#$%^&*()0-9_=+[\]{}|\\;:"<,>./?]+|(\s{2,})|(^ $)/
-const usernameRegex = /[\s]/  // checks for whitespace
-const emailRegex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
+const emailRegex = /[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?/
 const phoneRegex = /(^\d{10}$){1}/
 const streetRegex = /[~`!@#$%^*()_=+[\]{}|\\;<>/?]+|(\s{2,})|(^ $)/   // checks for special characters
 const cityRegex = /[~`!@#$%^&*()_=+[\]{}|\\;:"<,>/?]+|(\s{2,})|(^ $)/ // checks for special characters
@@ -45,8 +31,7 @@ const zipRegex = /(^\d{5}$)|(^\d{5}-\d{4}$)/  // ex) 12345 or 12345-6789
 
 
 const UserSettings = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [authReady, setAuthReady] = useState(false);
+  const { currentUser, setCurrentUser, authReady, isAdmin } = useAuth();
   // On first render, try to hydrate from cookie via /users/me
   let fullAddress = currentUser?.address.street + ", " + currentUser?.address.city + ", " + currentUser?.address.state
                       + " " + currentUser?.address.zipcode
@@ -67,18 +52,17 @@ const UserSettings = () => {
 
   const [responseMsg, setResponseMsg] = useState("");
   const [disableButton, setDisableButton] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .get("/users/me")
-      .then((res) => !cancelled && setCurrentUser(res.data.user as User))
-      .catch(() => !cancelled && setCurrentUser(null))
-      .finally(() => !cancelled && setAuthReady(true));
-    return () => {
-      cancelled = true;
+  const [openDelete, setOpenDelete] = useState(false);
+  const [disableDeleteButton, setDisableDeleteButton] = useState(true);
+  const handleCloseDelete = () => {
+      setOpenDelete(false); // Closes the update confirmation
+      setBuff1(""); // Sets the text fields to empty
+      setValidBuff1(true);
+      setDisableDeleteButton(true);
     };
-  }, []);
+    const handleOpenDelete = () => {
+      setOpenDelete(true);  // Brings up the update confirmation
+    };
 
   const handleLogout = async () => {
     try {
@@ -90,6 +74,50 @@ const UserSettings = () => {
       // ignore; keep UI as logged out
       setCurrentUser(null);
     }
+  };
+
+  const handleDeleteUser = async () => {
+    let correctDetails = true;
+    try {
+      if (currentUser != null) {
+        const user = auth.currentUser;
+        const credential = EmailAuthProvider.credential(currentUser.email.toLowerCase().trim(), buff1.trim());  // confirms user
+        if (user != null) {
+          await reauthenticateWithCredential(user, credential);  // reauth user
+        };
+      }
+    } catch(err: any) {
+        console.log(err);
+        correctDetails = false;
+        setResponseMsg("Wrong Information");
+    }
+
+    if (correctDetails) {
+      try {
+        // 2. Authenticate with Firebase directly
+        const firebaseUser = auth.currentUser;
+        if (firebaseUser != null && currentUser != null) {
+          const idToken = await firebaseUser.getIdToken();
+          // delete databa
+          const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID , {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+          });
+          const result = await response.json();
+          await deleteUser(firebaseUser);  // delete firebase user
+          if (!response.ok) {
+            setResponseMsg(result.message || "Error updating user."); // Show the backend error directly
+          } else {
+            setResponseMsg(result.message || "User updated successfully!");
+          }
+        }
+      } catch (error) {
+        console.log("Error updating user: ", error);
+      }
+    }
+
+    setBuff1("");
+    handleCloseDelete(); // close the backdrop
   };
 
   // Checks if the string matches the regular expression format
@@ -108,8 +136,6 @@ const UserSettings = () => {
     setDisableButton(invalid);
     switch(label) {
       case 'First Name':
-      case 'Username':
-      case 'Email':
       case 'Phone Number':
       case 'Street':
         setValidBuff1(!invalid);
@@ -117,6 +143,7 @@ const UserSettings = () => {
         break;
       case 'Last Name':
       case 'Password':
+      case 'Email':
       case 'City':
         setValidBuff2(!invalid);
         setBuff2(userInput);
@@ -150,24 +177,20 @@ const UserSettings = () => {
         </>
         break;
       }
-      case "Username": {
-        inputField = 
-        < TextField placeholder="Username" variant="outlined"
-          value={buff1}
-          onChange={(e) => checkRegex("Username", usernameRegex, e.target.value, false)}
-          error={!validBuff1}
-          helperText = {!validBuff1 ? "Please do not use spaces" : ''}
-        />
-        break;
-      }
       case "Email": {
         inputField = 
-        < TextField placeholder="Email" variant="outlined"
-          value={buff1}
-          onChange={(e) => checkRegex("Email", emailRegex, e.target.value, true)}
-          error={!validBuff1}
-          helperText = {!validBuff1 ? "Please enter a valid email" : ''}
-        />
+        <>
+          < TextField placeholder="Current Password" variant="outlined" type="password"
+            value={buff1}
+            onChange={(e) => setBuff1(e.target.value)}
+          /> 
+          < TextField placeholder="Email" variant="outlined"
+            value={buff2}
+            onChange={(e) => checkRegex("Email", emailRegex, e.target.value, true)}
+            error={!validBuff2}
+            helperText = {!validBuff2 ? "Please enter a valid email" : ''}
+          />
+        </>
         break;
       }
       case "Phone Number": {
@@ -279,37 +302,28 @@ const UserSettings = () => {
     // Switch to detect which setting's backdrop opened and then change the value in the DB
     const handleUpdateUser = async () => {
       if (currentUser != null) {
-        let reqBody = {};
+        // updates settings display
+        let newData = {};
+        let tmpEmail = "";
         switch(label) {
           case "Name": {
             currentUser.name = buff1.trim() + " " + buff2.trim();
-            reqBody = { name: currentUser.name }
-            setBuff1("");
-            setBuff2("");
-            break;
-          }
-          case "Username": {
-            currentUser.userID = buff1;
-            reqBody = { userID: currentUser.userID }
-            setBuff1("");
+            newData = { name: currentUser.name }
             break;
           }
           case "Email": {
-            currentUser.email = buff1.trim();
-            reqBody = { email: currentUser.email }
-            setBuff1("");
+            tmpEmail = currentUser.email.trim();  // stores the old email
+            currentUser.email = buff2.trim();
+            newData = { email: currentUser.email }
             break;
           }
           case "Phone Number": {
             currentUser.phoneNumber = buff1;
-            reqBody = { phoneNumber: currentUser.phoneNumber }
-            setBuff1("");
+            newData = { phoneNumber: currentUser.phoneNumber }
             break;
           }
           case "Password": {
-            reqBody = { password: buff2 }
-            setBuff1("");
-            setBuff2("");
+            newData = { password: buff2 }
             break;
           }
           case "Address": {
@@ -317,11 +331,7 @@ const UserSettings = () => {
             currentUser.address.city = buff2.trim();
             currentUser.address.state = buff3.trim();
             currentUser.address.zipcode = buff4.trim();
-            reqBody = { address: userAddress }
-            setBuff1("");
-            setBuff2("");
-            setBuff3("");
-            setBuff4("");
+            newData = { address: userAddress }
             break;
           }
           default: {
@@ -329,40 +339,73 @@ const UserSettings = () => {
           }
         }
 
+        // DATABASE AND AUTH VALIDATION
         // Password validation section
         let correctPassword = true;
         if (label == "Password") {
           try {
-            const payload = { email: currentUser.email.toLowerCase().trim(), password: buff1.trim() };
-            await api.post("/users/login", payload);     // sets HttpOnly cookie
+            // 2. Authenticate with Firebase directly
+            const userCredential = await signInWithEmailAndPassword(
+              auth,
+              currentUser.email.toLowerCase().trim(),
+              buff1.trim()  // cur password
+            );
+            const firebaseUser = userCredential.user;
+            await updatePassword(firebaseUser, buff2.trim()); // updates password
           } catch(err: any) {
+            console.log(err);
             correctPassword = false;
-            setResponseMsg(err.response.data.message);
+            setResponseMsg("Password Error");
           }
         }
 
-        if (correctPassword) {
-          // Update the user's information in the DB
+        // user needs to have recently signed in to change password/email
+        if (label == "Email") {
           try {
-            const response = await fetch("http://localhost:3000/api/users/" + currentUser.id, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({reqBody}),
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-              setResponseMsg(result.message || "Error updating user."); // Show the backend error directly
-            } else {
-              setResponseMsg(result.message || "User updated successfully!");
+            const user = auth.currentUser;
+            const credential = EmailAuthProvider.credential(tmpEmail.toLowerCase(), buff1.trim());  // confirms user
+            if (user != null) {
+              const result = await reauthenticateWithCredential(user, credential);  // reauth user
+              await verifyBeforeUpdateEmail(user, buff2.toLowerCase().trim());  // updates email after clicking link
             }
+          } catch(err: any) {
+            correctPassword = false;
+            console.log(err);
+            setResponseMsg("Password Error");
+          }
+        }
 
+        // Update the user's information in the DB
+        if (correctPassword) {
+          try {
+            // 2. Authenticate with Firebase directly
+            const firebaseUser = auth.currentUser;
+            if (firebaseUser != null) {
+              const idToken = await firebaseUser.getIdToken();
+
+              const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+                
+                body: JSON.stringify({newData}),
+              });
+              const result = await response.json();
+              if (!response.ok) {
+                setResponseMsg(result.message || "Error updating user."); // Show the backend error directly
+              } else {
+                setResponseMsg(result.message || "User updated successfully!");
+              }
+            }
           } catch (error) {
             console.log("Error updating user: ", error);
           }
         }
       }
 
+      setBuff1("");
+      setBuff2("");
+      setBuff3("");
+      setBuff4("");
       handleCloseUpdate(); // close the backdrop
     };
 
@@ -429,8 +472,7 @@ const UserSettings = () => {
         <Box border={1} borderRadius={5}>
           <Stack>
             {settingRow("Name", currentUser?.name ?? "", 2)}
-            {settingRow("Username", currentUser?.userID ?? "", 1)}
-            {settingRow("Email", currentUser?.email ?? "", 1)}
+            {settingRow("Email", currentUser?.email ?? "", 2)}
             {settingRow("Phone Number", currentUser?.phoneNumber ?? "", 1)}
             {settingRow("Password", "***********", 2)}
             {settingRow("Address", fullAddress ?? "", 4)}
@@ -443,6 +485,27 @@ const UserSettings = () => {
         >
           Log Out
         </Button>
+        <Button variant="outlined" onClick={handleOpenDelete}>
+          Delete Account
+        </Button>
+        <Backdrop sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+          open={openDelete}
+        >
+          <Paper sx={{width: '30%', padding: 10}}>
+            <Box padding={2} sx={{textAlign: "center"}}>
+              <Typography sx={{fontWeight: 'bold', fontSize: 'h6.fontSize'}}>Delete Account?</Typography>
+              < TextField placeholder="Password" variant="outlined" type="password"
+                value={buff1}
+                onChange={(e) => setBuff1(e.target.value)}
+              />
+            </Box>
+            <Stack direction="row" spacing={20} sx={{justifyContent: "center", alignItems: "center"}}>
+              <Button variant="contained" onClick={handleCloseDelete}>Decline</Button>
+              {/* Disables button if there is an invalid input or empty input*/}
+              <Button variant="contained" disabled={disableDeleteButton && buff1==""} onClick={handleDeleteUser}>Confirm</Button>
+            </Stack>
+          </Paper>
+        </Backdrop>
       </Stack>
       <Footer />
     </>

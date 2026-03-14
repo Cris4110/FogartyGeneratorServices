@@ -44,6 +44,7 @@
     "react-day-picker": "^9.11.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4",
+    "selenium-webdriver": "^4.41.0",
     "update": "^0.7.4"
   },
   "devDependencies": {

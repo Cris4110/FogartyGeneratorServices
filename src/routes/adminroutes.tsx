@@ -9,6 +9,7 @@ import CreatePart from "../pages/admin/CreatePart";
 import ReviewManagement from "../pages/admin/ReviewManagement";
 import QuoteRequests from "../pages/admin/QuoteRequests";
 import EditPageContent from "../pages/admin/EditPageContent";
+import PartsRequest from "../pages/admin/PartsRequest.tsx";
 
 const AdminRoutes = () => (
   <Routes>
@@ -19,6 +20,7 @@ const AdminRoutes = () => (
     
     <Route path="/user-management" element={<UserManagementPage />} />
     <Route path="/incoming/appointments" element={<AppointmentRequest />} />
+    <Route path="/incoming/parts" element={<PartsRequest />} />
     <Route path="/inven-management" element={<InventoryManagement />} />
     <Route path="/reviewed" element={<ReviewedAppointments />} />
     <Route path="/create-gen" element={<CreateGenerator />} />

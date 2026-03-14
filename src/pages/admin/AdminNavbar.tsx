@@ -96,6 +96,9 @@ const AdminNavbar = () => {
                 <Typography variant="body2" sx={linkStyle} onClick={() => handleNavigation("/admin/incoming/appointments")}>
                   Appointment Requests
                 </Typography>
+                <Typography variant="body2" sx={linkStyle} onClick={() => handleNavigation("/admin/incoming/parts")}>
+                  Parts Requests
+                </Typography>
               </Stack>
             </Collapse>
           </Box>
