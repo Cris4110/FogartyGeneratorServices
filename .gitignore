@@ -14,7 +14,7 @@
 backend/serviceAccountKey.json
 node_modules/
 dist/
-test
+
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
