@@ -78,6 +78,17 @@ const endISOFromDialog = () =>
     .second(0)
     .millisecond(0)
     .toISOString();
+const startISOFromPick = (dateStr: string, timeStr: string) =>
+  dayjs(`${dateStr} ${timeStr}`, "YYYY-MM-DD h:mm A")
+    .second(0)
+    .millisecond(0)
+    .toISOString();
+
+const endISOFromPick = (dateStr: string, endTimeStr: string) =>
+  dayjs(`${dateStr} ${endTimeStr}`, "YYYY-MM-DD h:mm A")
+    .second(0)
+    .millisecond(0)
+    .toISOString();
   // checks if [start,end) overlaps any busy range
   const rangeConflicts = (startISO: string, endISO: string) => {
     const s = dayjs(startISO);
@@ -111,9 +122,13 @@ const endISOFromDialog = () =>
         .filter((r: any) => r.start.isValid() && r.end.isValid());
 
       setBusyRanges(mapped);
+      console.log("busy raw", res.data);
+
+      return mapped;
     } catch (err: any) {
       console.error("busy fetch failed:", err?.response?.status, err?.response?.data || err.message);
       setBusyRanges([]);
+      return [];
     } finally {
       setLoadingSlots(false);
     }
@@ -126,13 +141,11 @@ const endISOFromDialog = () =>
     return busyRanges.some((r) => start.isBefore(r.end) && end.isAfter(r.start));
   };
   const validateRescheduleBeforeSubmit = async () => {
-    // must have date/start/end
     if (!dialogDate || !dialogTime || !dialogEndTime) {
       return { ok: false, message: "Pick a date, start time, and end time." };
     }
 
-    // get the latest busy ranges for that date (admins may have changed things)
-    await fetchBusyForDate(dialogDate);
+    const latestBusy = await fetchBusyForDate(dialogDate);
 
     const startISO = startISOFromDialog();
     const endISO = dayjs(`${dialogDate} ${dialogEndTime}`, "YYYY-MM-DD h:mm A")
@@ -144,8 +157,9 @@ const endISOFromDialog = () =>
       return { ok: false, message: "End time must be after start time." };
     }
 
-    const filteredBusy = active?._id ? busyRanges.filter((r: any) => (r as any)._id !== active._id) : busyRanges;
-    const conflicts = filteredBusy.some((r) => dayjs(startISO).isBefore(r.end) && dayjs(endISO).isAfter(r.start));
+    const conflicts = latestBusy.some((r: { start: dayjs.Dayjs; end: dayjs.Dayjs }) =>
+      dayjs(startISO).isBefore(r.end) && dayjs(endISO).isAfter(r.start)
+    );
 
     if (conflicts) {
       return { ok: false, message: "That time is no longer available. Please pick another slot." };
@@ -213,36 +227,30 @@ const endISOFromDialog = () =>
 
     // ACCEPT: no start selection required; just need valid end > locked start
     if (st.decision === "accept") {
+      if (!dialogEndTime) return false;
+
       const start = dayjs(active.appointmentDateTime);
-      const end = dayjs(dialogEndISO);
+      const end = dayjs(
+        `${dayjs(active.appointmentDateTime).format("YYYY-MM-DD")} ${dialogEndTime}`,
+        "YYYY-MM-DD h:mm A"
+      );
+
       return start.isValid() && end.isValid() && end.isAfter(start);
     }
-
     // RESCHEDULE: need chosen start slot + valid end > start + start not booked
     if (st.decision === "reschedule") {
-      if (!dialogTime) return false;
+      if (!dialogTime || !dialogEndTime) return false;
       if (isBookedAt(dialogDate, dialogTime)) return false;
 
-      const startISO = makeStartISOFromDialog();
-      const start = dayjs(startISO);
-      const end = dayjs(dialogEndISO);
+      const start = dayjs(`${dialogDate} ${dialogTime}`, "YYYY-MM-DD h:mm A");
+      const end = dayjs(`${dialogDate} ${dialogEndTime}`, "YYYY-MM-DD h:mm A");
+
       return start.isValid() && end.isValid() && end.isAfter(start);
     }
 
     return false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [active, actions, dialogDate, dialogTime, dialogEndISO, busyRanges]);
-
-useEffect(() => {
-  if (!open) return;
-  if (!dialogTime) return;
-  
-  const start = dayjs(`${dialogDate} ${dialogTime}`, "YYYY-MM-DD h:mm A");
-  const end = start.add(1, "hour");
-
-  // only auto-set if current end is missing or invalid
-  if (!dialogEndTime) setDialogEndTime(end.format("h:mm A"));
-}, [open, dialogDate, dialogTime]);
+}, [active, actions, dialogDate, dialogTime, dialogEndTime, busyRanges]);
   
 useEffect(() => {
   if (!open) return;
@@ -259,24 +267,34 @@ useEffect(() => {
 useEffect(() => {
   if (!open) return;
 
-  //  re-load busy ranges for the newly selected day
-  fetchBusyForDate(dialogDate);
+  (async () => {
+    const latestBusy = await fetchBusyForDate(dialogDate);
 
-  // If previously selected times are now invalid, clear them
-  if (dialogTime && isBookedAt(dialogDate, dialogTime)) {
-    setDialogTime("");
-  }
-  if (dialogEndTime) {
-    const startISO = dialogTime ? startISOFromDialog() : null;
-    const endISO = dayjs(`${dialogDate} ${dialogEndTime}`, "YYYY-MM-DD h:mm A").toISOString();
+    // If start is selected and now conflicts, clear start+end
+    if (dialogTime) {
+      const startISO = startISOFromPick(dialogDate, dialogTime);
 
-    // If we don't have a start yet, or end is not after start, clear end
-    if (!startISO || !dayjs(endISO).isAfter(dayjs(startISO))) {
-      setDialogEndTime("");
-    } else if (rangeConflicts(startISO, endISO)) {
+      // default end = +1 hour IF no end selected yet
+      const endISO = dialogEndTime
+        ? endISOFromPick(dialogDate, dialogEndTime)
+        : dayjs(startISO).add(1, "hour").toISOString();
+
+      const bad =
+        !dayjs(endISO).isAfter(dayjs(startISO)) ||
+        latestBusy.some((r: { start: dayjs.Dayjs; end: dayjs.Dayjs }) => dayjs(startISO).isBefore(r.end) && dayjs(endISO).isAfter(r.start));
+
+      if (bad) {
+        setDialogTime("");
+        setDialogEndTime("");
+      }
+    }
+
+    // If no start, keep end cleared (end alone is meaningless)
+    if (!dialogTime && dialogEndTime) {
       setDialogEndTime("");
     }
-  }
+  })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [open, dialogDate]);
 
 
@@ -300,11 +318,7 @@ useEffect(() => {
   // if it was open in the dialog, close it
   if (active?._id === id) closeDialog();
 };
-useEffect(() => {
-  if (!open) return;
-  if (!dialogTime) return;
-  setDialogEndTime(dayjs(`${dialogDate} ${dialogTime}`, "YYYY-MM-DD h:mm A").add(1, "hour").format("h:mm A"));
-}, [open, dialogDate, dialogTime]);
+
 
   //for admin creating appointments  
   const [createOpen, setCreateOpen] = useState(false);
@@ -368,8 +382,8 @@ const textareaSx: React.CSSProperties = {
 
     if (status === "rescheduled") {
       const dt = dayjs(newDateTime);
-      payload.newAppointmentTime = dt.toISOString();
-      payload.newEndAppointmentTime = endIso;
+      payload.rescheduledDateTime = newDateTime;
+      payload.rescheduledEndDateTime  = endIso;
     }
     if(status === "accepted") {
       payload.appointmentEndDateTime = endIso;
@@ -528,8 +542,17 @@ const textareaSx: React.CSSProperties = {
       }
 
       if (state.decision === "accept") {
-        const startISO = dayjs(active.appointmentDateTime).toISOString(); // locked
-        const endISO = dialogEndISO || computeDefaultEnd(startISO);
+        const startISO = dayjs(active.appointmentDateTime).toISOString();
+
+        const endISO = dialogEndTime
+          ? dayjs(
+              `${dayjs(active.appointmentDateTime).format("YYYY-MM-DD")} ${dialogEndTime}`,
+              "YYYY-MM-DD h:mm A"
+            )
+              .second(0)
+              .millisecond(0)
+              .toISOString()
+          : computeDefaultEnd(startISO);
 
         await updateAppointmentOnServer(id, "accepted", undefined, endISO);
         closeDialog();
@@ -537,19 +560,40 @@ const textareaSx: React.CSSProperties = {
       }
 
       if (state.decision === "reschedule") {
-        const check = await validateRescheduleBeforeSubmit();
-        if (!check.ok) {
-          alert(check.message);
+        if (!dialogTime || !dialogEndTime) {
+          alert("Pick a date, start time, and end time.");
           return;
         }
 
-        await updateAppointmentOnServer(id, "rescheduled", check.startISO, check.endISO);
+        // refresh busy right before submit (prevents back/forth trick)
+        const latestBusy = await fetchBusyForDate(dialogDate);
 
+        const startISO = startISOFromPick(dialogDate, dialogTime);
+        const endISO = endISOFromPick(dialogDate, dialogEndTime);
+
+        if (!dayjs(endISO).isAfter(dayjs(startISO))) {
+          alert("End time must be after start time.");
+          return;
+        }
+
+        const conflicts = latestBusy.some((r: { start: dayjs.Dayjs; end: dayjs.Dayjs }) =>
+          dayjs(startISO).isBefore(r.end) && dayjs(endISO).isAfter(r.start)
+        );
+
+        if (conflicts) {
+          alert("That time is no longer available. Please pick another slot.");
+          return;
+        }
+
+        await updateAppointmentOnServer(id, "rescheduled", startISO, endISO);
+
+        // refresh busy so the UI updates immediately for next actions
         await fetchBusyForDate(dialogDate);
 
         closeDialog();
         return;
       }
+     
     } catch (err: any) {
       console.error("Update failed:", err);
       setError(err.message || "Update failed");
@@ -842,7 +886,10 @@ return (
                           fullWidth
                           variant={isSelected ? "contained" : "outlined"}
                           disabled={disabled}
-                          onClick={() => setDialogEndTime(t)}
+                          onClick={() => {
+                            setDialogEndTime(t);
+                            setDialogEndISO(endISOFromPick(dialogDate, t));
+                          }}
                           sx={{
                             py: 1.2,
                             borderRadius: 2,
@@ -1141,7 +1188,10 @@ return (
                                     key={t}
                                     fullWidth
                                     variant={isSelected ? "contained" : "outlined"}
-                                    onClick={() => setDialogEndTime(t)}
+                                    onClick={() => {
+                                      setDialogEndTime(t);
+                                      setDialogEndISO(endISOFromPick(dialogDate, t));
+                                    }}
                                     disabled={disabled}
                                     sx={{
                                       py: 1.2,
@@ -1172,38 +1222,47 @@ return (
                     </>
                   )}
                 
-
-                  {/* Reschedule Block*/}
+                  {/* Reschedule Block */}
                   {activeAction.decision === "reschedule" && active && (
-                    <>
-                    {activeAction.decision === "reschedule" && active && (
                     <Box sx={{ mt: 1 }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
                         Reschedule (pick any date + time)
                       </Typography>
 
                       <Paper elevation={0} sx={{ p: 2, border: "1px solid #e0e0e0", borderRadius: 3 }}>
-                        {/* Date */}
+                        {/* 1) Date */}
                         <Box sx={{ mb: 2 }}>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                             1) Choose Date
                           </Typography>
-                            <TextField
-                              type="date"
-                              fullWidth
-                              value={dialogDate}
-                              onChange={(e) => setDialogDate(e.target.value)}
-                              inputProps={{
-                                min: dayjs().format("YYYY-MM-DD"),
-                                max: dayjs().add(2, "month").format("YYYY-MM-DD"),
-                              }}
-                              InputLabelProps={{ shrink: true }}
-                            />
-                          </Box>
+
+                          <TextField
+                            type="date"
+                            fullWidth
+                            value={dialogDate}
+                            onChange={async (e) => {
+                              const next = e.target.value;
+                              setDialogDate(next);
+
+                              // IMPORTANT: reload busy for that day
+                              await fetchBusyForDate(next);
+
+                              // Clear times because they belong to previous date
+                              setDialogTime("");
+                              setDialogEndTime("");
+                              setDialogEndISO("");
+                            }}
+                            inputProps={{
+                              min: dayjs().format("YYYY-MM-DD"),
+                              max: dayjs().add(2, "month").format("YYYY-MM-DD"),
+                            }}
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        </Box>
 
                         <Divider sx={{ my: 2 }} />
 
-                        {/* Start slots */}
+                        {/* 2) Start */}
                         <Box sx={{ position: "relative" }}>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                             2) Choose Start Time
@@ -1218,8 +1277,18 @@ return (
                           <Box sx={{ maxHeight: 220, overflowY: "auto", pr: 1 }}>
                             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1.5 }}>
                               {timeSlots.map((t) => {
-                                // candidate start/end: end defaults to +1 hr for conflict check
-                                const disabled = isBookedAt(dialogDate, t);
+                                // Candidate start ISO
+                                const startISO = dayjs(`${dialogDate} ${t}`, "YYYY-MM-DD h:mm A")
+                                  .second(0)
+                                  .millisecond(0)
+                                  .toISOString();
+
+                                // Default end = +1 hour (used for disabling start slots)
+                                const defaultEndISO = dayjs(startISO).add(1, "hour").toISOString();
+
+                                // Disable start if that 1-hour block overlaps busy
+                                const disabled = rangeConflicts(startISO, defaultEndISO);
+
                                 const isSelected = dialogTime === t;
 
                                 return (
@@ -1228,7 +1297,14 @@ return (
                                     fullWidth
                                     variant={isSelected ? "contained" : "outlined"}
                                     disabled={disabled}
-                                    onClick={() => setDialogTime(t)}
+                                    onClick={() => {
+                                      setDialogTime(t);
+
+                                      // Auto end = +1 hour after chosen start
+                                      const endISO = defaultEndISO;
+                                      setDialogEndTime(dayjs(endISO).format("h:mm A"));
+                                      setDialogEndISO(endISO);
+                                    }}
                                     sx={{
                                       py: 1.2,
                                       borderRadius: 2,
@@ -1256,10 +1332,10 @@ return (
 
                         <Divider sx={{ my: 2 }} />
 
-                        {/* End slots */}
+                        {/* 3) End */}
                         <Box sx={{ position: "relative" }}>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                            3) Choose End Time (defaults to +1 hour)
+                            3) Choose End Time
                           </Typography>
 
                           <Box sx={{ maxHeight: 220, overflowY: "auto", pr: 1 }}>
@@ -1279,14 +1355,21 @@ return (
                                   );
                                 }
 
-                                const startISO = startISOFromDialog();
-                                const endISO = dayjs(`${dialogDate} ${t}`, "YYYY-MM-DD h:mm A").toISOString();
+                                const startISO = dayjs(`${dialogDate} ${dialogTime}`, "YYYY-MM-DD h:mm A")
+                                  .second(0)
+                                  .millisecond(0)
+                                  .toISOString();
+
+                                const endISO = dayjs(`${dialogDate} ${t}`, "YYYY-MM-DD h:mm A")
+                                  .second(0)
+                                  .millisecond(0)
+                                  .toISOString();
+
+                                const isSelected = dialogEndTime === t;
 
                                 const invalid = !dayjs(endISO).isAfter(dayjs(startISO));
                                 const conflicts = !invalid && rangeConflicts(startISO, endISO);
                                 const disabled = invalid || conflicts;
-
-                                const isSelected = dialogEndTime === t;
 
                                 return (
                                   <Button
@@ -1294,7 +1377,10 @@ return (
                                     fullWidth
                                     variant={isSelected ? "contained" : "outlined"}
                                     disabled={disabled}
-                                    onClick={() => setDialogEndTime(t)}
+                                    onClick={() => {
+                                      setDialogEndTime(t);
+                                      setDialogEndISO(endISOFromPick(dialogDate, t));
+                                    }}
                                     sx={{
                                       py: 1.2,
                                       borderRadius: 2,
@@ -1322,8 +1408,7 @@ return (
                       </Paper>
                     </Box>
                   )}
-                    </>
-                  )}
+                  
 
                   {activeAction.decision === "none" && (
                     <Typography variant="body2" color="text.secondary">
