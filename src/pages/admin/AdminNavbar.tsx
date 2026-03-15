@@ -119,6 +119,9 @@ const AdminNavbar = () => {
           <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/review-management")}>
             Review Management
           </Typography>
+          <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/wave-invoice")}>
+            Wave Invoice
+          </Typography>
         </Stack>
       </Box>
 
