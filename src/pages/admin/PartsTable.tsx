@@ -545,9 +545,24 @@ const handleSavePictures = async () => {
       </Backdrop>
 
       <Stack direction="row" spacing={2} sx={{ position: "fixed", top: 32, right: 32 }}>
-        <Fab color="primary" onClick={() => navigate("/admin/create-part")}>
-          <AddIcon />
-        </Fab>
+        <Stack direction="row" spacing={2} sx={{ position: "fixed", top: 32, right: 32 }}>
+          <Fab
+            color="primary"
+            aria-label="add-part"
+            onClick={() => navigate("/admin/create-part")}
+          >
+            <AddIcon />
+          </Fab>
+
+          <Fab
+            color="secondary"
+            aria-label="delete-part"
+            disabled={selectedIds.length === 0}
+            onClick={() => setOpenDelete(true)}
+          >
+            <DeleteIcon />
+          </Fab>
+        </Stack>
         <Fab
           color="secondary"
           disabled={selectedIds.length === 0}
