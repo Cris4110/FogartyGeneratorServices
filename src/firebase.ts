@@ -1,5 +1,9 @@
 import { initializeApp } from "firebase/app";
+<<<<<<< Updated upstream
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+=======
 import { getAuth } from "firebase/auth";
+>>>>>>> Stashed changes
 
 import.meta.env;
 
@@ -16,3 +20,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+<<<<<<< Updated upstream
+
+//if (window.location.hostname === "localhost") {
+//connectAuthEmulator(auth, "http://127.0.0.1:9099");
+//}
+=======
+>>>>>>> Stashed changes

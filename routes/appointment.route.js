@@ -3,12 +3,15 @@ import express from "express";
 const router = express.Router();
 import Appointment from '../models/appointment.model.js';
 import {getAppointments, getReviewedAppointments, getAppointment, createAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, 
+<<<<<<< Updated upstream
+  getBusyRanges, adminCreateAppointment} from '../controller/appointment.controller.js';
+=======
   getBusyRanges, adminCreateAppointment, getPendingCount} from '../controller/appointment.controller.js';
+>>>>>>> Stashed changes
 
 router.get("/busy",getBusyRanges);
 router.post("/admin-create", adminCreateAppointment);  
 router.get("/reviewed", getReviewedAppointments);
-router.get("/pending-count", getPendingCount);
 router.get("/", getAppointments);
 router.get("/:id", getAppointment);
 router.post("/", createAppointment);

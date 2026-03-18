@@ -16,6 +16,19 @@ const AdminRoutes = () => (
        This ensures that "/admin/dashboard" renders the Dashboard component.
     */}
     <Route path="/dashboard" element={<Dashboard />} />
+<<<<<<< Updated upstream
+
+    <Route path="/user-management" element={<UserManagementPage />} />
+    <Route path="/incoming/appointments" element={<AppointmentRequest />} />
+    <Route path="/inven-management" element={<InventoryManagement />} />
+    <Route path="/reviewed" element={<ReviewedAppointments />} />
+    <Route path="/create-gen" element={<CreateGenerator />} />
+    <Route path="/incoming/quotes" element={<QuoteRequests />} />
+    <Route path="/create-part" element={<CreatePart />} />
+    <Route path="/review-management" element={<ReviewManagement />} />
+    <Route path="/edit-about" element={<EditPageContent />} />
+
+=======
     
     <Route path="/user-management" element={<UserManagementPage />} />
     <Route path="/incoming/appointments" element={<AppointmentRequest />} />
@@ -27,6 +40,7 @@ const AdminRoutes = () => (
     <Route path="/review-management" element={<ReviewManagement />} />
     <Route path="/edit-about" element={<EditPageContent />} />
 
+>>>>>>> Stashed changes
     {/* Optional: Redirect any unknown /admin/ URLs back to the dashboard */}
     <Route path="*" element={<Dashboard />} />
   </Routes>

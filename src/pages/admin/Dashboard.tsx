@@ -1,11 +1,17 @@
 import Navbar from "../admin/AdminNavbar";
 // Import the standard Grid that works in all MUI v5 versions
+<<<<<<< Updated upstream
+import { Box, Typography, CircularProgress, Grid, Card, CardContent, Button } from "@mui/material";
+=======
 import { Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from "@mui/material";
+>>>>>>> Stashed changes
 import { useAuth } from "../../context/Appcontext"; 
 import { Navigate, useNavigate } from "react-router-dom";
 import PeopleIcon from '@mui/icons-material/People';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import EventNoteIcon from '@mui/icons-material/EventNote';
+<<<<<<< Updated upstream
+=======
 import React, { useEffect, useMemo, useState } from 'react';
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import dayjs from "dayjs";
@@ -39,14 +45,12 @@ interface ReviewRow {
       isVerified: boolean;
       service: string;
 };
+>>>>>>> Stashed changes
 
 
 const Dashboard = () => {
   const { currentUser, authReady } = useAuth(); // Using authReady as discussed
   const navigate = useNavigate();
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
 
   if (!authReady) {
     return (
@@ -55,6 +59,8 @@ const Dashboard = () => {
       </Box>
     );
   }
+<<<<<<< Updated upstream
+=======
 
   if (!currentUser) {
     return <Navigate to="/userlogin" replace />;
@@ -63,117 +69,22 @@ const Dashboard = () => {
    const [pendingAppointCount, setAppointPendingCount] = useState<number>(0); // displays appointments that are status: pending
   const [pendingQuoteCount, setQuotePendingCount] = useState<number>(0); // displays quote requests that are not acknowledged (acknowledged = false)
   const [pendingPartCount, setPartPendingCount] = useState<number>(0); // displays part requests with status: To-do
+>>>>>>> Stashed changes
 
-  const [rowsAppoint, setRowsAppoint] = useState<ReviewedAppointment[]>([]);
-  const [rowsReview, setRowsReview] = useState<ReviewRow[]>([]);
+  if (!currentUser) {
+    return <Navigate to="/userlogin" replace />;
+  }
 
-  const [timeframe, setTimeframe] = useState('all');
-  const [loading, setLoading] = useState<boolean>(true);
-
-  // useEffect for fetching pending appointment counts
-  useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/api/appointments/pending-count");
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log("Data from server:", data);
-        setAppointPendingCount(data.count);
-
-      } catch (error) {
-        console.error("Error fetching appointment count:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCount();
-  }, []);
-  // useEffect for fetching pending quotes counts
-  useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/api/quotes/pending-quotes");
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log("Data from server:", data);
-        setQuotePendingCount(data.count);
-
-      } catch (error) {
-        console.error("Error fetching quote count:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCount();
-  }, []);
-  // useEffect for fetching pending part request counts
-  useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/api/partrequests/pending-parts");
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log("Data from server:", data);
-        setPartPendingCount(data.count);
-
-      } catch (error) {
-        console.error("Error fetching part count:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCount();
-  }, []);
-
-  // useEffect and table for fetching upcoming appointment info
-  useEffect(() => {
-    const fetchAppoint = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/api/appointments/reviewed");
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load appointments");
-
-        setRowsAppoint(data);
-      } catch (error) {
-        console.error("Error fetching appointments:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAppoint();
-  }, []);
-
-  const columnAppoint: GridColDef<ReviewedAppointment>[] = [
-    {
-      field: "original",
-      headerName: "Date",
-      flex: 1.3,
-      maxWidth: 190,
-      sortable: true,
-      // if no rescheduled date gets original date, else get rescheduled date
-      valueGetter: (_value, row) => {
-        const dateToProcess = row.rescheduledDateTime || row.appointmentDateTime;
-        return dateToProcess ? new Date(dateToProcess) : '';
-      },
-      valueFormatter: (value) => {
-        if (!value) return '';
-        return formatISO(value); 
-      },
-    },
-    { field: "name", headerName: "Name", flex: 1, maxWidth: 190, minWidth: 50 },
-    { field: "phone", headerName: "Phone", flex: 1, maxWidth:130, minWidth: 50 },
-    { field: "email", headerName: "Email", flex: 1.3, maxWidth:230, minWidth: 50 },
+  const quickActions = [
+    { title: "Manage Users", icon: <PeopleIcon fontSize="large" color="primary" />, path: "/admin/user-management" },
+    { title: "Inventory", icon: <InventoryIcon fontSize="large" color="primary" />, path: "/admin/inven-management" },
+    { title: "Appointments", icon: <EventNoteIcon fontSize="large" color="primary" />, path: "/admin/incoming/appointments" },
   ];
 
+<<<<<<< Updated upstream
+  return (
+    <Box sx={{ display: "flex", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+=======
   // useEffect and table for reviews
     const getReviews = async () => {
       const res = await fetch("http://localhost:3000/api/reviews", {method: "GET"});
@@ -262,499 +173,44 @@ const Dashboard = () => {
 
    return (
     <Box sx={{ display: "flex", backgroundColor: "#fafafa" }}>
+>>>>>>> Stashed changes
       <Navbar />
-      <Box sx={{ 
-          marginLeft: "15vw",
-          marginTop: "5vh", 
-          height: "100vh",
-          width: "90vw",
-          flex: 1,
-          gap: 2, 
-          p: 4,
-          backgroundColor: "#fafafa",
-          display: "flex",
-          flexDirection: "column",
-          
-        }}
-      >
-        
-        <Box sx={{ // box holds new appointments, quotes, and parts
-          //backgroundColor: "#c7adad",
-          height: "40vh",
-          width: "79vw",
-          margin: "10px",
-          display: "flex",
-          flexDirection: "row",
-          gap: 5,
+      
+      <Box sx={{ marginLeft: "15vw", flexGrow: 1, p: 6 }}>
+        <Typography variant="h3" sx={{ mb: 1, fontWeight: 'bold' }}>
+          Admin Dashboard
+        </Typography>
+        <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
+          Welcome back, {currentUser.name}!
+        </Typography>
 
-        }}>
-          <Box sx={{
-            //backgroundColor: "#fc5858",
-            height: "40vh",
-            width: "40vw",
-          }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: "bold",
-                color: "#1976d2",
-                whiteSpace: "nowrap",
-                padding: 2,
-                borderBottom: "3px solid",
-                borderColor: "#e6e6e6",
-                cursor: "pointer",
-                transition: "0.3s",
-                "&:hover": { color: "#76bbff" },
-                //backgroundColor: "#834747",
-              }}
-              onClick={() => handleNavigation("/admin/incoming/appointments")}
-            >
-              Pending Appointments
-            </Typography>
-
-            <Box sx={{
-              //backgroundColor: "#6eeb7d",
-              height: "33vh",
-              width: "25vw",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "end",
-            }}>
-              <Box sx={{
-                  backgroundColor: "#ffffff",
-                  height: "30vh",
-                  width: "30vw",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}>
-                
-                <Box sx={{ // box holds the text for number of pending appopintments
-                  //backgroundColor: "#c67777",
-                  height: "30vh",
-                  width: "25vw",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  {loading ? (
-                    <CircularProgress size={24} />
-                  ) : (
-                    <Typography variant="h1" sx={{ 
-                      fontWeight: 'bold', 
-                      color: 'primary.main' 
-                    }}>
-                      {(pendingAppointCount)}
-                    </Typography>
-                  )}
-                  <Typography 
-                    variant="h5" 
-                    color="Secondary"
-                    sx={{
-                      margin: "40px",
-                    }}>
-                    Appointments
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-
-          <Box sx={{
-            //backgroundColor: "#ffffff",
-            height: "40vh",
-            width: "40vw",
-          }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: "bold",
-                color: "#1976d2",
-                whiteSpace: "nowrap",
-                padding: 2,
-                borderBottom: "3px solid",
-                borderColor: "#e6e6e6",
-                cursor: "pointer",
-                transition: "0.3s",
-                "&:hover": { color: "#76bbff" },
-              }}
-              onClick={() => handleNavigation("/admin/incoming/quotes")}
-            >
-              Quote Requests
-            </Typography>
-
-            <Box sx={{
-              //backgroundColor: "#6eeb7d",
-              height: "33vh",
-              width: "25vw",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "end",
-            }}>
-              <Box sx={{
-                  backgroundColor: "#ffffff",
-                  height: "30vh",
-                  width: "30vw",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  //marginTop: "13vh",
-              }}>
-                <Box sx={{ // box holds the text for number of pending appopintments
-                  //backgroundColor: "#c67777",
-                  height: "30vh",
-                  width: "25vw",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  {loading ? (
-                    <CircularProgress size={24} />
-                  ) : (
-                    <Typography variant="h1" sx={{ 
-                      fontWeight: 'bold', 
-                      color: 'primary.main' 
-                    }}>
-                      {(pendingQuoteCount)}
-                    </Typography>
-                  )}
-                  <Typography 
-                    variant="h5" 
-                    color="Secondary"
-                    sx={{
-                      margin: "40px",
-                    }}>
-                    Quotes
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-
-          <Box sx={{
-            //backgroundColor: "#ffffff",
-            height: "40vh",
-            width: "40vw",
-          }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: "bold",
-                color: "#1976d2",
-                whiteSpace: "nowrap",
-                padding: 2,
-                borderBottom: "3px solid",
-                borderColor: "#e6e6e6",
-                cursor: "pointer",
-                transition: "0.3s",
-                "&:hover": { color: "#76bbff" },
-              }}
-              onClick={() => handleNavigation("/admin/incoming/parts")}
-            >
-              Part Requests
-            </Typography>
-
-            <Box sx={{
-              //backgroundColor: "#6eeb7d",
-              height: "33vh",
-              width: "25vw",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "end",
-            }}>
-              <Box sx={{
-                  backgroundColor: "#ffffff",
-                  height: "30vh",
-                  width: "30vw",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  //marginTop: "13vh",
-                }}>
-                <Box sx={{ // box holds the text for number of pending parts
-                  //backgroundColor: "#c67777",
-                  height: "30vh",
-                  width: "25vw",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  {loading ? (
-                    <CircularProgress size={24} />
-                  ) : (
-                    <Typography variant="h1" sx={{ 
-                      fontWeight: 'bold', 
-                      color: 'primary.main' 
-                    }}>
-                      {(pendingPartCount)}
-                    </Typography>
-                  )}
-                  <Typography 
-                    variant="h5" 
-                    color="Secondary"
-                    sx={{
-                      margin: "40px",
-                    }}>
-                    Parts
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-
-        </Box>
-
-        <Box sx={{ // box holds upcoming appointments and new review
-          //backgroundColor: "#c7adad",
-          height: "40vh",
-          width: "79vw",
-          margin: "10px",
-          display: "flex",
-          flexDirection: "row",
-          gap: 5,
-        }}>
-          <Box sx={{
-            //backgroundColor: "#ffffff",
-            height: "40vh",
-            width: "50vw",
-          }}>
-            <Box sx={{
-            //backgroundColor: "#d05b5b",
-            height: "18%",
-            width: "100%",
-            display: "flex",
-            borderBottom: "3px solid",
-            borderColor: "#e6e6e6",
-            }}>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: "bold",
-                  color: "#1976d2",
-                  whiteSpace: "nowrap",
-                  padding: 2,
-                  cursor: "pointer",
-                  transition: "0.3s",
-                  "&:hover": { color: "#76bbff" },
-                }}
-                onClick={() => handleNavigation("/admin/reviewed")}
-              >
-                Upcoming Appointments
-              </Typography>
-            </Box>
-
-            <Box sx={{
-              //backgroundColor: "#6eeb7d",
-              height: "33vh",
-              width: "100%",
-              display: "flex",
-              justifyContent: "left",
-              alignItems: "end",
-            }}>
-              <Box sx={{
-                  backgroundColor: "#ffffff",
-                  height: "30vh",
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}>
-                {loading ? (
-                  <Box sx={{ display: "grid", placeItems: "center", height: "100%" }}>
-                    <CircularProgress />
-                  </Box>
-                ) : (
-                  <DataGrid<ReviewedAppointment>
-                    rows={rowsAppoint}
-                    columns={columnAppoint}
-                    getRowId={(r: ReviewedAppointment) => r._id}
-                    disableRowSelectionOnClick
-                    disableColumnResize={true} 
-                    hideFooter
-                    initialState={{
-                      sorting: {
-                        sortModel: [{ field: 'original', sort: 'asc'}],
-                      },
-                    }}
-                    slots={{
-                      noRowsOverlay: () => (
-                        <Box sx={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          height: '100%' 
-                        }}>
-                          <Typography color="textSecondary">
-                            No upcoming appointments scheduled.
-                          </Typography>
-                        </Box>
-                      )
-                    }}
-                  />
-                )}
-              </Box>
-            </Box>
-          </Box>
-
-          <Box sx={{
-          //backgroundColor: "#c48989",
-          height: "40vh",
-          width: "50vw",
-          //display: "flex"
-          }}>
-            <Box sx={{
-            //backgroundColor: "#d05b5b",
-            height: "18%",
-            width: "100%",
-            display: "flex",
-            borderBottom: "3px solid",
-            borderColor: "#e6e6e6",
-            justifyContent: "space-between",
-            }}>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: "bold",
-                  color: "#1976d2",
-                  whiteSpace: "nowrap",
-                  padding: 2,
-                  cursor: "pointer",
-                  transition: "0.3s",
-                  "&:hover": { color: "#76bbff" },
-                }}
-                onClick={() => handleNavigation("/admin/review-management")}
-              >
-                Recent Reviews
-              </Typography>
-              {/* filter by time ui */}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <FormControl size="small" sx={{ width: 200 }}>
-                  <InputLabel>Filter by Time</InputLabel>
-                  <Select
-                    value={timeframe}
-                    label="Filter by Time"
-                    onChange={(e) => setTimeframe(e.target.value)}
-                  >
-                    <MenuItem value="all">All Time</MenuItem>
-                    <MenuItem value="week">Past Week</MenuItem>
-                    <MenuItem value="month">Past Month</MenuItem>
-                    <MenuItem value="year">Past Year</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-            </Box>
-            
-            <Box sx={{
-              //backgroundColor: "#6eeb7d",
-              height: "33vh",
-              width: "100%",
-              display: "flex",
-              justifyContent: "left",
-              alignItems: "end",
-            }}>
-              
-              <Box sx={{
-                  backgroundColor: "#ffffff",
-                  height: "30vh",
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}>
-                
-                {loading ? (
-                  <Box sx={{ display: "grid", placeItems: "center", height: "100%" }}>
-                    <CircularProgress />
-                  </Box>
-                  ) : ( 
-                  <DataGrid<ReviewRow>
-                    rows={filteredReviews}
-                    getRowId={(r: ReviewRow) => r.id}
-                    columns={columnReview}
-                    disableRowSelectionOnClick
-                    disableColumnResize={true} 
-                    hideFooter
-                    initialState={{
-                      sorting: {
-                        sortModel: [{ field: 'date', sort: 'desc'}],
-                      },
-                    }}
-                    slots={{
-                      noRowsOverlay: () => (
-                        <Box sx={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          height: '100%' 
-                        }}>
-                          <Typography color="textSecondary">
-                            No reviews.
-                          </Typography>
-                        </Box>
-                      )
-                    }}
-                  />
-                )}
-
-                <Dialog open={openReview} onClose={handleCloseReview} fullWidth maxWidth="sm">
-                  <DialogTitle>Review Details</DialogTitle>
-                  <DialogContent dividers>
-                    {activeReview && (
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                        <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                            {activeReview.name || "Anonymous"}
-                          </Typography>
-
-                          <Chip
-                            label={activeReview.isVerified ? "Published" : "Not Published"}
-                            color={activeReview.isVerified ? "success" : "default"}
-                            size="small"
-                          />
-                        </Stack>
-
-                        <Stack direction="row" spacing={2} alignItems="center">
-                          <Typography variant="body2" color="text.secondary">
-                            Service: <b>{activeReview.service}</b>
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Rating: <b>{activeReview.rating}</b>
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Date: <b>{activeReview.date}</b>
-                          </Typography>
-                        </Stack>
-
-                        <Divider />
-
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                          Comment
-                        </Typography>
-
-                        <Box
-                          sx={{
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-word",
-                            lineHeight: 1.6,
-                            p: 1.5,
-                            borderRadius: 2,
-                            backgroundColor: "rgba(0,0,0,0.03)",
-                          }}
-                        >
-                          {activeReview.comment || "(no comment)"}
-                        </Box>
-                      </Box>
-                    )}
-                  </DialogContent>
-
-                  <DialogActions>
-                    <Button onClick={handleCloseReview}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
+        {/* Legacy Grid Syntax: container + item */}
+<Grid container spacing={4}>
+  {quickActions.map((action) => (
+    <Grid 
+      key={action.title} 
+    
+      size={{ xs: 12, sm: 6, md: 4 }} 
+    >
+      <Card sx={{ textAlign: 'center', p: 3, borderRadius: 3, boxShadow: 2 }}>
+        <CardContent>
+          <Box sx={{ mb: 2 }}>{action.icon}</Box>
+          <Typography variant="h6" gutterBottom>
+            {action.title}
+          </Typography>
+          <Button 
+            variant="contained" 
+            fullWidth
+            onClick={() => navigate(action.path)}
+            sx={{ mt: 2, textTransform: 'none' }}
+          >
+            Open Page
+          </Button>
+        </CardContent>
+      </Card>
+    </Grid>
+  ))}
+</Grid>
       </Box>
     </Box>
   );

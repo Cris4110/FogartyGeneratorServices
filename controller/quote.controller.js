@@ -100,6 +100,8 @@ export const setAcknowledged = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 }
+<<<<<<< Updated upstream
+=======
 export const getPendingQuotes = async (req, res) => {
   try {
     const count = await Quote.countDocuments({ acknowledged: false });
@@ -108,3 +110,4 @@ export const getPendingQuotes = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+>>>>>>> Stashed changes

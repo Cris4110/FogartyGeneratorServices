@@ -56,7 +56,55 @@ const UserManagementPage = () => {
   const [sortBy, setSortBy] = useState<"a-z" | "z-a" | "none">("a-z");
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  // Helper to get fresh Firebase Token
+  const getAuthHeaders = async () => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user found");
+    const token = await user.getIdToken();
+    return { Authorization: `Bearer ${token}` };
+  };
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+      const response = await axios.get<User[]>("http://localhost:3000/api/users", { headers });
+      setUsers(response.data);
+      setError(null);
+    } catch (err: any) {
+      console.error("Error fetching users:", err);
+      setError("Failed to load users. Please check your admin permissions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: "user" | "admin") => {
+    try {
+      const headers = await getAuthHeaders();
+      // This sends the update to your backend
+      await axios.patch(
+        `http://localhost:3000/api/users/${userId}/role`,
+        { role: newRole },
+        { headers }
+      );
+
+      // This updates the table locally so you see the change immediately
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user._id === userId ? { ...user, role: newRole } : user
+        )
+      );
+    } catch (err) {
+      console.error("Error updating role:", err);
+      setError("Failed to update user role.");
+    }
+  };
+
+<<<<<<< Updated upstream
+=======
   // Helper to get fresh Firebase Token
   const getAuthHeaders = async () => {
     const user = auth.currentUser;
@@ -102,6 +150,7 @@ const UserManagementPage = () => {
   }
 };
 
+>>>>>>> Stashed changes
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -113,6 +162,24 @@ const UserManagementPage = () => {
 
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
+<<<<<<< Updated upstream
+    setIsDeleting(true);
+
+    try {
+      const headers = await getAuthHeaders();
+      // Only call your own API. The backend handles the rest.
+      await axios.delete(`http://localhost:3000/api/users/${userToDelete._id}`, { headers });
+
+      // Update local state only after a confirmed success
+      setUsers((prevUsers) => prevUsers.filter((u) => u._id !== userToDelete._id));
+
+    } catch (err: any) {
+      console.error("Delete failed:", err);
+      setError("Failed to delete user. Check server logs.");
+    } finally {
+      setIsDeleting(false);
+      setOpenDeleteDialog(false);
+=======
     setOpenDeleteDialog(false);
 
     try {
@@ -125,6 +192,7 @@ const UserManagementPage = () => {
       console.error("Error deleting user:", err);
       setError(`Failed to delete user: ${userToDelete.name || userToDelete.fullname}.`);
     } finally {
+>>>>>>> Stashed changes
       setUserToDelete(null);
     }
   };
@@ -138,7 +206,11 @@ const UserManagementPage = () => {
 
     const copy = [...filtered];
     const getName = (u: User) => (u.name || u.fullname || "").toLowerCase();
+<<<<<<< Updated upstream
+
+=======
     
+>>>>>>> Stashed changes
     if (sortBy === "a-z") {
       return copy.sort((a, b) => getName(a).localeCompare(getName(b)));
     } else if (sortBy === "z-a") {
@@ -197,8 +269,13 @@ const UserManagementPage = () => {
             <CircularProgress />
           ) : error ? (
             <Box sx={{ textAlign: 'center' }}>
+<<<<<<< Updated upstream
+              <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>
+              <Button variant="contained" onClick={fetchUsers}>Retry</Button>
+=======
                 <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>
                 <Button variant="contained" onClick={fetchUsers}>Retry</Button>
+>>>>>>> Stashed changes
             </Box>
           ) : (
             <TableContainer>
@@ -225,7 +302,11 @@ const UserManagementPage = () => {
                           size="small"
                           value={user.role || "user"}
                           onChange={(e) => handleRoleChange(user._id, e.target.value as "user" | "admin")}
+<<<<<<< Updated upstream
+                          sx={{
+=======
                           sx={{ 
+>>>>>>> Stashed changes
                             minWidth: 100,
                             fontWeight: user.role === 'admin' ? 'bold' : 'normal',
                             color: user.role === 'admin' ? 'primary.main' : 'inherit'
@@ -260,8 +341,17 @@ const UserManagementPage = () => {
         </Paper>
       </Box>
 
+<<<<<<< Updated upstream
+      {/* Updated Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+        disableRestoreFocus // <--- THIS FIXES THE ARIA-HIDDEN ERROR
+      >
+=======
       {/* Confirmation Dialog */}
       <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+>>>>>>> Stashed changes
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -271,9 +361,22 @@ const UserManagementPage = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
+<<<<<<< Updated upstream
+          <Button onClick={() => setOpenDeleteDialog(false)} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteUser}
+            color="error"
+            variant="contained"
+            disabled={isDeleting} // Prevents double-clicks
+          >
+            {isDeleting ? <CircularProgress size={24} color="inherit" /> : "Delete Permanently"}
+=======
           <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
           <Button onClick={handleDeleteUser} color="error" variant="contained">
             Delete Permanently
+>>>>>>> Stashed changes
           </Button>
         </DialogActions>
       </Dialog>

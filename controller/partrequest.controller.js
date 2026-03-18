@@ -59,6 +59,9 @@ export const deletePartrequest = async (req, res) => {
         
     }
 }
+<<<<<<< Updated upstream
+
+=======
 export const getPendingParts = async (req, res) => {
   try {
     const count = await Partrequest.countDocuments({ status: "To-do" });
@@ -67,3 +70,4 @@ export const getPendingParts = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+>>>>>>> Stashed changes

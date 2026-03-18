@@ -23,6 +23,10 @@ import LeaveReview from "../pages/public/LeaveReview";
 import ViewReviews from "../pages/public/ViewReviews";
 import ItemDetailPage from "../pages/public/ItemDetailPage";
 import ProtectedRoute from "../component/ProtectedRoute";
+<<<<<<< Updated upstream
+
+=======
+>>>>>>> Stashed changes
 
 const PublicRoutes = () => (
   <Routes>

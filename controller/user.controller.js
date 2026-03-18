@@ -1,4 +1,9 @@
 import User from "../models/user.model.js";
+<<<<<<< Updated upstream
+import admin from "firebase-admin";
+import { getAuth } from "firebase-admin/auth";
+=======
+>>>>>>> Stashed changes
 
 // Get all users
 export const getUsers = async (req, res) => {
@@ -22,8 +27,13 @@ export const updateUserRole = async (req, res) => {
 
     // We use findByIdAndUpdate because your frontend sends the _id
     const user = await User.findByIdAndUpdate(
+<<<<<<< Updated upstream
+      id,
+      { role },
+=======
       id, 
       { role }, 
+>>>>>>> Stashed changes
       { new: true }
     );
 
@@ -75,6 +85,39 @@ export const updateUser = async (req, res) => {
   }
 };
 
+<<<<<<< Updated upstream
+export const deleteUser = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    console.log("Processing deletion for:", uid);
+
+    const user = await User.findOne({ userID: uid });
+    if (!user) {
+      return res.status(404).json({ message: "User not found in database" });
+    }
+
+    // 1. Attempt to delete from Firebase
+    try {
+      await getAuth().deleteUser(user.userID);
+    } catch (authError) {
+      // If the error is that the user doesn't exist in Firebase, log it 
+      // but do NOT crash the request. Proceed to DB deletion.
+      if (authError.code === 'auth/user-not-found') {
+        console.warn("User already missing from Firebase. Cleaning up MongoDB record.");
+      } else {
+        // If it's a different error (e.g., permission issues), re-throw it
+        throw authError;
+      }
+    }
+
+    // 2. Delete from MongoDB
+    await User.findByIdAndDelete(user._id);
+
+    res.status(200).json({ message: "User deleted successfully from DB and Auth" });
+  } catch (error) {
+    console.error("Delete Error:", error);
+    res.status(500).json({ error: error.message });
+=======
 // Delete user
 // Delete user
 export const deleteUser = async (req, res) => {
@@ -92,5 +135,6 @@ export const deleteUser = async (req, res) => {
   } catch (error) {
     // If the ID is malformed, it hits this catch block
     res.status(500).json({ message: "Error deleting user: " + error.message });
+>>>>>>> Stashed changes
   }
 };
