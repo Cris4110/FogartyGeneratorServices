@@ -21,11 +21,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// To deploy change to: "admin@yourcompany.com" to real email
+// To deploy change to: "admin@mail.com" to real actual email
 const sendAdminNotification = async (clientData) => {
   const mailOptions = {
-  from: "Appointent Requests Admin",
-  to: "testing404nf@gmail.com",
+  from: '"Appointment Request Admin" <' + process.env.MAIL_USER + '>',
+  to: process.env.MAIL_USER,
   subject: `New Appointment Request`,
   html: appointmentHtmlEmail(clientData),
 };
