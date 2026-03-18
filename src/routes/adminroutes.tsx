@@ -9,6 +9,7 @@ import CreatePart from "../pages/admin/CreatePart";
 import ReviewManagement from "../pages/admin/ReviewManagement";
 import QuoteRequests from "../pages/admin/QuoteRequests";
 import EditPageContent from "../pages/admin/EditPageContent";
+import WaveInvoice from "../pages/admin/waveInvoice";
 
 const AdminRoutes = () => (
   <Routes>
@@ -26,6 +27,7 @@ const AdminRoutes = () => (
     <Route path="/create-part" element={<CreatePart />} />
     <Route path="/review-management" element={<ReviewManagement />} />
     <Route path="/edit-about" element={<EditPageContent />} />
+    <Route path="/wave-invoice" element={<WaveInvoice />} />
 
     {/* Optional: Redirect any unknown /admin/ URLs back to the dashboard */}
     <Route path="*" element={<Dashboard />} />
