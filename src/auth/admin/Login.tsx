@@ -11,8 +11,8 @@ import type { Theme } from "@emotion/react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { useAuth } from "../../context/Appcontext";
-import { auth } from "../../firebase"; 
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase";
+import { setPersistence, browserSessionPersistence, signInWithEmailAndPassword } from "firebase/auth";
 
 const ContainerStyle: SxProps<Theme> = {
   display: "flex",
@@ -33,68 +33,66 @@ const Login: React.FC = () => {
   const firstRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { setCurrentUser } = useAuth(); // setCurrentUser is available from useAuth
-  
-  const [email, setEmail] = useState(""); 
+
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [isError, setIsError] = useState(false);
 
   const handleClearError = () => {
-  setIsError(false);
-  setErrorMsg("");
-}
+    setIsError(false);
+    setErrorMsg("");
+  }
 
   useEffect(() => {
     firstRef.current?.focus();
   }, []);
 
- const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setIsError(false);
-  setErrorMsg("");
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsError(false);
+    setErrorMsg("");
 
-  try {
-    // 1. Authenticate with Firebase
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const firebaseUser = userCredential.user;
-    
-    // 2. Get the Token (Crucial for fixing the 401 error)
-    const idToken = await firebaseUser.getIdToken();
+    try {
+      await setPersistence(auth, browserSessionPersistence);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
 
-    // 3. Optional: Verify Admin Status with your Backend
-    // This ensures that even if they have a valid email/pass, 
-    // they actually exist in your 'users' collection.
-    const response = await fetch(`http://localhost:3000/api/users/me/${firebaseUser.uid}`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${idToken}`, // Send the token to your middleware
-        "Content-Type": "application/json"
+
+      const idToken = await firebaseUser.getIdToken();
+
+
+      const response = await fetch(`http://localhost:3000/api/users/me/${firebaseUser.uid}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${idToken}`, // Send the token to your middleware
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        // If the backend returns 401/403/404
+        throw new Error("You are not authorized to access the Admin panel.");
       }
-    });
 
-    if (!response.ok) {
-      // If the backend returns 401/403/404
-      throw new Error("You are not authorized to access the Admin panel.");
-    }
+      const userData = await response.json();
 
-    const userData = await response.json();
-    
-    // 4. Update Global State & Navigate
-    setCurrentUser(userData.user); 
-    navigate("/admin");
-    
-  } catch (err: any) {
-    console.error("Login error:", err);
-    setIsError(true);
-    
-    // Handle specific Firebase error codes for better UX
-    if (err.code === "auth/invalid-credential") {
-      setErrorMsg("Invalid email or password.");
-    } else {
-      setErrorMsg(err.message || "An error occurred during login.");
+      // 4. Update Global State & Navigate
+      setCurrentUser(userData.user);
+      navigate("/admin");
+
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setIsError(true);
+
+      // Handle specific Firebase error codes for better UX
+      if (err.code === "auth/invalid-credential") {
+        setErrorMsg("Invalid email or password.");
+      } else {
+        setErrorMsg(err.message || "An error occurred during login.");
+      }
     }
-  }
-};
+  };
 
   return (
     <Box
@@ -110,7 +108,7 @@ const Login: React.FC = () => {
       <Stack direction="column" spacing="20px" sx={ContainerStyle}>
         <Box component="img" src={logo} alt="logo" sx={ImageStyle} />
         <Typography variant="h4" sx={TitleStyle}>Admin Login</Typography>
-        
+
         <Box component="form" onSubmit={handleSubmit} sx={FormStyle}>
           <TextField
             inputRef={firstRef}

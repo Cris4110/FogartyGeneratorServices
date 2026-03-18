@@ -18,6 +18,7 @@ import quoteRoute from "./routes/quote.route.js";
 import pagecontentRoute from "./routes/pagecontent.route.js";
 import partrequestRoute from "./routes/partrequest.route.js";
 
+
 dotenv.config();
 
 const app = express();
@@ -46,6 +47,7 @@ app.use('/api/manufacturers', manufacturerRoute);
 app.use('/api/quotes', quoteRoute);
 app.use('/api/pagecontent', pagecontentRoute);
 app.use('/api/partrequests', partrequestRoute);
+
 
 app.get('/', (req, res) => {
     res.send("Hello from the Unified Node API Server!");

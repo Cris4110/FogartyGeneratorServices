@@ -1,0 +1,13 @@
+{
+  "projectId": "seniorproject191-cb9b5",
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  }
+}
