@@ -23,6 +23,7 @@ import LeaveReview from "../pages/public/LeaveReview";
 import ViewReviews from "../pages/public/ViewReviews";
 import ItemDetailPage from "../pages/public/ItemDetailPage";
 import ProtectedRoute from "../component/ProtectedRoute";
+import Returns from "../pages/public/Returns";
 
 const PublicRoutes = () => (
   <Routes>
@@ -37,6 +38,7 @@ const PublicRoutes = () => (
     <Route path="/CurrentStockPage" element={<CurrentStockPage />} />
     <Route path="/item/:type/:id" element={<ItemDetailPage />} />
     <Route path="/ViewReviews" element={<ViewReviews />} />
+    <Route path="/Returns" element={<Returns />} />
 
     {/* --- Authenticated User Routes (Requires Login) --- */}
     <Route element={<ProtectedRoute adminOnly={false} />}>
