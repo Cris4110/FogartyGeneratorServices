@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// To deploy change to: "admin@mail.com" to real actual email
+// Email formatting
 const sendAdminNotification = async (clientData) => {
   const mailOptions = {
   from: '"Appointment Request Admin" <' + process.env.MAIL_USER + '>',

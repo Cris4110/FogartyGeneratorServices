@@ -92,7 +92,7 @@ async function quoteRequest() {
             await driver.wait(until.elementIsVisible(submitBtn), WAIT);
             await submitBtn.click();
 
-            await driver.sleep(10000);
+            await driver.sleep(10000); // wait 10 seconds for email to send
 
             const homeBtn = await driver.wait(
             until.elementLocated(By.xpath('//*[@id="root"]/div/header/div/div/div[1]/a[1]')),

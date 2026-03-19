@@ -3,7 +3,7 @@ import { Builder, By, until } from 'selenium-webdriver';
 async function appointmentRequest() {
 
     let driver = await new Builder().forBrowser('chrome').build();
-    const WAIT = 10000; //ms, how long to wait for the element to be located before throwing an error.
+    const WAIT = 10000; // ms, how long to wait for the element to be located before throwing an error.
     const runs = 5;
     const times = [];
     let failures = 0;
@@ -99,7 +99,7 @@ async function appointmentRequest() {
             await driver.wait(until.elementIsVisible(submitBtn), WAIT);
             await submitBtn.click();
 
-            await driver.sleep(10000);
+            await driver.sleep(10000); // wait 10 seconds for email to send
 
             const homeBtn = await driver.wait(
             until.elementLocated(By.xpath('//*[@id="root"]/div/header/div/div/div[1]/a[1]')),

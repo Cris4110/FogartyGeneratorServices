@@ -21,6 +21,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Email formatting
 const sendAdminNotification = async (clientData) => {
   const mailOptions = {
   from: '"Parts Request Admin" <' + process.env.MAIL_USER + '>',

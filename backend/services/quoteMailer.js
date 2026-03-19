@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// To deploy change to: "admin@yourcompany.com" to real email
+// Email formatting
 const sendAdminNotification = async (clientData) => {
   const mailOptions = {
   from: '"Quote Requests Admin" <' + process.env.MAIL_USER + '>',
