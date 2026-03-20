@@ -17,7 +17,7 @@ router.get("/me", verifyFirebaseToken, async (req, res) => {
         const firebaseUid = req.user.uid;
         
         // The User model uses Firebase UID as _id
-        const user = await User.findById(firebaseUid).select("name email role userID phoneNumber address");
+        const user = await User.findById(firebaseUid).select("name email role userID phoneNumber address receiveTexts receiveEmails");
         
         if (!user) return res.status(404).json({ error: "user not found" });
         
@@ -29,7 +29,9 @@ router.get("/me", verifyFirebaseToken, async (req, res) => {
                 userID: user.userID, 
                 role: user.role,   
                 phoneNumber: user.phoneNumber,
-                address: user.address,    
+                address: user.address,
+                receiveTexts: user.receiveTexts,
+                receiveEmails: user.receiveEmails,
             }
         });
     } catch (err) {

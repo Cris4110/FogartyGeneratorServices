@@ -8,6 +8,8 @@ import {
   Backdrop,
   Box,
   Button,
+  Checkbox,
+  FormControlLabel,
   Grid,
   InputLabel,
   MenuItem,
@@ -15,6 +17,7 @@ import {
   Paper,
   Select,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
@@ -27,6 +30,8 @@ interface User {
   email: string;
   phoneNumber?: string;
   address: Address;
+  receiveTexts: boolean;
+  receiveEmails: boolean;
 }
 
 interface Address {
@@ -148,6 +153,8 @@ const UserSettings = () => {
 
   const [responseMsg, setResponseMsg] = useState("");
   const [disableButton, setDisableButton] = useState(true);
+  const [receiveTexts, setReceiveTexts] = useState(false);
+  const [receiveEmails, setReceiveEmails] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -181,6 +188,13 @@ const UserSettings = () => {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      setReceiveTexts(currentUser.receiveTexts);
+      setReceiveEmails(currentUser.receiveEmails);
+    }
+  }, [currentUser]);
 
   const handleLogout = async () => {
     try {
@@ -397,6 +411,69 @@ const UserSettings = () => {
   // label defines the setting and value defines the user's information
   // count defines which buffer to check if all inputs are entered or not
   const settingRow = (label: string, value: string, count: number) => {
+    // Special handling for toggle settings
+    if (label === "Receive Texts" || label === "Receive Emails") {
+      const isTexts = label === "Receive Texts";
+      const currentValue = isTexts ? receiveTexts : receiveEmails;
+      const setValue = isTexts ? setReceiveTexts : setReceiveEmails;
+      const fieldName = isTexts ? "receiveTexts" : "receiveEmails";
+
+      return (
+        <Box>
+          <Grid
+            container
+            spacing={2}
+            sx={{ alignItems: "center", justifyContent: "center" }}
+          >
+            <Grid size={8} padding={3}>
+              <Typography variant="h5" fontWeight={700} gutterBottom>
+                {label}
+              </Typography>
+              <Typography variant="h5" fontWeight={300} gutterBottom>
+                {currentValue ? "Enabled" : "Disabled"}
+              </Typography>
+            </Grid>
+            <Grid
+              container
+              size={2}
+              padding={5}
+              direction="row"
+              sx={{ justifyContent: "flex-end" }}
+            >
+              <Switch
+                checked={currentValue}
+                onChange={async (e) => {
+                  const newValue = e.target.checked;
+                  setValue(newValue);
+                  if (currentUser) {
+                    currentUser[isTexts ? "receiveTexts" : "receiveEmails"] =
+                      newValue;
+                  }
+                  try {
+                    await api.put(`/users/${currentUser?.id}`, {
+                      [fieldName]: newValue,
+                    });
+                    setResponseMsg("Setting updated successfully!");
+                  } catch (error: any) {
+                    setResponseMsg(
+                      error.response?.data?.message ||
+                        "Error updating setting.",
+                    );
+                    // Revert on error
+                    setValue(!newValue);
+                    if (currentUser) {
+                      currentUser[isTexts ? "receiveTexts" : "receiveEmails"] =
+                        !newValue;
+                    }
+                  }
+                }}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+      );
+    }
+
     let buffArray = [""]; // used to keep track of empty buffers
     switch (count) {
       case 1:
@@ -580,7 +657,9 @@ const UserSettings = () => {
               <Button
                 variant="contained"
                 disabled={
-                  disableButton || buffArray.some((element) => element == "")
+                  disableButton ||
+                  (buffArray.length > 0 &&
+                    buffArray.some((element) => element == ""))
                 }
                 onClick={handleUpdateUser}
               >
@@ -620,6 +699,8 @@ const UserSettings = () => {
             {settingRow("Phone Number", currentUser?.phoneNumber ?? "", 1)}
             {settingRow("Password", "***********", 2)}
             {settingRow("Address", fullAddress ?? "", 4)}
+            {settingRow("Receive Texts", receiveTexts ? "Yes" : "No", 0)}
+            {settingRow("Receive Emails", receiveEmails ? "Yes" : "No", 0)}
           </Stack>
         </Box>
         <Button
