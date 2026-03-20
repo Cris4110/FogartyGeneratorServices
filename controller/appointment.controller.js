@@ -298,8 +298,8 @@ export const updateAppointmentStatus = async (req, res) => {
    try {
     const {
       status,
-      newAppointmentTime,
-      newEndAppointmentTime,
+      rescheduledDateTime,
+      rescheduledEndDateTime,
       appointmentEndDateTime,
     } = req.body;
 
@@ -315,11 +315,11 @@ export const updateAppointmentStatus = async (req, res) => {
 
     // Reschedule => save new start + new end
     if (status === "rescheduled") {
-      if (!newAppointmentTime || !newEndAppointmentTime) {
+      if (!rescheduledDateTime || !rescheduledEndDateTime) {
         return res.status(400).json({ message: "newAppointmentTime and newEndAppointmentTime are required for rescheduled" });
       }
-      update.rescheduledDateTime = new Date(newAppointmentTime);
-      update.rescheduledEndDateTime = new Date(newEndAppointmentTime);
+      update.rescheduledDateTime = new Date(rescheduledDateTime);
+      update.rescheduledEndDateTime = new Date(rescheduledEndDateTime);
     }
 
     const result = await Appointment.findByIdAndUpdate(req.params.id, update, { new: true });

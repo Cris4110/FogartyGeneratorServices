@@ -53,7 +53,7 @@ const AdminNavbar = () => {
   return (
     <Box
       sx={{
-        width: "15vw", // Slightly wider for readability
+        width: "14.5vw", // Slightly wider for readability
         height: "100vh",
         display: "flex",
         flexDirection: "column",
