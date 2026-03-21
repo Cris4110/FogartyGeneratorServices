@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 // 1. Import Firebase Auth
-import { auth } from "../../firebase"; 
+import { auth } from "../../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import TextField from "@mui/material/TextField";
 import InputLabel from "@mui/material/InputLabel";
@@ -35,6 +35,8 @@ const UserRegistration: React.FC = () => {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [receiveTexts, setReceiveTexts] = useState(false);
+  const [receiveEmails, setReceiveEmails] = useState(false);
 
   // Address Fields
   const [street, setStreet] = useState("");
@@ -143,21 +145,26 @@ const UserRegistration: React.FC = () => {
         email,
         phoneNumber,
         address,
+        receiveTexts,
+        receiveEmails,
       };
-const idToken = await firebaseUser.getIdToken();
+      const idToken = await firebaseUser.getIdToken();
       // 4. Send the data to your Node.js API
-const response = await fetch("http://localhost:3000/api/users", {
-              method: "POST",
-              headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${idToken}` // 👈 ADD THIS HEADER
-              },
-  body: JSON.stringify(newUser),
-})
+      const response = await fetch("http://localhost:3000/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`, // 👈 ADD THIS HEADER
+        },
+        body: JSON.stringify(newUser),
+      });
       const result = await response.json();
 
       if (!response.ok) {
-        setResponseMsg(result.message || "Firebase account created, but database sync failed.");
+        setResponseMsg(
+          result.message ||
+            "Firebase account created, but database sync failed.",
+        );
       } else {
         setResponseMsg("Account created successfully!");
         // Clear fields
@@ -183,7 +190,13 @@ const response = await fetch("http://localhost:3000/api/users", {
     <>
       {/* ===== Navbar Section ===== */}
       <Navbar />
-      <div style={{ fontFamily: "Arial, sans-serif", padding: "2rem", background: "#f9f9f9" }}>
+      <div
+        style={{
+          fontFamily: "Arial, sans-serif",
+          padding: "2rem",
+          background: "#f9f9f9",
+        }}
+      >
         <div style={{ textAlign: "center" }}>
           <h1>Request An Account</h1>
         </div>
@@ -276,9 +289,18 @@ const response = await fetch("http://localhost:3000/api/users", {
         </div>
       </form>
 
-      {responseMsg && <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>}
+          <div style={{ textAlign: "center" }}>
+            <button type="submit">Create User</button>
+          </div>
+        </form>
+
+        {responseMsg && (
+          <p style={{ textAlign: "center", marginTop: "1rem" }}>
+            {responseMsg}
+          </p>
+        )}
       </div>
-    <Footer />
+      <Footer />
     </>
   );
 };

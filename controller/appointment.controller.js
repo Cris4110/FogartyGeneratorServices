@@ -3,6 +3,7 @@
 import Appointment from "../models/appointment.model.js";
 import User from "../models/user.model.js";
 import PageContent from '../models/pagecontent.model.js';
+import { sendAdminNotification } from '../backend/services/appointmentMailer.js';
 
 //get busy ranges for accepted/rescheduled appointments (for calendar blocking on frontend)
 export const getBusyRanges = async (req, res) => {
@@ -256,9 +257,14 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ message: "End time must be after start time" }); 
     }
 
+    const targetUID = userID || req.user?.uid;
+    const dbUser = await User.findById(targetUID);
 
     const appt = await Appointment.create({
-      userID,
+      userID: userID || req.user?.uid,
+      name: req.body.name || dbUser?.name || req.user?.name,
+      email: req.body.email || dbUser?.email || req.user?.email,
+      phone: req.body.phone || dbUser?.phone || dbUser?.phoneNumber,
       appointmentDateTime: new Date(appointmentDateTime),
       appointmentEndDateTime: end,
       generatorModel,
@@ -267,6 +273,7 @@ export const createAppointment = async (req, res) => {
       status: "pending",
       createdBy,
     });
+    notifyAdminOfNewAppointment(appt);
 
     res.json({ message: "Appointment created", appt });
 
@@ -275,6 +282,23 @@ export const createAppointment = async (req, res) => {
   }
 };
 
+// NOTIFY admin
+export const notifyAdminOfNewAppointment = async (appointment) => {
+  try {
+    await sendAdminNotification({
+      name: appointment.name,
+      email: appointment.email,
+      phoneNumber: appointment.phone,
+      genModel: appointment.generatorModel,
+      serialNumber: appointment.serialNumber,
+      date: new Date(appointment.appointmentDateTime).toLocaleString(),
+      message: appointment.description
+    });
+    console.log("Admin notified via email.");
+  } catch (error) {
+    console.error("Email failed but appointment was saved:", error.message);
+  }
+};
 
 // UPDATE appointment
 export const updateAppointment = async (req, res) => {
@@ -298,8 +322,8 @@ export const updateAppointmentStatus = async (req, res) => {
    try {
     const {
       status,
-      newAppointmentTime,
-      newEndAppointmentTime,
+      rescheduledDateTime,
+      rescheduledEndDateTime,
       appointmentEndDateTime,
     } = req.body;
 
@@ -315,11 +339,11 @@ export const updateAppointmentStatus = async (req, res) => {
 
     // Reschedule => save new start + new end
     if (status === "rescheduled") {
-      if (!newAppointmentTime || !newEndAppointmentTime) {
+      if (!rescheduledDateTime || !rescheduledEndDateTime) {
         return res.status(400).json({ message: "newAppointmentTime and newEndAppointmentTime are required for rescheduled" });
       }
-      update.rescheduledDateTime = new Date(newAppointmentTime);
-      update.rescheduledEndDateTime = new Date(newEndAppointmentTime);
+      update.rescheduledDateTime = new Date(rescheduledDateTime);
+      update.rescheduledEndDateTime = new Date(rescheduledEndDateTime);
     }
 
     const result = await Appointment.findByIdAndUpdate(req.params.id, update, { new: true });

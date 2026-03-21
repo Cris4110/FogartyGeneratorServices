@@ -53,7 +53,7 @@ const AdminNavbar = () => {
   return (
     <Box
       sx={{
-        width: "15vw", // Slightly wider for readability
+        width: "14.5vw", // Slightly wider for readability
         height: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -121,6 +121,9 @@ const AdminNavbar = () => {
 
           <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/review-management")}>
             Review Management
+          </Typography>
+          <Typography sx={linkStyle} onClick={() => handleNavigation("/admin/wave-invoice")}>
+            Wave Invoice
           </Typography>
         </Stack>
       </Box>

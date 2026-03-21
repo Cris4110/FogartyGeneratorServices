@@ -4,9 +4,10 @@ const router = express.Router();
 import Appointment from '../models/appointment.model.js';
 import {getAppointments, getReviewedAppointments, getAppointment, createAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, 
   getBusyRanges, adminCreateAppointment, getPendingCount} from '../controller/appointment.controller.js';
+import { verifyFirebaseToken } from '../backend/middleware/auth.ts';
 
 router.get("/busy",getBusyRanges);
-router.post("/admin-create", adminCreateAppointment);  
+router.post("/admin-create", verifyFirebaseToken, adminCreateAppointment);  
 router.get("/reviewed", getReviewedAppointments);
 router.get("/pending-count", getPendingCount);
 router.get("/", getAppointments);
