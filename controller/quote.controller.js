@@ -1,5 +1,6 @@
 import Quote from '../models/quote.model.js';
-import PageContent from '../models/pagecontent.model.js';
+import PageContent from '../models/pagecontent.model.js'
+import { sendAdminNotification } from '../backend/services/quoteMailer.js';;
 
 export const getQuotes = async (req, res) =>{
     try {
@@ -47,13 +48,32 @@ export const getQuote = async (req, res) =>{
 }
 
 export const createQuote = async (req, res) => {
-        try {
-        const quote = await Quote.create(req.body);
-        res.status(200).json({message: "New Quote Created"});
+    try{
+        const savedRequest = await Quote.create(req.body);
+        console.log("Data saved to MongoDB:", savedRequest._id);
+
+        await sendAdminNotification({
+        name: savedRequest.name,
+        email: savedRequest.email,
+        phoneNumber: savedRequest.phoneNumber,
+        genModel: savedRequest.genModel,
+        genSerialNumber: savedRequest.genSerialNumber,
+        message: savedRequest.additionalInfo
+        });
+        console.log("Email notification sent to Mailtrap");
+
+        return res.status(201).json({ 
+        message: "Request sent.",
+        data: savedRequest 
+        });
+
     } catch (error) {
-        res.status(500).json({message: error.message});
+        console.error("Quote Creation Error:", error.message);
+        
+        if (!res.headersSent) {
+        return res.status(500).json({ error: "Failed to process request.", details: error.message });
+        }
     }
-    
 }
 
 export const updateQuote = async (req, res) => {
