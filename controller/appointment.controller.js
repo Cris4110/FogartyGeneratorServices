@@ -5,6 +5,8 @@ import User from "../models/user.model.js";
 import PageContent from '../models/pagecontent.model.js';
 import { sendEmail } from "../backend/services/emailService.js";
 import { appointmentConfirmationTemplate,appointmentStatusTemplate } from "../backend/services/emailTemplates.js";
+import { sendAdminNotification } from "../backend/services/appointmentMailer.js";
+
 
 //get busy ranges for accepted/rescheduled appointments (for calendar blocking on frontend)
 export const getBusyRanges = async (req, res) => {
@@ -330,12 +332,17 @@ export const updateAppointmentStatus = async (req, res) => {
       update.appointmentEndDateTime = new Date(appointmentEndDateTime);
     }
 
-    if (status === "rescheduled") {
-      if (!newAppointmentTime) return res.status(400).json({ message: "New time required" });
-      update.rescheduledDateTime = new Date(newAppointmentTime);
-      if (newEndAppointmentTime) update.rescheduledEndDateTime = new Date(newEndAppointmentTime);
-    }
+   if (status === "rescheduled") {
+  if (!newAppointmentTime) {
+    return res.status(400).json({ message: "New time required" });
+  }
 
+  update.rescheduledDateTime = new Date(newAppointmentTime);
+
+  if (newEndAppointmentTime) {
+    update.rescheduledEndDateTime = new Date(newEndAppointmentTime);
+  }
+}
     // 2. Update the appointment in the DB
     const updatedAppt = await Appointment.findByIdAndUpdate(req.params.id, update, { new: true });
     if (!updatedAppt) return res.status(404).json({ message: "Appointment not found" });
@@ -369,9 +376,17 @@ export const updateAppointmentStatus = async (req, res) => {
             emailHtml
           );
           console.log(`Auto-email sent to ${recipientEmail} for status: ${status}`);
+          
         } else {
           console.error("Could not find an email address for this appointment.");
         }
+        await sendAdminNotification({
+  name: updatedAppt.name,
+  email: updatedAppt.email,
+  status: updatedAppt.status,
+  appointmentDateTime: updatedAppt.appointmentDateTime,
+  rescheduledDateTime: updatedAppt.rescheduledDateTime,
+});
       } catch (err) {
         console.error("Auto-email failed:", err);
       }
@@ -385,6 +400,7 @@ export const updateAppointmentStatus = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 
 // DELETE appointment
