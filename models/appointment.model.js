@@ -29,13 +29,13 @@ const AppointmentSchema = new mongoose.Schema(
         },
         appointmentDateTime: {
             type: Date,
-            require: true
+            required: true
         },
          appointmentEndDateTime: {
             type: Date,
-            require: true
+            required: true
         },
-        rescheduleEndDateTime: {
+        rescheduledEndDateTime: {
             type: Date,
             default: null
         },
