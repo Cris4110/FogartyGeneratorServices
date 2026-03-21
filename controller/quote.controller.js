@@ -2,7 +2,7 @@ import Quote from '../models/quote.model.js';
 import PageContent from '../models/pagecontent.model.js';
 import { sendEmail } from "../backend/services/emailService.js";
 import { quoteRequestTemplate } from "../backend/services/emailTemplates.js";
-
+import { sendAdminNotification } from '../backend/services/quoteMailer.js';
 export const getQuotes = async (req, res) =>{
     try {
         // before sending results remove any stale documents based on admin setting
@@ -49,26 +49,47 @@ export const getQuote = async (req, res) =>{
 }
 
 export const createQuote = async (req, res) => {
-        try {
-        console.log("QUOTE DEBUG:", req.body);
-        const quote = await Quote.create(req.body);
+    try {
+        const savedRequest = await Quote.create(req.body);
+
+        // ✅ CUSTOMER EMAIL
         await sendEmail(
-            req.body.email,
+            savedRequest.email,
             "Quote Request Received",
             quoteRequestTemplate({
-            name: req.body.name,
-            phone: req.body.phoneNumber,
-            model: req.body.genModel,
-            serial: req.body.genSerialNumber,
-            notes: req.body.additionalInfo,
-      })
-            
+                name: savedRequest.name,
+                phone: savedRequest.phoneNumber,
+                model: savedRequest.genModel,
+                serial: savedRequest.genSerialNumber,
+                notes: savedRequest.additionalInfo,
+            })
         );
-        res.status(200).json({message: "New Quote Created"});
+
+        // ✅ ADMIN EMAIL
+        await sendAdminNotification({
+            name: savedRequest.name,
+            email: savedRequest.email,
+            phoneNumber: savedRequest.phoneNumber,
+            genModel: savedRequest.genModel,
+            genSerialNumber: savedRequest.genSerialNumber,
+            message: savedRequest.additionalInfo
+        });
+
+        return res.status(201).json({ 
+            message: "Request sent.",
+            data: savedRequest 
+        });
+
     } catch (error) {
-        res.status(500).json({message: error.message});
+        console.error("Quote Creation Error:", error.message);
+        
+        if (!res.headersSent) {
+            return res.status(500).json({ 
+                error: "Failed to process request.", 
+                details: error.message 
+            });
+        }
     }
-    
 }
 
 export const updateQuote = async (req, res) => {
