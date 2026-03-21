@@ -61,6 +61,14 @@ const UserSchema = new mongoose.Schema(
       type: AddressSchema,
       required: false
     },
+    receiveTexts: {
+      type: Boolean,
+      default: false,
+    },
+    receiveEmails: {
+      type: Boolean,
+      default: false,
+    },
 
   },
   {
