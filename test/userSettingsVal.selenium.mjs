@@ -22,8 +22,8 @@ async function testUserSettingsInputs() {
     const validID = "johndoe";
     const validEmail = "realemailfortesting@gmail.com";
     const validEmail2 = "henryhill@csus.edu";
-    const validPhone = "1234567890";
-    const validPhone2 = "9876543210";
+    const validPhone = "8547895120";
+    const validPhone2 = "1475648520";
     const validPass = "newAAbb22##aaaaaaaaaaaaaaaaaaaaaaaaa";
     const validPass2 = "$2b$12$lFgryF47q7aUbYBJgh"
     const validStreet = "12th Ave";
