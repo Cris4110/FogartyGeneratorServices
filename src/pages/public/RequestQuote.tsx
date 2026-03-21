@@ -114,9 +114,9 @@ useEffect(() => {
           <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={inputStyle} />
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputStyle} />
           <input type="text" placeholder="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required style={inputStyle} />
-          <input type="text" placeholder="Generator Model" value={genModel} onChange={(e) => setGenModel(e.target.value)} required style={inputStyle} />
-          <input type="text" placeholder="Generator Serial Number" value={genSerialNumber} onChange={(e) => setGenSerialNumber(e.target.value)} required style={inputStyle} />
-          <textarea placeholder="Additional Information" value={additionalInfo} onChange={(e) => setAdditionalNotes(e.target.value)} required style={textAreaStyle} />
+          <input name = "Generator Model" type="text" placeholder="Generator Model" value={genModel} onChange={(e) => setGenModel(e.target.value)} required style={inputStyle} />
+          <input name = "Generator Serial Number" type="text" placeholder="Generator Serial Number" value={genSerialNumber} onChange={(e) => setGenSerialNumber(e.target.value)} required style={inputStyle} />
+          <textarea name = "Additional Information" placeholder="Additional Information" value={additionalInfo} onChange={(e) => setAdditionalNotes(e.target.value)} required style={textAreaStyle} />
 
           <div style={{ textAlign: "center" }}>
             <button 

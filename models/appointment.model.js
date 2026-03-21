@@ -7,7 +7,7 @@ const AppointmentSchema = new mongoose.Schema(
             required: false,
             default: ""
         },
-         name: {
+        name: {
             type: String,
             required: false, // for admins
             default: "",
