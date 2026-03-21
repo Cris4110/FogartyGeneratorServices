@@ -13,6 +13,7 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
     ...options.headers,
   };
 
+  
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
     headers,

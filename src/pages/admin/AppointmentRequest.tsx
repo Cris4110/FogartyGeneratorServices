@@ -9,6 +9,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import AdminNavbar from "./AdminNavbar";
 import dayjs, { Dayjs } from "dayjs";
 
+
 interface AppointmentRequest {
   _id: string;
   appointmentDateTime: string;
@@ -28,6 +29,8 @@ export default function IncomingAppointments() {
   const [selectedAppt, setSelectedAppt] = useState<AppointmentRequest | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState<Dayjs | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -44,32 +47,40 @@ export default function IncomingAppointments() {
 
   useEffect(() => { fetchRequests(); }, []);
 
- const handleAction = async (status: "accepted" | "denied" | "rescheduled") => {
+const handleAction = async (status: "accepted" | "denied" | "rescheduled") => {
   if (!selectedAppt) return;
+  setActionLoading(true); // Start loading spinner
 
   const payload = {
     status, // "accepted", "denied", or "rescheduled"
-    rescheduledDateTime: status === "rescheduled" ? rescheduleDate?.toISOString() : null,
+    // Send the new time if rescheduling, otherwise send original or null
+    newAppointmentTime: status === "rescheduled" ? rescheduleDate?.toISOString() : null,
+    // Add a default end time (1 hour later) if accepting
+    appointmentEndDateTime: status === "accepted" 
+      ? dayjs(selectedAppt.appointmentDateTime).add(1, 'hour').toISOString() 
+      : null
   };
 
   try {
-    // Check this URL carefully! 
-    // Is it /review? Is it /status? 
-    const res = await fetch(`http://localhost:3000/api/appointments/${selectedAppt._id}`, {
-      method: "PATCH", // Use PATCH or PUT for updates
+    // UPDATED URL: Added "/status" to the end
+    const res = await fetch(`http://localhost:3000/api/appointments/${selectedAppt._id}/status`, {
+      method: "PATCH", 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     if (res.ok) {
       setOpenModal(false);
-      fetchRequests(); // This refreshes the grid
+      setRescheduleDate(null); // Reset date picker
+      fetchRequests(); // Refresh the list
     } else {
       const errorData = await res.json();
-      console.error("Server rejected update:", errorData);
+      setActionError(errorData.message || "Failed to update status");
     }
   } catch (err) {
-    console.error("Network error:", err);
+    setActionError("Network error. Please try again.");
+  } finally {
+    setActionLoading(false);
   }
 };
 
@@ -156,13 +167,37 @@ export default function IncomingAppointments() {
             </Stack>
           </DialogContent>
           
-          <DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
-            <Button color="inherit" onClick={() => setOpenModal(false)}>Cancel</Button>
-            <Stack direction="row" spacing={2}>
-              <Button color="error" variant="outlined" onClick={() => handleAction("denied")}>Deny</Button>
-              <Button color="success" variant="contained" onClick={() => handleAction("accepted")}>Approve</Button>
-            </Stack>
-          </DialogActions>
+<DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
+  <Button
+    color="inherit"
+    onClick={() => setOpenModal(false)}
+    disabled={actionLoading}
+  >
+    Cancel
+  </Button>
+
+  <Stack direction="row" spacing={2}>
+    <Button
+      color="error"
+      variant="outlined"
+      onClick={() => handleAction("denied")}
+      disabled={actionLoading}
+      startIcon={actionLoading ? <CircularProgress size={16} /> : null}
+    >
+      Deny
+    </Button>
+
+    <Button
+      color="success"
+      variant="contained"
+      onClick={() => handleAction("accepted")}
+      disabled={actionLoading}
+      startIcon={actionLoading ? <CircularProgress size={16} /> : null}
+    >
+      Approve
+    </Button>
+  </Stack>
+</DialogActions>
         </Dialog>
       </Box>
     </LocalizationProvider>

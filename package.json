@@ -11,6 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "test:appointment": "node tests/requestAppointment.selenium.mjs",
+    "test:quote": "node tests/requestQuote.selenium.mjs",
     "serve": "node CRUD_mongoose.js",
     "server": "nodemon CRUD_mongoose.js"
   },
@@ -28,6 +30,7 @@
     "axios": "^1.13.1",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
+    "chromedriver": "^146.0.5",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dayjs": "^1.11.19",
@@ -38,12 +41,14 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
     "multer": "^2.1.1",
+    "nodemailer": "^8.0.3",
     "nodeman": "^1.1.2",
     "react": "^19.2.0",
     "react-calendar": "^6.0.0",
     "react-day-picker": "^9.11.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4",
+    "selenium-webdriver": "^4.41.0",
     "update": "^0.7.4"
   },
   "devDependencies": {

@@ -57,6 +57,8 @@ function Appointment() {
 
     const res = await api.post("/appointments", {
       userID: currentUser.userID,
+      email: currentUser.email,   
+      name: currentUser.name, 
       generatorModel,
       serialNumber,
       description,

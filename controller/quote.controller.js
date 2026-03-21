@@ -1,5 +1,7 @@
 import Quote from '../models/quote.model.js';
 import PageContent from '../models/pagecontent.model.js';
+import { sendEmail } from "../backend/services/emailService.js";
+import { quoteRequestTemplate } from "../backend/services/emailTemplates.js";
 
 export const getQuotes = async (req, res) =>{
     try {
@@ -48,7 +50,20 @@ export const getQuote = async (req, res) =>{
 
 export const createQuote = async (req, res) => {
         try {
+        console.log("QUOTE DEBUG:", req.body);
         const quote = await Quote.create(req.body);
+        await sendEmail(
+            req.body.email,
+            "Quote Request Received",
+            quoteRequestTemplate({
+            name: req.body.name,
+            phone: req.body.phoneNumber,
+            model: req.body.genModel,
+            serial: req.body.genSerialNumber,
+            notes: req.body.additionalInfo,
+      })
+            
+        );
         res.status(200).json({message: "New Quote Created"});
     } catch (error) {
         res.status(500).json({message: error.message});
