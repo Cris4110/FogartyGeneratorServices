@@ -321,69 +321,7 @@ const UserSettings = () => {
   // label defines the setting and value defines the user's information
   // count defines which buffer to check if all inputs are entered or not
   const settingRow = (label: string, value: string, count: number) => {
-    // Special handling for toggle settings
-    if (label === "Receive Texts" || label === "Receive Emails") {
-      const isTexts = label === "Receive Texts";
-      const currentValue = isTexts ? receiveTexts : receiveEmails;
-      const setValue = isTexts ? setReceiveTexts : setReceiveEmails;
-      const fieldName = isTexts ? "receiveTexts" : "receiveEmails";
-
-      return (
-        <Box>
-          <Grid
-            container
-            spacing={2}
-            sx={{ alignItems: "center", justifyContent: "center" }}
-          >
-            <Grid size={8} padding={3}>
-              <Typography variant="h5" fontWeight={700} gutterBottom>
-                {label}
-              </Typography>
-              <Typography variant="h5" fontWeight={300} gutterBottom>
-                {currentValue ? "Enabled" : "Disabled"}
-              </Typography>
-            </Grid>
-            <Grid
-              container
-              size={2}
-              padding={5}
-              direction="row"
-              sx={{ justifyContent: "flex-end" }}
-            >
-              <Switch
-                checked={currentValue}
-                onChange={async (e) => {
-                  const newValue = e.target.checked;
-                  setValue(newValue);
-                  if (currentUser) {
-                    currentUser[isTexts ? "receiveTexts" : "receiveEmails"] =
-                      newValue;
-                  }
-                  try {
-                    await api.put(`/users/${currentUser?.id}`, {
-                      [fieldName]: newValue,
-                    });
-                    setResponseMsg("Setting updated successfully!");
-                  } catch (error: any) {
-                    setResponseMsg(
-                      error.response?.data?.message ||
-                        "Error updating setting.",
-                    );
-                    // Revert on error
-                    setValue(!newValue);
-                    if (currentUser) {
-                      currentUser[isTexts ? "receiveTexts" : "receiveEmails"] =
-                        !newValue;
-                    }
-                  }
-                }}
-              />
-            </Grid>
-          </Grid>
-        </Box>
-      );
-    }
-
+    
     let buffArray = [""]; // used to keep track of empty buffers
     switch (count) {
       case 1:
@@ -607,6 +545,81 @@ const UserSettings = () => {
     );
   };
 
+  const settingSwitch = (label: string, value: boolean) => {
+    // Special handling for toggle settings
+    if (label === "Receive Texts" || label === "Receive Emails") {
+      const isTexts = label === "Receive Texts";
+      const currentValue = isTexts ? receiveTexts : receiveEmails;
+      const setValue = isTexts ? setReceiveTexts : setReceiveEmails;
+      const fieldName = isTexts ? "receiveTexts" : "receiveEmails";
+
+      return (
+        <Box>
+          <Grid
+            container
+            spacing={2}
+            sx={{ alignItems: "center", justifyContent: "center" }}
+          >
+            <Grid size={8} padding={3}>
+              <Typography variant="h5" fontWeight={700} gutterBottom>
+                {label}
+              </Typography>
+              <Typography variant="h5" fontWeight={300} gutterBottom>
+                {value ? "Enabled" : "Disabled"}
+              </Typography>
+            </Grid>
+            <Grid
+              container
+              size={2}
+              padding={5}
+              direction="row"
+              sx={{ justifyContent: "flex-end" }}
+            >
+              <Switch
+                checked={value}
+                onChange={async (e) => {
+                  const newValue = e.target.checked;
+                  setValue(newValue);
+                  if (currentUser) {
+                    let newData = {};
+                    isTexts ? currentUser.receiveTexts = newValue : currentUser.receiveEmails = newValue;
+                    isTexts ? newData = {receiveTexts: newValue} : newData = {receiveEmails: newValue}
+                    try {
+                      // 2. Authenticate with Firebase directly
+                      const firebaseUser = auth.currentUser;
+                      if (firebaseUser != null) {
+                        const idToken = await firebaseUser.getIdToken();
+
+                        const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID, {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+                          
+                          body: JSON.stringify({newData}),
+                        });
+                        const result = await response.json();
+                        if (!response.ok) {
+                          setResponseMsg(result.message || "Error updating user."); // Show the backend error directly
+                        } else {
+                          setResponseMsg(result.message || "Setting updated successfully!");
+                        }
+                      }
+                    } catch (error: any) {
+                      setResponseMsg(error.response?.data?.message || "Error updating setting.");
+                      console.log("Error updating user: ", error);
+                      // Revert on error
+                      setValue(!newValue);
+                      isTexts ? currentUser.receiveTexts = !newValue : currentUser.receiveEmails = !newValue;
+                    }
+                  }
+                }}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+      );
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -634,8 +647,8 @@ const UserSettings = () => {
             {settingRow("Phone Number", currentUser?.phoneNumber ?? "", 1)}
             {settingRow("Password", "***********", 2)}
             {settingRow("Address", fullAddress ?? "", 4)}
-            {settingRow("Receive Texts", receiveTexts ? "Yes" : "No", 0)}
-            {settingRow("Receive Emails", receiveEmails ? "Yes" : "No", 0)}
+            {settingSwitch("Receive Texts", currentUser?.receiveTexts ?? false)}
+            {settingSwitch("Receive Emails", currentUser?.receiveEmails ?? false)}
           </Stack>
         </Box>
         <Button

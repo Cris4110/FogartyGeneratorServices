@@ -250,6 +250,36 @@ const UserRegistration: React.FC = () => {
             error={!validBuff6}
             helperText = {!validBuff6 ? "Password must be at least 12 characters long and include at least 2 uppercase, 2 lowercase, 2 numbers, and 2 special characters." : ''}
           />
+          <div>
+            <label
+            style={{
+              display: "block",
+              textAlign: "center",
+              marginTop: "0.75rem",
+            }}
+            ></label>
+            <input
+              type="checkbox"
+              checked={receiveTexts}
+              onChange={(e) => setReceiveTexts(e.target.checked)}
+              style={{ marginRight: "0.5rem" }}
+            />
+            Receive Texts
+            <input
+              type="checkbox"
+              checked={receiveEmails}
+              onChange={(e) => setReceiveEmails(e.target.checked)}
+              style={{ marginRight: "0.5rem" }}
+            />
+            Receive Emails
+            <label
+              style={{
+                display: "block",
+                textAlign: "center",
+                marginTop: "0.5rem",
+              }}
+            ></label>
+          </div>
           < TextField placeholder="Street" variant="outlined"
             value={street}
             onChange={(e) => checkRegex("Street", streetRegex, e.target.value, false)}
@@ -288,12 +318,6 @@ const UserRegistration: React.FC = () => {
           <Button variant="contained" disabled={disableButton || buffArray.some(element => element=="")} onClick={handleSubmit}>Create User</Button>
         </div>
       </form>
-
-          <div style={{ textAlign: "center" }}>
-            <button type="submit">Create User</button>
-          </div>
-        </form>
-
         {responseMsg && (
           <p style={{ textAlign: "center", marginTop: "1rem" }}>
             {responseMsg}

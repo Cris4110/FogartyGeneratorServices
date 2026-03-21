@@ -12,7 +12,9 @@ export type User = {
   role: "user" | "admin";
   photoURL?: string;
   phoneNumber?: string; 
-  address?: any;        
+  address?: any;
+  receiveTexts?: boolean;
+  receiveEmails?: boolean;
 };
 
 // 2. Define the Context interface
