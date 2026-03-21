@@ -17,19 +17,45 @@ const PartSchema = mongoose.Schema(
         Stock: {
             type: Number,
             required: true,
+            default: 0
+        },
+
+        Image_Url: {
+            type: String,
+            requried: false,
             default: ""
         },
+         Image_Key: {
+            type: String,
+            required: false,
+            default: "",
+            },
 
-
-        images: {
-            type: [String],
-            required: true,
-            default: []
+        Image_Url2: {
+            type: String,
+            requried: false,
+            default: ""
         },
+         Image_Key2: {
+            type: String,
+            required: false,
+            default: "",
+            },
+
+        Image_Url3: {
+            type: String,
+            requried: false,
+            default: ""
+        },
+         Image_Key3: {
+            type: String,
+            required: false,
+            default: "",
+            },
 
         Description: {
             type: String,
-            required: false,
+            requried: false,
             default: ""
         },
        
