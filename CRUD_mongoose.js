@@ -17,6 +17,7 @@ import userRoute from "./routes/user.route.js";
 import quoteRoute from "./routes/quote.route.js";
 import pagecontentRoute from "./routes/pagecontent.route.js";
 import partrequestRoute from "./routes/partrequest.route.js";
+import returnsRoute from "./routes/returns.route.js"
 import invoiceRoute from "./routes/invoice.route.js";
 
 dotenv.config();
@@ -47,6 +48,7 @@ app.use('/api/manufacturers', manufacturerRoute);
 app.use('/api/quotes', quoteRoute);
 app.use('/api/pagecontent', pagecontentRoute);
 app.use('/api/partrequests', partrequestRoute);
+app.use('/api/returns', returnsRoute);
 app.use('/api/invoices', invoiceRoute);
 
 app.get('/', (req, res) => {
