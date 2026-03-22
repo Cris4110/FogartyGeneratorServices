@@ -17,8 +17,10 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../../firebase"; 
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase";
+import { setPersistence, browserSessionPersistence, signInWithEmailAndPassword } from "firebase/auth";
+import ForgotPassword from "./ForgotPassword";
+import { Link } from "react-router-dom";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
@@ -42,45 +44,63 @@ export default function Login() {
   const formValid = !emailError && !passwordError;
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (submitting) return;
-  setSubmitting(true);
+    e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
 
-  try {
-    // 2. Authenticate with Firebase directly
-    const userCredential = await signInWithEmailAndPassword(
-      auth, 
-      email.toLowerCase().trim(), 
-      password.trim()
-    );
-    
-    const firebaseUser = userCredential.user;
-    const idToken = await firebaseUser.getIdToken();
+    try {
+      // 1. Authenticate with Firebase
+      await setPersistence(auth, browserSessionPersistence);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email.toLowerCase().trim(),
+        password.trim()
+      );
 
-    // 3. (Optional) Verify profile exists in MongoDB
-    // This calls your PROTECTED 'me' route we just fixed
-    const response = await api.get(`/users/me/${firebaseUser.uid}`, {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-      },
-    });
+      const firebaseUser = userCredential.user;
+      const idToken = await firebaseUser.getIdToken();
 
-    setSnack({ open: true, msg: "Welcome back!", sev: "success" });
-    
-    // 4. Redirect home after a successful Firebase + DB check
-    setTimeout(() => navigate("/"), 1000); 
+      // 2. Verify profile exists in MongoDB
+      try {
+        await api.get(`/users/me/${firebaseUser.uid}`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
 
-  } catch (err: any) {
-    // Handle Firebase specific errors (wrong password, user not found, etc.)
-    const msg = err.code === 'auth/invalid-credential' 
-      ? "Invalid email or password" 
-      : err.message || "Login failed";
-      
-    setSnack({ open: true, msg, sev: "error" });
-  } finally {
-    setSubmitting(false);
-  }
-};
+        // If we reach here, user exists in both places
+        setSnack({ open: true, msg: "Welcome back!", sev: "success" });
+        setTimeout(() => navigate("/"), 1000);
+
+      } catch (dbErr: any) {
+        // If the DB returns 404, the user was deleted from the backend
+        if (dbErr.response?.status === 404) {
+          await auth.signOut(); // Force logout from Firebase
+          setSnack({
+            open: true,
+            msg: "This account has been deactivated or not found.",
+            sev: "error"
+          });
+        } else {
+          throw dbErr; // Rethrow other errors
+        }
+      }
+
+    } catch (err: any) {
+      // Handle Firebase specific errors
+      let msg = "Login failed";
+
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
+        msg = "Invalid email or password";
+      } else if (err.code === 'auth/too-many-requests') {
+        msg = "Too many failed attempts. Try again later.";
+      } else {
+        msg = err.message || "Login failed";
+      }
+
+      setSnack({ open: true, msg, sev: "error" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
   return (
     <>
       <Navbar />
@@ -158,7 +178,12 @@ export default function Login() {
             </Button>
 
             <Box sx={{ mt: 2, textAlign: "right" }}>
-              <Button variant="text" size="small" href="/forgot-password">
+              <Button
+                variant="text"
+                size="small"
+                component={Link}
+                to="/forgot-password"
+              >
                 Forgot password?
               </Button>
             </Box>

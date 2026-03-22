@@ -432,3 +432,10 @@ src/pages/.DS_Store
 
 # VS Code settings folder
 .vscode/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

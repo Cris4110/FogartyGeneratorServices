@@ -10,8 +10,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const ctx = useContext(AuthContext);
   const [checking, setChecking] = useState(true);
   const [valid, setValid] = useState(false);
+  const [isActionInProgress, setIsActionInProgress] = useState(false);
 
-  if (!ctx) return <Navigate to="/login" replace />;
+  if (!ctx) return <Navigate to="/userlogin" replace />;
 
   const { currentUser, setCurrentUser } = ctx;
 
@@ -48,8 +49,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }, [currentUser, setCurrentUser]);
 
   if (checking) return <div>Checking authentication...</div>;
-  if (!valid) return <Navigate to="/login" replace />;
-
+  if (!valid && !isActionInProgress) {
+    return <Navigate to="/userlogin" replace />;
+  }
   return <>{children}</>;
 };
 

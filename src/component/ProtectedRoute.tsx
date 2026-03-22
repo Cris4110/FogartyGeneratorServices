@@ -22,13 +22,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
 
   // 3. If no user is logged in (Firebase returned null)
   if (!currentUser) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/userlogin" replace />;
   }
 
   // 4. If the route is Admin-Only, but the MongoDB role isn't 'admin'
   if (adminOnly && !isAdmin) {
     console.warn("Access denied: User does not have Admin privileges.");
-    return <Navigate to="/" replace />;
+    return <Navigate to="/userlogin" replace />;
   }
 
   // 5. Success: Render children (for wrappers) or Outlet (for nested route groups)

@@ -154,10 +154,10 @@ const UserRegistration: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`, // 👈 ADD THIS HEADER
+          "Authorization": `Bearer ${idToken}` // 👈 ADD THIS HEADER
         },
         body: JSON.stringify(newUser),
-      });
+      })
       const result = await response.json();
 
       if (!response.ok) {
@@ -170,7 +170,6 @@ const UserRegistration: React.FC = () => {
         // Clear fields
         setFname("");
         setLname("");
-        setUserID("");
         setEmail("");
         setPhoneNumber("");
         setPassword("");

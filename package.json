@@ -14,7 +14,7 @@
     "test:appointment": "node tests/requestAppointment.selenium.mjs",
     "test:quote": "node tests/requestQuote.selenium.mjs",
     "serve": "node CRUD_mongoose.js",
-    "server": "nodemon CRUD_mongoose.js"
+    "server": "npx tsx CRUD_mongoose.js"
   },
   "keywords": [],
   "author": "",
@@ -38,7 +38,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "firebase": "^12.10.0",
-    "firebase-admin": "^13.7.0",
+    "firebase-admin": "^10.3.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
     "multer": "^2.1.1",
@@ -54,6 +54,7 @@
     "update": "^0.7.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/express": "^5.0.6",
     "@types/node": "^25.3.0",
     "@types/react": "^19.0.0",

@@ -2,11 +2,13 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PublicRoutes from "./routes/publicroutes";
 import AdminRoutes from "./routes/adminroutes";
-import Login from "./auth/admin/Login"; 
-import ProtectedRoute from "./component/ProtectedRoute"; 
-import AdminRegistration from "./routes/userregroute";
+import Login from "./pages/public/UserLogin";
+import ProtectedRoute from "./component/ProtectedRoute";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import ForgotPassword from "./pages/public/ForgotPassword";
+
+
 
 const App: React.FC = () => {
   return (
@@ -15,28 +17,21 @@ const App: React.FC = () => {
         <Routes>
           {/* Public portal: Home, Request Quote, etc. */}
           <Route path="/*" element={<PublicRoutes />} />
-          
+
           {/* Login page */}
-          <Route path="/login" element={<Login />} />
+          <Route path="/userlogin" element={<Login />} />
 
-          {/* PROTECTED: Admin Registration */}
-          <Route 
-            path="/adminreg" 
-            element={
-              <ProtectedRoute adminOnly={true}>
-                <AdminRegistration />
-              </ProtectedRoute>
-            } 
-          />
+          {/* ADD THIS LINE HERE */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* PROTECTED: Admin Dashboard and sub-routes */}
-          <Route 
-            path="/admin/*" 
+          {/* PROTECTED: Admin routes */}
+          <Route
+            path="/admin/*"
             element={
-              <ProtectedRoute adminOnly={true}>
+              <ProtectedRoute>
                 <AdminRoutes />
               </ProtectedRoute>
-            } 
+            }
           />
         </Routes>
       </BrowserRouter>

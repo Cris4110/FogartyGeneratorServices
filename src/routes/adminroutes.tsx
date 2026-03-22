@@ -18,7 +18,7 @@ const AdminRoutes = () => (
        This ensures that "/admin/dashboard" renders the Dashboard component.
     */}
     <Route path="/dashboard" element={<Dashboard />} />
-    
+
     <Route path="/user-management" element={<UserManagementPage />} />
     <Route path="/incoming/appointments" element={<AppointmentRequest />} />
     <Route path="/incoming/parts" element={<PartsRequest />} />
