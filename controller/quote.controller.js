@@ -3,8 +3,6 @@ import PageContent from '../models/pagecontent.model.js';
 import { sendEmail } from "../backend/services/emailService.js";
 import { quoteRequestTemplate } from "../backend/services/emailTemplates.js";
 import { sendAdminNotification } from '../backend/services/quoteMailer.js';
-import PageContent from '../models/pagecontent.model.js'
-import { sendAdminNotification } from '../backend/services/quoteMailer.js';;
 
 export const getQuotes = async (req, res) =>{
     try {

@@ -402,13 +402,6 @@ export const updateAppointmentStatus = async (req, res) => {
         } else {
           console.error("Could not find an email address for this appointment.");
         }
-        await sendAdminNotification({
-  name: updatedAppt.name,
-  email: updatedAppt.email,
-  status: updatedAppt.status,
-  appointmentDateTime: updatedAppt.appointmentDateTime,
-  rescheduledDateTime: updatedAppt.rescheduledDateTime,
-});
       } catch (err) {
         console.error("Auto-email failed:", err);
       }
