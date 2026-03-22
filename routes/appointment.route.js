@@ -14,6 +14,7 @@ router.get("/", getAppointments);
 router.get("/:id", getAppointment);
 router.post("/", createAppointment);
 router.put("/:id", updateAppointment);
+router.patch("/:id/status", updateAppointmentStatus);
 router.put("/:id/status", updateAppointmentStatus);
 router.delete("/:id", deleteAppointment);
 // Update appointment status

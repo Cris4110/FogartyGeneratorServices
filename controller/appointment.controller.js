@@ -3,7 +3,9 @@
 import Appointment from "../models/appointment.model.js";
 import User from "../models/user.model.js";
 import PageContent from '../models/pagecontent.model.js';
-import { sendAdminNotification } from '../backend/services/appointmentMailer.js';
+import { sendEmail } from "../backend/services/emailService.js";
+import { appointmentConfirmationTemplate,appointmentStatusTemplate } from "../backend/services/emailTemplates.js";
+import { sendAdminNotification } from "../backend/services/appointmentMailer.js";
 
 //get busy ranges for accepted/rescheduled appointments (for calendar blocking on frontend)
 export const getBusyRanges = async (req, res) => {
@@ -239,6 +241,7 @@ export const getAppointment = async (req, res) => {
 export const createAppointment = async (req, res) => {
   try {
     const {
+      
       userID,
       appointmentDateTime,
       appointmentEndDateTime,
@@ -247,6 +250,18 @@ export const createAppointment = async (req, res) => {
       description,
       createdBy,
     } = req.body;
+
+    
+
+  await sendEmail(
+  req.body.email,
+  "Appointment Request Received",
+  appointmentConfirmationTemplate({
+    name: req.body.name,
+    phone: req.body.phone,
+    address: req.body.address
+  })
+);
 
     const start = new Date(appointmentDateTime);
     if (isNaN(start.getTime())) {
@@ -314,44 +329,100 @@ export const updateAppointment = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+await sendEmail(
+  appointment.email,
+  "Appointment Status Update",
+  appointmentStatusTemplate({
+    name: appointment.name,
+    status: appointment.status
+  })
+);
+
 };
 
 
 // UPDATE status or reschedule
+// controllers/appointment.controller.js
 export const updateAppointmentStatus = async (req, res) => {
-   try {
-    const {
-      status,
-      rescheduledDateTime,
-      rescheduledEndDateTime,
-      appointmentEndDateTime,
-    } = req.body;
-
+  try {
+    const { status, newAppointmentTime, newEndAppointmentTime, appointmentEndDateTime } = req.body;
+    
+    // 1. Prepare the update object for the Database
     const update = { status };
 
-    // Accept => save end time
-    if (status === "accepted") {
-      if (!appointmentEndDateTime) {
-        return res.status(400).json({ message: "appointmentEndDateTime is required for accepted" });
-      }
+    if (status === "accepted" && appointmentEndDateTime) {
       update.appointmentEndDateTime = new Date(appointmentEndDateTime);
     }
 
-    // Reschedule => save new start + new end
-    if (status === "rescheduled") {
-      if (!rescheduledDateTime || !rescheduledEndDateTime) {
-        return res.status(400).json({ message: "newAppointmentTime and newEndAppointmentTime are required for rescheduled" });
-      }
-      update.rescheduledDateTime = new Date(rescheduledDateTime);
-      update.rescheduledEndDateTime = new Date(rescheduledEndDateTime);
-    }
+   if (status === "rescheduled") {
+  if (!newAppointmentTime) {
+    return res.status(400).json({ message: "New time required" });
+  }
 
-    const result = await Appointment.findByIdAndUpdate(req.params.id, update, { new: true });
-    res.json(result);
+  update.rescheduledDateTime = new Date(newAppointmentTime);
+
+  if (newEndAppointmentTime) {
+    update.rescheduledEndDateTime = new Date(newEndAppointmentTime);
+  }
+}
+    // 2. Update the appointment in the DB
+    const updatedAppt = await Appointment.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!updatedAppt) return res.status(404).json({ message: "Appointment not found" });
+
+    // 3. AUTOMATIC EMAIL TRIGGER based on new status
+    (async () => {
+      try {
+        let recipientEmail = updatedAppt.email;
+        let recipientName = updatedAppt.name;
+
+        // If email isn't on the appointment, look up the User document
+        if (!recipientEmail && updatedAppt.userID) {
+          const user = await User.findOne({ userID: updatedAppt.userID });
+          if (user) {
+            recipientEmail = user.email;
+            recipientName = user.name;
+          }
+        }
+
+        // Only send if we found an email
+        if (recipientEmail) {
+          const emailHtml = appointmentStatusTemplate({
+            name: recipientName || "Customer",
+            status: status, // "accepted", "denied", or "rescheduled"
+            newDate: status === "rescheduled" ? updatedAppt.rescheduledDateTime.toLocaleString() : null
+          });
+
+          await sendEmail(
+            recipientEmail,
+            `Update: Your Appointment is ${status.toUpperCase()}`,
+            emailHtml
+          );
+          console.log(`Auto-email sent to ${recipientEmail} for status: ${status}`);
+          
+        } else {
+          console.error("Could not find an email address for this appointment.");
+        }
+        await sendAdminNotification({
+  name: updatedAppt.name,
+  email: updatedAppt.email,
+  status: updatedAppt.status,
+  appointmentDateTime: updatedAppt.appointmentDateTime,
+  rescheduledDateTime: updatedAppt.rescheduledDateTime,
+});
+      } catch (err) {
+        console.error("Auto-email failed:", err);
+      }
+    })();
+
+    // 4. Send success back to the Admin Dashboard immediately
+    return res.json({ message: `Appointment ${status} successfully`, updatedAppt });
+
   } catch (err) {
+    console.error("Update error:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
 
 
 // DELETE appointment

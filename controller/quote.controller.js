@@ -1,4 +1,8 @@
 import Quote from '../models/quote.model.js';
+import PageContent from '../models/pagecontent.model.js';
+import { sendEmail } from "../backend/services/emailService.js";
+import { quoteRequestTemplate } from "../backend/services/emailTemplates.js";
+import { sendAdminNotification } from '../backend/services/quoteMailer.js';
 import PageContent from '../models/pagecontent.model.js'
 import { sendAdminNotification } from '../backend/services/quoteMailer.js';;
 
@@ -48,30 +52,45 @@ export const getQuote = async (req, res) =>{
 }
 
 export const createQuote = async (req, res) => {
-    try{
+    try {
         const savedRequest = await Quote.create(req.body);
-        console.log("Data saved to MongoDB:", savedRequest._id);
 
+        // ✅ CUSTOMER EMAIL
+        await sendEmail(
+            savedRequest.email,
+            "Quote Request Received",
+            quoteRequestTemplate({
+                name: savedRequest.name,
+                phone: savedRequest.phoneNumber,
+                model: savedRequest.genModel,
+                serial: savedRequest.genSerialNumber,
+                notes: savedRequest.additionalInfo,
+            })
+        );
+
+        // ✅ ADMIN EMAIL
         await sendAdminNotification({
-        name: savedRequest.name,
-        email: savedRequest.email,
-        phoneNumber: savedRequest.phoneNumber,
-        genModel: savedRequest.genModel,
-        genSerialNumber: savedRequest.genSerialNumber,
-        message: savedRequest.additionalInfo
+            name: savedRequest.name,
+            email: savedRequest.email,
+            phoneNumber: savedRequest.phoneNumber,
+            genModel: savedRequest.genModel,
+            genSerialNumber: savedRequest.genSerialNumber,
+            message: savedRequest.additionalInfo
         });
-        console.log("Email notification sent to Mailtrap");
 
         return res.status(201).json({ 
-        message: "Request sent.",
-        data: savedRequest 
+            message: "Request sent.",
+            data: savedRequest 
         });
 
     } catch (error) {
         console.error("Quote Creation Error:", error.message);
         
         if (!res.headersSent) {
-        return res.status(500).json({ error: "Failed to process request.", details: error.message });
+            return res.status(500).json({ 
+                error: "Failed to process request.", 
+                details: error.message 
+            });
         }
     }
 }
