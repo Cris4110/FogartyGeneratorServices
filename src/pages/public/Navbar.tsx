@@ -3,7 +3,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { auth } from "../../firebase"; 
 import { signOut } from "firebase/auth";
 import { useAuth } from "../../context/Appcontext"; 
-import logo from "../../assets/logo.png";
+import logo from "../../assets/fogarty_logo_transparent.png";
+import logo_name from "../../assets/FOGARTY_NAME.png"
 import {
   AppBar,
   Toolbar,
@@ -18,8 +19,8 @@ import {
 import type { Theme } from "@emotion/react";
 
 const ImageStyle: SxProps<Theme> = {
-  width: "100px",
-  height: "100px",
+  width: 150,
+  height: 100,
   alignSelf: "center",
 };
 
@@ -69,19 +70,7 @@ function Navbar() {
               sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}
             >
               <Box component="img" src={logo} alt="logo" sx={ImageStyle} />
-              <Typography
-                variant="h6"
-                noWrap
-                sx={{
-                  mr: 2,
-                  display: { xs: "none", md: "flex" },
-                  fontFamily: "monospace",
-                  fontWeight: 700,
-                  letterSpacing: ".1rem",
-                }}
-              >
-                Fogarty Onsite
-              </Typography>
+              <Box component="img" src={logo_name} alt="logo" sx={{width: 200, height: 100}} />
             </Box>
 
             {/* Main Navigation Links */}

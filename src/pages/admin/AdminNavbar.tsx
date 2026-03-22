@@ -2,7 +2,7 @@ import { Box, Typography, Button, Stack, Collapse } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/FOGARTY_NAME.png";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { auth as firebaseAuth } from "../../firebase";
 import { signOut } from "firebase/auth";
@@ -67,7 +67,7 @@ const AdminNavbar = () => {
     >
       {/* Logo Section */}
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
-        <Box component="img" src={logo} alt="Logo" sx={{ width: 120, height: 120, mb: 1 }} />
+        <Box component="img" src={logo} alt="Logo" sx={{ width: 250, height: 120, mb: 1 }} />
         <Typography variant="h6" sx={{ fontWeight: "bold", color: "#1976d2", textAlign: "center" }}>
           Admin Portal
         </Typography>
