@@ -1,129 +1,267 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 // Import the central API helper you created
-import { apiRequest } from "../../utils/api"; 
+
+type ImageSlotProps = {
+  title: string;
+  manualUrl: string;
+  setManualUrl: React.Dispatch<React.SetStateAction<string>>;
+  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+};
+
+const ImageSlot: React.FC<ImageSlotProps> = ({
+  title,
+  manualUrl,
+  setManualUrl,
+  setFile,
+}) => {
+  return (
+    <div
+      style={{
+        width: "80%",
+        margin: "1rem auto",
+        padding: "0.75rem",
+        border: "1px solid #ddd",
+        borderRadius: "6px",
+        backgroundColor: "#fafafa",
+      }}
+    >
+      <h4 style={{ margin: "0 0 0.75rem 0" }}>{title}</h4>
+
+      <input
+        type="text"
+        placeholder="Paste image URL"
+        value={manualUrl}
+        onChange={(e) => setManualUrl(e.target.value)}
+        style={fullInputStyle}
+      />
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
+        style={{
+          display: "block",
+          width: "100%",
+          marginTop: "0.5rem",
+        }}
+      />
+    </div>
+  );
+};
 
 const CreatePart: React.FC = () => {
-    const [partID, setPartid] = useState("");
-    const [Stock, setStock] = useState("");
-    const [Part_Name, setPart_Name] = useState("");
-    const [Description, setDescription] = useState("");
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [responseMsg, setResponseMsg] = useState("");
-    const navigate = useNavigate();
+const [partID, setPartid] = useState("");
+const [Stock, setStock] = useState("");
+const [Part_Name, setPart_Name] = useState("");
+const [Description, setDescription] = useState("");
+const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+const [responseMsg, setResponseMsg] = useState("");
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            setSelectedFiles((prev) => [...prev, ...newFiles].slice(0, 10));
-        }
+     // slot 1
+const [imageFile1, setImageFile1] = useState<File | null>(null);
+const [manualImageUrl1, setManualImageUrl1] = useState("");
+
+    // slot 2
+const [imageFile2, setImageFile2] = useState<File | null>(null);
+const [manualImageUrl2, setManualImageUrl2] = useState("");
+
+    // slot 3
+const [imageFile3, setImageFile3] = useState<File | null>(null);
+const [manualImageUrl3, setManualImageUrl3] = useState("");
+
+const navigate = useNavigate();
+
+const uploadImageIfNeeded = async (
+    file: File | null,
+    manualUrl: string
+): Promise<{ imageUrl: string; imageKey: string }> => {
+    if (file) {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const uploadResponse = await fetch("http://localhost:3000/api/upload", {
+        method: "POST",
+        body: formData,
+    });
+
+    const uploadResult = await uploadResponse.json();
+
+    if (!uploadResponse.ok) {
+        throw new Error(uploadResult.message || "Image upload failed.");
+    }
+
+    return {
+        imageUrl: uploadResult.imageUrl || "",
+        imageKey: uploadResult.key || "",
     };
+    }
 
-    const removeFile = (index: number) => {
-        setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    if (manualUrl.trim()) {
+    return {
+        imageUrl: manualUrl.trim(),
+        imageKey: "",
     };
+    }
 
-const handleSubmit = async (e: React.FormEvent) => {
+    return {
+    imageUrl: "",
+    imageKey: "",
+    };
+};
+
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-        const formData = new FormData();
-        formData.append("Part_Name", Part_Name);
-        formData.append("Stock", Stock);
-        formData.append("Description", Description);
+    setResponseMsg("");
 
-        selectedFiles.forEach((file) => {
-            formData.append("images", file); // Must match backend key
-        });
+    try {
+    const slot1 = await uploadImageIfNeeded(imageFile1, manualImageUrl1);
+    const slot2 = await uploadImageIfNeeded(imageFile2, manualImageUrl2);
+    const slot3 = await uploadImageIfNeeded(imageFile3, manualImageUrl3);
 
-        try {
-            const response = await fetch("http://localhost:3000/api/parts", {
-                method: "POST",
-                body: formData,
-            });
-            const result = await response.json();
-    
-            if (!response.ok) {
-                // Show the backend error directly
-                setResponseMsg(result.message || "Error adding Generator.");
-            } else {
-                setResponseMsg(result.message || "Generator added successfully!");
-                // Clear form fields after success
-                setPartid("");
-                setStock("");
-                setPart_Name("");
-                
-                // Redirect back to inventory management
-                navigate("/admin/inven-management");
-            }
-        } catch (error) {
-            // apiRequest throws an Error if response.ok is false
-            setResponseMsg(error instanceof Error ? error.message : "Error connecting to server.");
-            console.error(error);
-        }
-    };
+    const response = await fetch("http://localhost:3000/api/parts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+        partID,
+        Part_Name,
+        Stock: Number(Stock),
+        Description,
 
-    return (
-        <div style={{ fontFamily: "Arial, sans-serif", padding: "2rem" }}>
+        Image_Url: slot1.imageUrl,
+        Image_Key: slot1.imageKey,
+
+        Image_Url2: slot2.imageUrl,
+        Image_Key2: slot2.imageKey,
+
+        Image_Url3: slot3.imageUrl,
+        Image_Key3: slot3.imageKey,
+        }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        setResponseMsg(result.message || "Error adding Part.");
+    } else {
+        setResponseMsg(result.message || "Part added successfully!");
+
+        setPartid("");
+        setStock("");
+        setPart_Name("");
+        setDescription("");
+
+        setImageFile1(null);
+        setManualImageUrl1("");
+
+        setImageFile2(null);
+        setManualImageUrl2("");
+
+        setImageFile3(null);
+        setManualImageUrl3("");
+
+        navigate("/admin/inven-management");
+    }
+    } catch (error) {
+    setResponseMsg(
+        error instanceof Error ? error.message : "Error connecting to server."
+    );
+    console.error(error);
+    }
+};
+
+return (
+    <div style={{ fontFamily: "Arial, sans-serif", padding: "2rem" }}>
+        <div style={{ textAlign: "center" }}>
+            <h1>Fogarty Onsite</h1>
+            <h1>Generator Service</h1>
+        </div>
+
+        <form
+            onSubmit={handleSubmit}
+            style={{
+                background: "white",
+                padding: "2rem",
+                borderRadius: "8px",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                maxWidth: "400px",
+                margin: "auto",
+            }}
+        >
             <div style={{ textAlign: "center" }}>
-                <h1>Fogarty Onsite</h1>
-                <h1>Generator Service</h1>
+                <h3>Add a part</h3>
             </div>
+                <input
+                type="text"
+                placeholder="Part Name"
+                value={Part_Name}
+                onChange={(e) => setPart_Name(e.target.value)}
+                required
+                style={inputStyle}
+                />
 
-            <form
-                onSubmit={handleSubmit}
-                style={{
-                    background: "white",
-                    padding: "2rem",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                    maxWidth: "400px",
-                    margin: "auto",
-                }}
-            >
-                {/* File Upload Section - Centered to match text inputs */}
-                <div style={{ width: "80%", margin: "1rem auto" }}>
-                    <label style={{ fontSize: "0.8rem", color: "#666" }}>
-                        Images ({selectedFiles.length}/10):
-                    </label>
-                    <input 
-                        type="file" 
-                        multiple 
-                        accept="image/*" 
-                        onChange={handleFileChange} 
-                        style={{ marginTop: "0.5rem", display: "block" }} 
-                    />
-                    
-                    {/* Visual list of chosen files */}
-                    <div style={{ marginTop: "10px" }}>
-                        {selectedFiles.map((file, index) => (
-                            <div key={index} style={{ fontSize: "0.75rem", display: "flex", justifyContent: "space-between", background: "#f4f4f4", padding: "4px", marginBottom: "3px", border: "1px solid #ddd" }}>
-                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "180px" }}>{file.name}</span>
-                                <span onClick={() => removeFile(index)} style={{ color: "red", cursor: "pointer", fontWeight: "bold" }}>X</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-        
-                <div style={{ textAlign: "center" }}>
-                    <button 
-                        type="submit"
-                        style={{
-                            backgroundColor: "#d32f2f", // Red
-                            color: "white",             // White text
-                            border: "none",
-                            borderRadius: "0px",        // Square
-                            padding: "0.75rem 1.5rem",
-                            width: "80%",
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            textTransform: "uppercase"
-                        }}
-                    >
-                        Add Part
-                    </button>
+                <input
+                type="text"
+                placeholder="Description"
+                value={Description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                style={inputStyle}
+                />
+
+                <input
+                type="number"
+                placeholder="Stock"
+                value={Stock}
+                onChange={(e) => setStock(e.target.value)}
+                required
+                style={inputStyle}
+                />
+
+                <ImageSlot
+                title="Image Slot 1"
+                manualUrl={manualImageUrl1}
+                setManualUrl={setManualImageUrl1}
+                setFile={setImageFile1}
+                />
+
+                <ImageSlot
+                title="Image Slot 2"
+                manualUrl={manualImageUrl2}
+                setManualUrl={setManualImageUrl2}
+                setFile={setImageFile2}
+                />
+
+                <ImageSlot
+                title="Image Slot 3"
+                manualUrl={manualImageUrl3}
+                setManualUrl={setManualImageUrl3}
+                setFile={setImageFile3}
+                />
+
+                <div style={{ textAlign: "center", marginTop: "1rem" }}>
+                <button
+                    type="submit"
+                    style={{
+                    backgroundColor: "#d32f2f",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "0px",
+                    padding: "0.75rem 1.5rem",
+                    width: "80%",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    textTransform: "uppercase",
+                    }}
+                >
+                    Add Part
+                </button>
                 </div>
             </form>
-            {responseMsg && <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>}
+
+            {responseMsg && (
+            <p style={{ textAlign: "center", marginTop: "1rem" }}>{responseMsg}</p>
+            )}
         </div>
     );
 };
@@ -136,6 +274,15 @@ const inputStyle = {
     padding: "0.5rem",
     borderRadius: "4px",
     border: "1px solid #ccc",
+};
+
+const fullInputStyle = {
+  display: "block",
+  width: "100%",
+  padding: "0.5rem",
+  borderRadius: "4px",
+  border: "1px solid #ccc",
+  boxSizing: "border-box" as const,
 };
 
 export default CreatePart;

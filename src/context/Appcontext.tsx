@@ -13,6 +13,10 @@ export type User = {
   photoURL?: string;
   phoneNumber?: string;
   address?: any;
+  phoneNumber?: string; 
+  address?: any;
+  receiveTexts?: boolean;
+  receiveEmails?: boolean;
 };
 
 // 2. Define the Context interface

@@ -11,9 +11,11 @@ import {
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/Appcontext"; // 1. Import your context
 
 
 function RequestPart() {
+  const { currentUser, authReady } = useAuth(); 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -88,46 +90,27 @@ function RequestPart() {
 
   
 useEffect(() => {
-    let cancelled = false;
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/api/users/me", {
-          method: "GET",
-          credentials: "include",
-        });
+      // 1. Wait until the AuthProvider has finished checking Firebase
+    if (authReady) {
+      // 2. If no user is found, send them to login
+    if (!currentUser) {
+      navigate("/userlogin");
+      return;
+    }
 
-        if (!res.ok) return;
-
-        const data = await res.json();
-        const user = data.user;
-        if (!user) {
-          if (!cancelled) navigate("/userlogin");
-          return;
-        }
-
-        // Prefill fields
-        if (!cancelled) {
-          const fullName = (user.name || "").trim();
-          if (fullName) {
-            const parts = fullName.split(" ");
-            setFirstName(parts.shift() || "");
-            setLastName(parts.join(" ") || "");
-          }
-          if (user.email) setEmail(user.email);
-          if (user.phoneNumber) setPhoneNumber(user.phoneNumber);
-          if (user.address) setAddress(user.address.street + ", " + user.address.city + ", " + user.address.state
-                      + " " + user.address.zipcode)
-        }
-      } catch (err) {
-        if (!cancelled) navigate("/userlogin");
-      }
-    };
-
-    checkAuth();
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
+    // 3. If user exists, prefill the form from the Context data
+    const fullName = (currentUser.name || "").trim();
+    if (fullName) {
+      const parts = fullName.split(" ");
+      setFirstName(parts.shift() || "");
+      setLastName(parts.join(" ") || "");
+    }
+    
+    if (currentUser.email) setEmail(currentUser.email);
+    // Use whatever field name you have in your MongoDB User model
+    if (currentUser.phoneNumber) setPhoneNumber(currentUser.phoneNumber);
+  }
+}, [authReady, currentUser, navigate]);
   
 return (
     <>

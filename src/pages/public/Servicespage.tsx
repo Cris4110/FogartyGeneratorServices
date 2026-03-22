@@ -116,6 +116,7 @@ function Servicespage() {
               Book an appointment here now!
             </Typography>
           </Box>
+
           {/* Contact Us Box */}
           <Box
             sx={{
@@ -147,6 +148,41 @@ function Servicespage() {
               Any questons or concerns? Contact us at (971) 244-2450
             </Typography>
           </Box>
+
+          {/* Returns Box */}
+          <Box
+            sx={{
+              mt: 3,
+              display: "flex",
+              gap: 2,
+              flexDirection: "column",
+              alignItems: "flex-start",
+            }}
+          >
+            <Button
+              component={Link}
+              to="/Returns"
+              variant="text"
+              style={{
+                fontFamily: "Sans-serif",
+                fontSize: "30px",
+                color: "#000000",
+                fontWeight: "bold",
+                textDecoration: "underline",
+                textTransform: "none",
+              }}
+            >
+              Returns
+            </Button>
+            <Typography
+              variant="h6" // smaller font
+              color="text.secondary" // grayish color
+              sx={{ textAlign: "left" }}
+            >
+              Returns? Start your return here!
+            </Typography>
+          </Box>
+
           {/* Leave a Review Button */}
           <Box
             sx={{

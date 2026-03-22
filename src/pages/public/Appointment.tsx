@@ -57,6 +57,8 @@ function Appointment() {
 
     const res = await api.post("/appointments", {
       userID: currentUser.userID,
+      email: currentUser.email,   
+      name: currentUser.name, 
       generatorModel,
       serialNumber,
       description,
@@ -143,9 +145,9 @@ function Appointment() {
               <form onSubmit={handleSubmit}>
                 {/*<TextField label="User ID" value={currentUser.userID} fullWidth sx={{ mb: 3 }} disabled />*/}
                 <TextField label="Name" value={currentUser.name || ""} fullWidth sx={{ mb: 2 }} disabled />
-                <TextField label="Generator Model" value={generatorModel} onChange={(e) => setGeneratorNumber(e.target.value)} fullWidth sx={{ mb: 3 }} />
-                <TextField label="Serial Number" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} fullWidth sx={{ mb: 3 }} />
-                <TextField required label="Problem Description" value={description} onChange={(e) => setDescription(e.target.value)} multiline rows={4} fullWidth sx={{ mb: 3 }} />
+                <TextField name="generatorModel" label="Generator Model" value={generatorModel} onChange={(e) => setGeneratorNumber(e.target.value)} fullWidth sx={{ mb: 3 }} />
+                <TextField name="serialNumber" label="Serial Number" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} fullWidth sx={{ mb: 3 }} />
+                <TextField name="description" required label="Problem Description" value={description} onChange={(e) => setDescription(e.target.value)} multiline rows={4} fullWidth sx={{ mb: 3 }} />
                 <Button variant="contained" color="primary" size="large" type="submit" disabled={!selectedTime}>Submit Request</Button>
               </form>
             )}

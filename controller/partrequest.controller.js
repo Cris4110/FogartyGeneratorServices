@@ -1,4 +1,5 @@
 import Partrequest from '../models/partrequest.model.js';
+import { sendAdminNotification } from '../backend/services/partMailer.js';
 
 export const getPartrequests  = async (req, res) =>{
  try {
@@ -22,13 +23,30 @@ export const getPartrequest = async (req, res) =>{
 }
 
 export const createPartrequest = async (req, res) => {
-        try {
-        const partrequest = await Partrequest.create(req.body);
-        res.status(200).json({message: "New part request added."});
-    } catch (error) {
-        res.status(500).json({message: error.message});
-    }
+    try {
+        const savedRequest = await Partrequest.create(req.body);
+        console.log("Part request saved to MongoDB");
+        await sendAdminNotification({
+            name: savedRequest.name,
+            email: savedRequest.email,
+            phoneNumber: savedRequest.phoneNumber,
+            partName: savedRequest.partName,
+            message: savedRequest.AdditionalInformation || savedRequest.message
+        });
+        console.log("Email notification sent to Mailtrap");
+        return res.status(201).json({ 
+      message: "Request sent.",
+      data: savedRequest 
+    });
+
+  } catch (error) {
+    console.error("Part Request Error:", error.message);
     
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Failed to process part request." });
+    }
+  }
+        
 }
 
 export const updatePartrequest = async (req, res) => {
@@ -49,7 +67,7 @@ export const updatePartrequest = async (req, res) => {
 export const deletePartrequest = async (req, res) => {
      try {
         const {id} = req.params;
-        const partrequest = await Partrequest.findOneAndDelete(id);
+        const partrequest = await Partrequest.findByIdAndDelete(id, req.body);
         if(!partrequest){
             return res.status(404).json({message: "Part request not found"});
         }
