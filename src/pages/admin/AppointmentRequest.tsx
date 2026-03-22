@@ -382,8 +382,8 @@ const textareaSx: React.CSSProperties = {
 
     if (status === "rescheduled") {
       const dt = dayjs(newDateTime);
-      payload.rescheduledDateTime = newDateTime;
-      payload.rescheduledEndDateTime  = endIso;
+      payload.newAppointmentTime = newDateTime;
+      payload.newEndAppointmentTime  = endIso;
     }
     if(status === "accepted") {
       payload.appointmentEndDateTime = endIso;
