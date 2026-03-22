@@ -11,6 +11,34 @@ router.post("/login", verifyFirebaseToken, (req, res) => {
     res.status(200).json({ message: "Authenticated", user: req.user });
 })
 
+// Get current user info - MUST be before /:id route
+router.get("/me", verifyFirebaseToken, async (req, res) => {
+    try {
+        const firebaseUid = req.user.uid;
+        
+        // The User model uses Firebase UID as _id
+        const user = await User.findById(firebaseUid).select("name email role userID phoneNumber address receiveTexts receiveEmails");
+        
+        if (!user) return res.status(404).json({ error: "user not found" });
+        
+        res.json({
+            user: {
+                id: String(user._id),
+                name: user.name,
+                email: user.email,
+                userID: user.userID, 
+                role: user.role,   
+                phoneNumber: user.phoneNumber,
+                address: user.address,
+                receiveTexts: user.receiveTexts,
+                receiveEmails: user.receiveEmails,
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Protected routes: require a valid Firebase token
 router.get('/', verifyFirebaseToken, getUsers);
 router.get("/:id", verifyFirebaseToken, getUser);
@@ -28,7 +56,7 @@ router.get("/me/:id", verifyFirebaseToken, async (req, res) => {
             return res.status(403).json({ error: "Access denied: Unauthorized UID" });
         }
 
-        const user = await User.findById(id).select("name email role userID phoneNumber address");
+        const user = await User.findById(id).select("name email role userID phoneNumber address receiveTexts receiveEmails");
         
         if (!user) return res.status(404).json({ error: "user not found" });
         
@@ -40,7 +68,9 @@ router.get("/me/:id", verifyFirebaseToken, async (req, res) => {
                 userID: user.userID, 
                 role: user.role,   
                 phoneNumber: user.phoneNumber,
-                address: user.address,    
+                address: user.address,
+                receiveTexts: user.receiveTexts,
+                receiveEmails: user.receiveEmails,  
             }
         });
     } catch (err) {
