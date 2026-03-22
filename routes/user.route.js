@@ -1,16 +1,14 @@
 import express from "express";
 import User from "../models/user.model.js";
-import { getUsers, getUser, createUser, updateUser, deleteUser, updateUserRole } from "../controller/user.controller.js";
-import { verifyFirebaseToken } from "../backend/middleware/auth.ts";
-import { isAdmin } from "../backend/middleware/adminAuth.js";
-import { getAuth } from "firebase-admin/auth";
+import { getUsers, getUser, createUser, updateUser, deleteUser, updateUserRole} from "../controller/user.controller.js";
+import { verifyFirebaseToken } from "../backend/middleware/auth.ts"; 
 
 const router = express.Router();
-import admin from 'firebase-admin';
-router.post("/", createUser);
+
+router.post("/", createUser); 
 
 router.post("/login", verifyFirebaseToken, (req, res) => {
-  res.status(200).json({ message: "Authenticated", user: req.user });
+    res.status(200).json({ message: "Authenticated", user: req.user });
 })
 
 // Get current user info - MUST be before /:id route
@@ -45,18 +43,20 @@ router.get("/me", verifyFirebaseToken, async (req, res) => {
 router.get('/', verifyFirebaseToken, getUsers);
 router.get("/:id", verifyFirebaseToken, getUser);
 router.put("/:id", verifyFirebaseToken, updateUser);
-router.delete("/:uid", verifyFirebaseToken, deleteUser);
+router.delete("/:id", verifyFirebaseToken, deleteUser);
 
 router.patch('/:id/role', verifyFirebaseToken, updateUserRole);
 
 router.get("/me/:id", verifyFirebaseToken, async (req, res) => {
-  try {
-    const { id } = req.params;
+    try {
+        const { id } = req.params; 
+        
+        // Security check: ensure the logged-in user is requesting THEIR OWN data
+        if (req.user.uid !== id) {
+            return res.status(403).json({ error: "Access denied: Unauthorized UID" });
+        }
 
-    // Security check: ensure the logged-in user is requesting THEIR OWN data
-    if (req.user.uid !== id) {
-      return res.status(403).json({ error: "Access denied: Unauthorized UID" });
-        const user = await User.findById(id).select("name email role userID phoneNumber address receiveTexts receiveEmails");
+        const user = await User.findById(id).select("name email role userID phoneNumber address");
         
         if (!user) return res.status(404).json({ error: "user not found" });
         
@@ -68,33 +68,12 @@ router.get("/me/:id", verifyFirebaseToken, async (req, res) => {
                 userID: user.userID, 
                 role: user.role,   
                 phoneNumber: user.phoneNumber,
-                address: user.address,
-                receiveTexts: user.receiveTexts,
-                receiveEmails: user.receiveEmails,  
+                address: user.address,    
             }
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-
-    const user = await User.findById(id).select("name email role userID phoneNumber address");
-
-    if (!user) return res.status(404).json({ error: "user not found" });
-
-    res.json({
-      user: {
-        id: String(user._id),
-        name: user.name,
-        email: user.email,
-        userID: user.userID,
-        role: user.role,
-        phoneNumber: user.phoneNumber,
-        address: user.address,
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 router.patch('/:id/role', verifyFirebaseToken, async (req, res) => {
   try {
