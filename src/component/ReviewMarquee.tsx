@@ -132,7 +132,7 @@ export default function ReviewMarquee() {
             gap: 2,
             width: "max-content",
             px: 2,
-            animation: "reviewsScroll 28s linear infinite",
+            animation: "reviewsScroll 45s linear infinite",
             "@keyframes reviewsScroll": {
               from: { transform: "translateX(0)" },
               to: { transform: "translateX(-50%)" },
@@ -148,6 +148,11 @@ export default function ReviewMarquee() {
                 width: { xs: 260, sm: 320 },
                 borderRadius: 3,
                 p: 2,
+                // 1. Enable Flexbox and set direction to column
+                display: "flex",
+                flexDirection: "column",
+                // 2. Give cards a minimum height so they all look uniform
+                minHeight: 180,
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -160,6 +165,9 @@ export default function ReviewMarquee() {
               <Typography sx={{ mt: 1 }} variant="body2">
                 “{r.comment}”
               </Typography>
+
+              {/* 3. THE SPACER: flexGrow: 1 pushes everything below it to the bottom */}
+              <Box sx={{ flexGrow: 1 }} />
 
               <Typography sx={{ mt: 1.25 }} variant="caption" color="text.secondary">
                 <Box component="span" sx={{ fontWeight: 700, color: "text.primary" }}>
