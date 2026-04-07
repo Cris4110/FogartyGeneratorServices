@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Card,
@@ -9,29 +9,105 @@ import {
   Grid,
   Alert,
   CircularProgress,
-  Link,
-  Box
+  IconButton,
+  Box,
+  Divider,
+  MenuItem,
+  Stepper,
+  StepLabel,
+  Step,
+  Stack,
+  TableHead,
+  TableRow,
+  TableCell,
+  Table,
+  TableBody,
+  Snackbar
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+import Navbar from "../admin/AdminNavbar";
+
+interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  unitPrice?: number;
+}
 
 export default function AdminCreateInvoice() {
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const [form, setForm] = useState({
     name: "",
     email: "",
-    description: "",
-    amount: "",
+    items: [
+      { myproductId: "", description: "", quantity: 1, price: 0 }
+    ]
   });
 
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<any | null>(null);
+  const [step, setStep] = useState(0);
+
+  // Load Products from Backend
+  useEffect(() => {
+    fetch("/api/invoice-products")
+      .then(res => res.json())
+      .then(data => setProducts(data))
+      .catch(err => console.error("Failed to load products", err));
+  }, []);
+
+  
+  // Form handlers
 
   const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleItemChange = (index: number, field: string, value: number) => {
+    const updatedItems = [...form.items];
+    updatedItems[index][field] = value;
+
+    setForm({ ...form, items: updatedItems });
+  };
+
+  
+  // handle product selection from dropdown
+
+  const handleProductSelect = (index: number, myproductId: string) => {
+    const product = products.find(p => p.id === myproductId);
+
+    const updatedItems = [...form.items];
+    updatedItems[index] = {
+      myproductId: product.id,
+      description: product.description || product.name,
+      quantity: 1,
+      price: Number(product.unitPrice || 0)
+    };
+
+    setForm({ ...form, items: updatedItems });
+  };
+
+  const addItem = () => {
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      items: [...form.items, { myproductId: "", description: "", quantity: 1, price: 0 }]
     });
   };
 
+  const removeItem = (index) => {
+    const updatedItems = form.items.filter((_, i) => i !== index);
+    setForm({ ...form, items: updatedItems });
+  };
+
+  // Total calculation 
+  const total = form.items.reduce((sum, item) => {
+    return sum + item.quantity * item.price;
+  }, 0);
+
+  // handle form submission 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -43,12 +119,15 @@ export default function AdminCreateInvoice() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(form)
+        body: JSON.stringify({
+          ...form,
+          amount: total
+        })
       });
 
       const data = await res.json();
-
       setResult(data);
+      setOpenSnackbar(true);
 
     } catch (err) {
       console.error(err);
@@ -59,118 +138,174 @@ export default function AdminCreateInvoice() {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 6 }}>
+      <>
+  <Navbar />
 
-      <Card elevation={4}>
-        <CardContent>
+  <Container maxWidth="md" sx={{ mt: 6 }}>
+    <Card elevation={4}>
+      <CardContent>
 
-          <Typography variant="h5" fontWeight="bold" gutterBottom>
-            Create Client Invoice
-          </Typography>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Create Invoice
+        </Typography>
 
-          <Typography variant="body2" color="text.secondary" mb={3}>
-            Generate Wave Inovice.
-          </Typography>
+        {/* stepper */}
+        <Stepper activeStep={step} sx={{ mb: 4 }}>
+          <Step><StepLabel>Client</StepLabel></Step>
+          <Step><StepLabel>Items</StepLabel></Step>
+          <Step><StepLabel>Review</StepLabel></Step>
+        </Stepper>
 
-          <Box component="form" onSubmit={handleSubmit}>
+        {/* Client */}
+        {step === 0 && (
+          <Stack spacing={2}>
+            <TextField
+              label="Client Name"
+              value={form.name}
+              onChange={handleChange}
+              name="name"
+              fullWidth
+            />
+            <TextField
+              label="Client Email"
+              value={form.email}
+              onChange={handleChange}
+              name="email"
+              fullWidth
+            />
 
-            <Grid container spacing={2}>
+            <Button variant="contained" onClick={() => setStep(1)}>
+              Next
+            </Button>
+          </Stack>
+        )}
 
-              <Grid item xs={12}>
-                <TextField
-                  label="Client Name"
-                  name="name"
-                  fullWidth
-                  required
-                  value={form.name}
-                  onChange={handleChange}
-                />
-              </Grid>
+        {/* Table items */}
+        {step === 1 && (
+          <>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Product</TableCell>
+                  <TableCell>Qty</TableCell>
+                  <TableCell>Price</TableCell>
+                  <TableCell>Total</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableHead>
 
-              <Grid item xs={12}>
-                <TextField
-                  label="Client Email"
-                  name="email"
-                  type="email"
-                  fullWidth
-                  required
-                  value={form.email}
-                  onChange={handleChange}
-                />
-              </Grid>
+              <TableBody>
+                {form.items.map((item, index) => (
+                  <TableRow key={index}>
 
-              <Grid item xs={12}>
-                <TextField
-                  label="Invoice Description"
-                  name="description"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  required
-                  value={form.description}
-                  onChange={handleChange}
-                />
-              </Grid>
+                    <TableCell>
+                      <TextField
+                        select
+                        fullWidth
+                        value={item.myproductId}
+                        onChange={(e) =>
+                          handleProductSelect(index, e.target.value)
+                        }
+                      >
+                        {products.map(p => (
+                          <MenuItem key={p.id} value={p.id}>
+                            {p.name}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </TableCell>
 
-              <Grid item xs={12} offset={{ md: 0.45 }}>
-                <TextField
-                  label="Amount"
-                  name="amount"
-                  type="number"
-                  inputProps={{ step: "0.01" }}
-                  fullWidth
-                  required
-                  value={form.amount}
-                  onChange={handleChange}
-                />
-              </Grid>
+                    <TableCell>
+                      <TextField
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleItemChange(index, "quantity", Number(e.target.value))
+                        }
+                      />
+                    </TableCell>
 
-              <Grid item xs={12}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <CircularProgress size={20} sx={{ mr: 1 }} />
-                      Creating Invoice...
-                    </>
-                  ) : (
-                    "Create & Send Invoice"
-                  )}
-                </Button>
-              </Grid>
+                    <TableCell>
+                      <TextField
+                        type="number"
+                        value={item.price}
+                        onChange={(e) =>
+                          handleItemChange(index, "price", Number(e.target.value))
+                        }
+                      />
+                    </TableCell>
 
-            </Grid>
+                    <TableCell>
+                      ${item.quantity * item.price}
+                    </TableCell>
 
-          </Box>
+                    <TableCell>
+                      <IconButton onClick={() => removeItem(index)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
 
-          {result && (
-            <Alert severity="success" sx={{ mt: 3 }}>
-              <Typography fontWeight="bold">
-                Invoice Created
-              </Typography>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
 
-              Invoice #: {result.invoiceNumber}
+            <Button startIcon={<AddIcon />} onClick={addItem} sx={{ mt: 2 }}>
+              Add Item
+            </Button>
 
-              <br />
+            <Box sx={{ mt: 3, display: "flex", justifyContent: "space-between" }}>
+              <Button onClick={() => setStep(0)}>Back</Button>
+              <Button variant="contained" onClick={() => setStep(2)}>
+                Next
+              </Button>
+            </Box>
+          </>
+        )}
 
-              <Link
-                href={result.viewUrl}
-                target="_blank"
-                rel="noopener"
+        {/* Review */}
+        {step === 2 && (
+          <Stack spacing={2}>
+            <Typography>Name: {form.name}</Typography>
+            <Typography>Email: {form.email}</Typography>
+
+            {form.items.map((item, i) => (
+              <Box key={i} sx={{ display: "flex", justifyContent: "space-between" }}>
+                <span>{item.quantity} x {item.price}</span>
+                <span>${item.quantity * item.price}</span>
+              </Box>
+            ))}
+
+            <Typography fontWeight="bold">
+              Total: ${total.toFixed(2)}
+            </Typography>
+
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+              <Button onClick={() => setStep(1)}>Back</Button>
+              <Button
+                variant="contained"
+                onClick={handleSubmit}
+                disabled={loading}
               >
-                View Invoice
-              </Link>
-            </Alert>
-          )}
-
-        </CardContent>
-      </Card>
-
-    </Container>
+                {loading ? <CircularProgress size={20} /> : "Create Invoice"}
+              </Button>
+            </Box>
+              {/* successful invoice creation alert */}
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={4000}
+                onClose={() => setOpenSnackbar(false)}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+              <Alert severity="success" onClose={() => setOpenSnackbar(false)}>
+                Invoice created successfully!
+              </Alert>
+            </Snackbar>
+          </Stack>
+        )}
+      </CardContent>
+    </Card>
+  </Container>
+</>
   );
 }
