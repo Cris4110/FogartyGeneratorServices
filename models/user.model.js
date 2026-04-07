@@ -69,6 +69,19 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    favorites: [
+      {
+        itemId: {
+          type: String,
+          required: true
+        }, 
+        itemType: {
+        type: String,
+        enum: ["generator", "part"],
+        required: true
+        }
+      }
+    ]
 
   },
   {

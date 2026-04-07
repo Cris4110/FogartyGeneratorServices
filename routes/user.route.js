@@ -1,6 +1,6 @@
 import express from "express";
 import User from "../models/user.model.js";
-import { getUsers, getUser, createUser, updateUser, deleteUser, updateUserRole} from "../controller/user.controller.js";
+import { getUsers, getUser, createUser, updateUser, deleteUser, updateUserRole, getFavorites, toggleFavorite} from "../controller/user.controller.js";
 import { verifyFirebaseToken } from "../backend/middleware/auth.ts"; 
 
 const router = express.Router();
@@ -17,7 +17,7 @@ router.get("/me", verifyFirebaseToken, async (req, res) => {
         const firebaseUid = req.user.uid;
         
         // The User model uses Firebase UID as _id
-        const user = await User.findById(firebaseUid).select("name email role userID phoneNumber address receiveTexts receiveEmails");
+        const user = await User.findById(firebaseUid).select("name email role userID phoneNumber address receiveTexts receiveEmails favorites");
         
         if (!user) return res.status(404).json({ error: "user not found" });
         
@@ -32,6 +32,7 @@ router.get("/me", verifyFirebaseToken, async (req, res) => {
                 address: user.address,
                 receiveTexts: user.receiveTexts,
                 receiveEmails: user.receiveEmails,
+                favorites: user.favorites ?? [],
             }
         });
     } catch (err) {
@@ -40,6 +41,8 @@ router.get("/me", verifyFirebaseToken, async (req, res) => {
 });
 
 // Protected routes: require a valid Firebase token
+router.get("/favorites", verifyFirebaseToken, getFavorites);
+router.patch("/favorites/toggle", verifyFirebaseToken, toggleFavorite);
 router.get('/', verifyFirebaseToken, getUsers);
 router.get("/:id", verifyFirebaseToken, getUser);
 router.put("/:id", verifyFirebaseToken, updateUser);
@@ -68,7 +71,8 @@ router.get("/me/:id", verifyFirebaseToken, async (req, res) => {
                 userID: user.userID, 
                 role: user.role,   
                 phoneNumber: user.phoneNumber,
-                address: user.address,    
+                address: user.address, 
+                favorites: user.favorites ?? [],   
             }
         });
     } catch (err) {
@@ -101,6 +105,7 @@ router.patch('/:id/role', verifyFirebaseToken, async (req, res) => {
     res.status(500).json({ message: "Server error updating role" });
   }
 });
+
 
 
 export default router;

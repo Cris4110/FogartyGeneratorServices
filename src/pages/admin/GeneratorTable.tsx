@@ -29,12 +29,17 @@ interface GeneratorRow {
   imageKey2: string;
   image3: string;
   imageKey3: string;
+  image4: string;
+  imageKey4: string;
+  image5: string;
+  imageKey5: string;
 }
 type PictureSlotEditorProps = {
   title: string;
   url: string;
   setUrl: React.Dispatch<React.SetStateAction<string>>;
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
+  file: File | null;
 };
 
 const PictureSlotEditor: React.FC<PictureSlotEditorProps> = ({
@@ -42,6 +47,7 @@ const PictureSlotEditor: React.FC<PictureSlotEditorProps> = ({
   url,
   setUrl,
   setFile,
+  file,
 }) => {
   return (
     <Stack
@@ -72,6 +78,12 @@ const PictureSlotEditor: React.FC<PictureSlotEditorProps> = ({
         />
       </Button>
 
+      {file && (
+        <Typography variant="body2" sx={{ color: "green" }}>
+          Selected file: {file.name}
+        </Typography>
+      )}
+
       <Button
         color="error"
         onClick={() => {
@@ -94,10 +106,15 @@ function GeneratorTable() {
   const [manualImage1, setManualImage1] = useState("");
   const [manualImage2, setManualImage2] = useState("");
   const [manualImage3, setManualImage3] = useState("");
+  const [manualImage4, setManualImage4] = useState("");
+  const [manualImage5, setManualImage5] = useState("");
+
 
   const [file1, setFile1] = useState<File | null>(null);
   const [file2, setFile2] = useState<File | null>(null);
   const [file3, setFile3] = useState<File | null>(null);
+  const [file4, setFile4] = useState<File | null>(null);
+  const [file5, setFile5] = useState<File | null>(null);
 
   const [rows, setRows] = useState<GeneratorRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,10 +130,15 @@ const openPictureEditor = (row: GeneratorRow) => {
   setManualImage1(row.image || "");
   setManualImage2(row.image2 || "");
   setManualImage3(row.image3 || "");
+  setManualImage4(row.image4 || "");
+  setManualImage5(row.image5 || "");
+
 
   setFile1(null);
   setFile2(null);
   setFile3(null);
+  setFile4(null);
+  setFile5(null);
 
   setOpenPictureDialog(true);
 };
@@ -180,7 +202,8 @@ const handleSavePictures = async () => {
     const slot1 = await uploadImageIfNeeded(file1, manualImage1, editingRow.image, editingRow.imageKey);
     const slot2 = await uploadImageIfNeeded(file2, manualImage2, editingRow.image2, editingRow.imageKey2);
     const slot3 = await uploadImageIfNeeded(file3, manualImage3, editingRow.image3, editingRow.imageKey3);
-
+    const slot4 = await uploadImageIfNeeded(file4, manualImage4, editingRow.image4, editingRow.imageKey4);
+    const slot5 = await uploadImageIfNeeded(file5, manualImage5, editingRow.image5, editingRow.imageKey5);
     const res = await fetch(`http://localhost:3000/api/generators/${editingRow.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -198,6 +221,12 @@ const handleSavePictures = async () => {
 
         Image_Url3: slot3.imageUrl,
         Image_Key3: slot3.imageKey,
+
+        Image_Url4: slot4.imageUrl,
+        Image_Key4: slot4.imageKey,
+
+        Image_Url5: slot5.imageUrl,
+        Image_Key5: slot5.imageKey,
       }),
     });
 
@@ -218,6 +247,10 @@ const handleSavePictures = async () => {
               imageKey2: updatedGen.Image_Key2 ?? "",
               image3: updatedGen.Image_Url3 ?? "",
               imageKey3: updatedGen.Image_Key3 ?? "",
+              image4: updatedGen.Image_Url4 ?? "",
+              imageKey4: updatedGen.Image_Key4 ?? "",
+              image5: updatedGen.Image_Url5 ?? "",
+              imageKey5: updatedGen.Image_Key5 ?? "",
             }
           : row
       )
@@ -260,6 +293,10 @@ const handleCloseDelete = () => {
         imageKey2: gen.Image_Key2 ?? "",
         image3: gen.Image_Url3 ?? "",
         imageKey3: gen.Image_Key3 ?? "",
+        image4: gen.Image_Url4 ?? "",
+        imageKey4: gen.Image_Key4 ?? "",
+        image5: gen.Image_Url5 ?? "",
+        imageKey5: gen.Image_Key5 ?? "",
       }));
 
       setRows(formattedRows);
@@ -285,6 +322,8 @@ const handleCloseDelete = () => {
     image: newRow.image,
     image2: newRow.image2,
     image3: newRow.image3,
+    image4: newRow.image4,
+    image5: newRow.image5,
   };
 
   // optimistic UI update
@@ -321,6 +360,8 @@ const saveStock = async (id: string, Serial_Number: string, description: string,
             image: updatedGen.Image_Url,
             image2: updatedGen.Image_Url2,
             image3: updatedGen.Image_Url3,
+            image4: updatedGen.Image_Url4,
+            image5: updatedGen.Image_Url5,
             Serial_Number: updatedGen.Serial_Number,
             description: updatedGen.Description,
             name: updatedGen.name
@@ -336,10 +377,40 @@ const saveStock = async (id: string, Serial_Number: string, description: string,
 
 
   const columns: GridColDef[] = [
-    { field: "Serial_Number", headerName: "Serial Number", width: 150, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "name", headerName: "Name", width: 150, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "description", headerName: "Description", width: 250, editable: true, headerAlign: 'left', align: 'left', display: 'flex' },
-    { field: "stock", headerName: "Stock", width: 150, editable: true,type: "number", headerAlign: 'left', align: 'left', display: 'flex'},
+    { field: "Serial_Number", headerName: "Serial Number", width: 150, editable: true  },
+    { field: "name", headerName: "Name", width: 150, editable: true },
+    { field: "description", 
+      headerName: "Description", 
+      width: 200, 
+      editable: true, 
+      renderCell: (params) => {
+        const fullText = params.value || "";
+        const shortText =
+          fullText.length > 40 ? `${fullText.slice(0, 120)}...` : fullText;
+
+        return (
+          <span title={fullText}>
+            {shortText}
+          </span>
+        );
+      },
+    },
+    { field: "stock", headerName: "Stock", width:100, editable: true,type: "number",},
+    { field: "editPictures",
+      headerName: "Pictures",
+      width: 150,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => openPictureEditor(params.row)}
+        >
+          Edit Pictures
+        </Button>
+      ),
+    },
     // images
     { field: "image",
     headerName: "Image",
@@ -425,22 +496,63 @@ const saveStock = async (id: string, Serial_Number: string, description: string,
       );
     },
   },
-  {
-  field: "editPictures",
-  headerName: "Pictures",
-  width: 150,
-  sortable: false,
-  filterable: false,
-  renderCell: (params) => (
-    <Button
-      variant="contained"
-      size="small"
-      onClick={() => openPictureEditor(params.row)}
-    >
-      Edit Pictures
-    </Button>
-  ),
-}
+
+  { field: "image4",
+    headerName: "Image4",
+    width: 150,
+    editable: false,
+    type: "string",
+    headerAlign: "left",
+    align: "left",
+    display: "flex",
+    renderCell: (params) => {
+      return (
+        <Stack direction="row">
+          <Box
+            component="img"
+            sx={{
+              height: 70,
+              width: 70,
+              objectFit: "cover",
+            }}
+            alt="No Image available"
+            src={params.value || ""}
+            onError={(e) => {
+               (e.currentTarget as HTMLImageElement).src = noImage;
+            }}
+          />
+        </Stack>
+      );
+    },
+  },
+  { field: "image5",
+    headerName: "Image5",
+    width: 110,
+    editable: false,
+    type: "string",
+    headerAlign: "left",
+    align: "left",
+    display: "flex",
+    renderCell: (params) => {
+      return (
+        <Stack direction="row">
+          <Box
+            component="img"
+            sx={{
+              height: 70,
+              width: 70,
+              objectFit: "cover",
+            }}
+            alt="No Image available"
+            src={params.value || ""}
+            onError={(e) => {
+               (e.currentTarget as HTMLImageElement).src = noImage;
+            }}
+          />
+        </Stack>
+      );
+    },
+  },
  ];
 
 const handleDeleteRows = async () => {
@@ -477,7 +589,7 @@ const handleDeleteRows = async () => {
 
   return (
     <>
-      <Box sx={{ height: '65vh', width: '80vw' }}>
+      <Box sx={{ height: '70vh', width: '80vw' }}>
         {loading ? (
           <Stack sx={{ height: "100%" }} justifyContent="center" alignItems="center">
             <CircularProgress />
@@ -514,6 +626,7 @@ const handleDeleteRows = async () => {
         url={manualImage1}
         setUrl={setManualImage1}
         setFile={setFile1}
+        file={file1}
       />
 
       <PictureSlotEditor
@@ -521,6 +634,7 @@ const handleDeleteRows = async () => {
         url={manualImage2}
         setUrl={setManualImage2}
         setFile={setFile2}
+        file={file2}
       />
 
       <PictureSlotEditor
@@ -528,6 +642,23 @@ const handleDeleteRows = async () => {
         url={manualImage3}
         setUrl={setManualImage3}
         setFile={setFile3}
+        file={file3}
+      />
+      
+      <PictureSlotEditor
+        title="Image Slot 4"
+        url={manualImage4}
+        setUrl={setManualImage4}
+        setFile={setFile4}
+        file={file4}
+      />
+      
+      <PictureSlotEditor
+        title="Image Slot 5"
+        url={manualImage5}
+        setUrl={setManualImage5}
+        setFile={setFile5}
+        file={file5}
       />
     </Stack>
   </DialogContent>
