@@ -9,7 +9,7 @@ async function appointmentRequest() {
     let failures = 0;
     const genModel = "genny";
     const serialNum = "123456";
-    const description = "testing email";
+    const description = "testing notifs";
     const id = "user@gmail.com";       //test email and id      
     const password = "SuperCoolUserP@ss?";
   
@@ -47,6 +47,8 @@ async function appointmentRequest() {
         );
         await driver.wait(until.elementIsEnabled(loginBtn), WAIT);
         await loginBtn.click();
+        
+        await driver.sleep(5000);
 
         // loop only the appointment request section
         for (let i = 1; i <= runs; i++) {
