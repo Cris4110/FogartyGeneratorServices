@@ -99,6 +99,13 @@ const AdminNavbar = () => {
                 <Typography variant="body2" sx={linkStyle} onClick={() => handleNavigation("/admin/incoming/parts")}>
                   Parts Requests
                 </Typography>
+
+
+                <Typography variant="body2" sx={linkStyle} onClick={() => handleNavigation("/admin/incoming/returns")}>
+                  Return Requests
+                </Typography>
+
+                
               </Stack>
             </Collapse>
           </Box>
