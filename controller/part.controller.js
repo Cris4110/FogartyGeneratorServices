@@ -1,6 +1,7 @@
 import Part from '../models/part.model.js';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import s3 from "../s3.js";
+import User from "../models/user.model.js";
 
 export const getParts = async (req, res) =>{
  try {
