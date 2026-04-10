@@ -1,10 +1,47 @@
 import { waveRequest } from "./waveService.js";
 
 export async function createCustomer(name, email) {
-  const query = `
+  // find existing customers
+  const findCustomerQuery = `
+  query {
+    business(id: "${process.env.WAVE_BUSINESS_ID}") {
+      customers {
+        edges {
+          node {
+            id
+            name
+            email
+          }
+        }
+      }
+    }
+  }`;
+
+  const existingCustomers = await waveRequest(findCustomerQuery);
+  const customers = existingCustomers.data.business.customers.edges.map(edge => edge.node);
+
+  // Check if customer exists
+  const existing = customers.find(
+    c =>
+      c.email?.toLowerCase() === email.toLowerCase() &&
+      c.name?.toLowerCase() === name.toLowerCase()
+  );
+
+  if (existing) {
+    console.log("Customer already exists:", existing);
+    return existing; 
+  }
+  
+  // Create new customer
+  const createCustomerMutation = `
   mutation CustomerCreate($input: CustomerCreateInput!) {
     customerCreate(input: $input) {
       didSucceed
+      inputErrors {
+        message
+        code
+        path
+      }
       customer {
         id
         name
@@ -12,19 +49,6 @@ export async function createCustomer(name, email) {
       }
     }
   }`;
-  const query3 = `
-  query {
-    business(id: "${process.env.WAVE_BUSINESS_ID}") {     
-    products {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-  }
-}`;
 
   const variables = {
     input: {
@@ -34,14 +58,13 @@ export async function createCustomer(name, email) {
     }
   };
 
-  const data = await waveRequest(query, variables);
-  /* for testing purposes only to see what the queries return
-  const data2 = await waveRequest(query2, variables);
-  const data3 = await waveRequest(query3, variables);
-  console.log("Wave response:", JSON.stringify(data, null, 2));
-  console.log("Wave response 2:", JSON.stringify(data2, null, 2));
-  console.log("Wave response 3:", JSON.stringify(data3, null, 2));
-  */
+  const data = await waveRequest(createCustomerMutation, variables);
+
+  if (!data.data.customerCreate.didSucceed) {
+    throw new Error("Wave customer creation failed");
+  }
+
+  console.log("Created new customer:", data.data.customerCreate.customer);
 
   return data.data.customerCreate.customer;
 }

@@ -20,7 +20,7 @@ import partrequestRoute from "./routes/partrequest.route.js";
 import uploadRoutes from "./routes/upload.route.js";
 import returnsRoute from "./routes/returns.route.js"
 import invoiceRoute from "./routes/invoice.route.js";
-
+import invoiceProductRoute from "./routes/product.route.js";
 
 dotenv.config();
 
@@ -53,6 +53,7 @@ app.use('/api/partrequests', partrequestRoute);
 app.use("/api/upload", uploadRoutes);
 app.use('/api/returns', returnsRoute);
 app.use('/api/invoices', invoiceRoute);
+app.use('/api/invoice-products', invoiceProductRoute);
 
 
 app.get('/', (req, res) => {
