@@ -66,7 +66,7 @@ function Returns() {
         serialNumber: serialNumber || null,
         condition: condition,
         reason: description,
-        status: "pending",
+        status: "Pending",
       });
 
       setResponseMsg(res.data.message || "RMA Request submitted successfully!");

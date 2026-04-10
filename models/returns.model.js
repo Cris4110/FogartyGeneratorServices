@@ -28,7 +28,7 @@ const ReturnSchema = new mongoose.Schema(
 
         serialNumber: {
             type: String,
-            required: true,
+            required: false,
             default: ""
         },
 
@@ -46,16 +46,13 @@ const ReturnSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["pending", "accepted", "denied"],
-            default: "pending"
+            enum: ["Completed", "In-Progress", "Denied", "Pending"],
+            default: "Pending"
         },
 
         
     },    
-
+    { timestamps: true }
 );
 
-// const Return = mongoose.model("Return", ReturnSchema);
-
-// module.exports = Return;
 export default mongoose.model("Return", ReturnSchema);
