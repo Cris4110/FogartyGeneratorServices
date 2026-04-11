@@ -13,6 +13,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:appointment": "node tests/requestAppointment.selenium.mjs",
     "test:quote": "node tests/requestQuote.selenium.mjs",
+    "test:twilio": "node tests/testTwilio.js",
     "serve": "node CRUD_mongoose.js",
     "server": "npx tsx CRUD_mongoose.js"
   },
@@ -48,10 +49,12 @@
     "react-calendar": "^6.0.0",
     "react-day-picker": "^9.11.1",
     "react-dom": "^19.2.0",
+    "react-hot-toast": "^2.6.0",
     "react-router": "^7.13.1",
     "react-router-dom": "^7.13.1",
     "selenium": "^2.20.0",
     "selenium-webdriver": "^4.41.0",
+    "twilio": "^5.13.1",
     "update": "^0.4.2"
   },
   "devDependencies": {
