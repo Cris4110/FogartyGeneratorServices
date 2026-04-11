@@ -129,3 +129,127 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getFavorites = async (req, res) => {
+  try {
+    const firebaseUid = req.user.uid;
+
+    const user = await User.findOne({ userID: firebaseUid });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user.favorites || []);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const addFavorite = async (req, res) => {
+  try {
+    const firebaseUid = req.user.uid;
+    const { itemId, itemType } = req.body;
+
+    if (!itemId || !itemType) {
+      return res.status(400).json({ message: "itemId and itemType are required" });
+    }
+
+    if (!["generator", "part"].includes(itemType)) {
+      return res.status(400).json({ message: "Invalid itemType" });
+    }
+
+    const user = await User.findOne({ userID: firebaseUid });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const alreadyExists = user.favorites.some(
+      (fav) => fav.itemId === itemId && fav.itemType === itemType
+    );
+
+    if (!alreadyExists) {
+      user.favorites.push({ itemId, itemType });
+      await user.save();
+    }
+
+    res.status(200).json({
+      message: "Favorite added",
+      favorites: user.favorites,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const removeFavorite = async (req, res) => {
+  try {
+    const firebaseUid = req.user.uid;
+    const { itemId, itemType } = req.body;
+
+    if (!itemId || !itemType) {
+      return res.status(400).json({ message: "itemId and itemType are required" });
+    }
+
+    const user = await User.findOne({ userID: firebaseUid });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.favorites = user.favorites.filter(
+      (fav) => !(fav.itemId === itemId && fav.itemType === itemType)
+    );
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Favorite removed",
+      favorites: user.favorites,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const toggleFavorite = async (req, res) => {
+  try {
+    const firebaseUid = req.user.uid;
+    const { itemId, itemType } = req.body;
+
+    if (!itemId || !itemType) {
+      return res.status(400).json({ message: "itemId and itemType are required" });
+    }
+
+    if (!["generator", "part"].includes(itemType)) {
+      return res.status(400).json({ message: "Invalid itemType" });
+    }
+
+    const user = await User.findOne({ userID: firebaseUid });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const existingIndex = user.favorites.findIndex(
+      (fav) => fav.itemId === itemId && fav.itemType === itemType
+    );
+
+    let favorited = false;
+
+    if (existingIndex >= 0) {
+      user.favorites.splice(existingIndex, 1);
+      favorited = false;
+    } else {
+      user.favorites.push({ itemId, itemType });
+      favorited = true;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      message: favorited ? "Favorite added" : "Favorite removed",
+      favorited,
+      favorites: user.favorites,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

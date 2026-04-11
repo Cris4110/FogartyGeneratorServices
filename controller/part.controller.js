@@ -1,6 +1,7 @@
 import Part from '../models/part.model.js';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import s3 from "../s3.js";
+import User from "../models/user.model.js";
 
 export const getParts = async (req, res) =>{
  try {
@@ -40,6 +41,10 @@ export const createPart = async (req, res) => {
       Image_Key2,
       Image_Url3,
       Image_Key3,
+      Image_Url4,
+      Image_Key4,
+      Image_Url5,
+      Image_Key5
     } = req.body;
 
     const part = await Part.create({
@@ -53,6 +58,10 @@ export const createPart = async (req, res) => {
       Image_Key2,
       Image_Url3,
       Image_Key3,
+      Image_Url4,
+      Image_Key4,
+      Image_Url5,
+      Image_Key5
     });
 
     res.status(201).json({ message: "New part added to database.", part });
@@ -79,12 +88,16 @@ export const updatePart = async (req, res) => {
       oldPart.Image_Key,
       oldPart.Image_Key2,
       oldPart.Image_Key3,
+      oldPart.Image_Key4,
+      oldPart.Image_Key5,
     ].filter(Boolean);
 
     const newKeys = [
       updatedPart.Image_Key,
       updatedPart.Image_Key2,
       updatedPart.Image_Key3,
+      updatedPart.Image_Key4,
+      updatedPart.Image_Key5,
     ].filter(Boolean);
 
     const removedKeys = oldKeys.filter((key) => !newKeys.includes(key));
@@ -115,9 +128,24 @@ export const deletePart = async (req, res) => {
       part.Image_Key,
       part.Image_Key2,
       part.Image_Key3,
+      part.Image_Key4,
+      part.Image_Key5,
     ].filter(Boolean);
 
     await Part.findByIdAndDelete(id);
+
+    await User.updateMany(
+      {},
+      {
+        $pull: {
+          favorites: {
+            itemId: id,
+            itemType: "part",
+          },
+        },
+      }
+    );
+
 
     for (const key of keysToCheck) {
       const stillUsed = await isPartImageKeyStillUsed(key, id);
@@ -140,6 +168,8 @@ const isPartImageKeyStillUsed = async (key, excludePartId = null) => {
       { Image_Key: key },
       { Image_Key2: key },
       { Image_Key3: key },
+      { Image_Key4: key },
+      { Image_Key5: key },
     ],
   };
 

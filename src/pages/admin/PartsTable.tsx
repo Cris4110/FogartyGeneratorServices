@@ -28,6 +28,10 @@ interface PartRow {
   imageKey2: string;
   image3: string;
   imageKey3: string;
+  image4: string;
+  imageKey4: string;
+  image5: string;
+  imageKey5: string;
 }
 
 type PictureSlotEditorProps = {
@@ -35,6 +39,7 @@ type PictureSlotEditorProps = {
   url: string;
   setUrl: React.Dispatch<React.SetStateAction<string>>;
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
+  file: File | null;
 };
 
 const PictureSlotEditor: React.FC<PictureSlotEditorProps> = ({
@@ -42,6 +47,7 @@ const PictureSlotEditor: React.FC<PictureSlotEditorProps> = ({
   url,
   setUrl,
   setFile,
+  file,
 }) => {
   return (
     <Stack
@@ -72,6 +78,12 @@ const PictureSlotEditor: React.FC<PictureSlotEditorProps> = ({
         />
       </Button>
 
+      {file && (
+        <Typography variant="body2" sx={{ color: "green" }}>
+          Selected file: {file.name}
+        </Typography>
+      )}
+
       <Button
         color="error"
         onClick={() => {
@@ -94,10 +106,14 @@ function PartsTable() {
   const [manualImage1, setManualImage1] = useState("");
   const [manualImage2, setManualImage2] = useState("");
   const [manualImage3, setManualImage3] = useState("");
+  const [manualImage4, setManualImage4] = useState("");
+  const [manualImage5, setManualImage5] = useState("");
 
   const [file1, setFile1] = useState<File | null>(null);
   const [file2, setFile2] = useState<File | null>(null);
   const [file3, setFile3] = useState<File | null>(null);
+  const [file4, setFile4] = useState<File | null>(null);
+  const [file5, setFile5] = useState<File | null>(null);
 
   const [rows, setRows] = useState<PartRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,10 +129,15 @@ const openPictureEditor = (row: PartRow) => {
     setManualImage1(row.image || "");
     setManualImage2(row.image2 || "");
     setManualImage3(row.image3 || "");
+    setManualImage4(row.image4 || "");
+    setManualImage5(row.image5 || "");
+
 
     setFile1(null);
     setFile2(null);
     setFile3(null);
+    setFile4(null);
+    setFile5(null);
 
     setOpenPictureDialog(true);
 };
@@ -180,7 +201,8 @@ const handleSavePictures = async () => {
     const slot1 = await uploadImageIfNeeded(file1, manualImage1, editingRow.image, editingRow.imageKey);
     const slot2 = await uploadImageIfNeeded(file2, manualImage2, editingRow.image2, editingRow.imageKey2);
     const slot3 = await uploadImageIfNeeded(file3, manualImage3, editingRow.image3, editingRow.imageKey3);
-
+    const slot4 = await uploadImageIfNeeded(file4, manualImage4, editingRow.image4, editingRow.imageKey4);
+    const slot5 = await uploadImageIfNeeded(file5, manualImage5, editingRow.image5, editingRow.imageKey5);
     const res = await fetch(`http://localhost:3000/api/parts/${editingRow.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -197,6 +219,13 @@ const handleSavePictures = async () => {
 
         Image_Url3: slot3.imageUrl,
         Image_Key3: slot3.imageKey,
+
+        Image_Url4: slot4.imageUrl,
+        Image_Key4: slot4.imageKey,
+
+        Image_Url5: slot5.imageUrl,
+        Image_Key5: slot5.imageKey,
+
       }),
     });
 
@@ -217,6 +246,10 @@ const handleSavePictures = async () => {
               imageKey2: updatedPart.Image_Key2 ?? "",
               image3: updatedPart.Image_Url3 ?? "",
               imageKey3: updatedPart.Image_Key3 ?? "",
+              image4: updatedPart.Image_Url4 ?? "",
+              imageKey4: updatedPart.Image_Key4 ?? "",
+              image5: updatedPart.Image_Url5 ?? "",
+              imageKey5: updatedPart.Image_Key5 ?? "",
             }
           : row
       )
@@ -259,6 +292,10 @@ const handleSavePictures = async () => {
         imageKey2: part.Image_Key2 ?? "",
         image3: part.Image_Url3 ?? "",
         imageKey3: part.Image_Key3 ?? "",
+        image4: part.Image_Url4 ?? "",
+        imageKey4: part.Image_Key4 ?? "",
+        image5: part.Image_Url5 ?? "",
+        imageKey5: part.Image_Key5 ?? "",
       }));
 
       setRows(formattedRows);
@@ -285,6 +322,10 @@ const handleSavePictures = async () => {
     imageKey2: newRow.imageKey2,
     image3: newRow.image3,
     imageKey3: newRow.imageKey3,
+    image4: newRow.image4,
+    imageKey4: newRow.imageKey4,
+    image5: newRow.image5,
+    imageKey5: newRow.imageKey5,
   };
 
   setRows((prev) =>
@@ -301,7 +342,11 @@ const handleSavePictures = async () => {
       updatedRow.image2,
       updatedRow.imageKey2,
       updatedRow.image3,
-      updatedRow.imageKey3
+      updatedRow.imageKey3,
+      updatedRow.image4,
+      updatedRow.imageKey4,
+      updatedRow.image5,
+      updatedRow.imageKey5
     );
 
     return updatedRow;
@@ -317,7 +362,12 @@ const handleSavePictures = async () => {
   image2: string,
   imageKey2: string,
   image3: string,
-  imageKey3: string
+  imageKey3: string,
+  image4: string,
+  imageKey4: string,
+  image5: string,
+  imageKey5: string
+
 ) => {
   try {
     const res = await fetch(`http://localhost:3000/api/parts/${id}`, {
@@ -333,6 +383,10 @@ const handleSavePictures = async () => {
         Image_Key2: imageKey2,
         Image_Url3: image3,
         Image_Key3: imageKey3,
+        Image_Url4: image4,
+        Image_Key4: imageKey4,
+        Image_Url5: image5,
+        Image_Key5: imageKey5,
       }),
     });
 
@@ -357,6 +411,10 @@ const handleSavePictures = async () => {
               imageKey2: updatedPart.Image_Key2 ?? "",
               image3: updatedPart.Image_Url3 ?? "",
               imageKey3: updatedPart.Image_Key3 ?? "",
+              image4: updatedPart.Image_Url4 ?? "",
+              imageKey4: updatedPart.Image_Key4 ?? "",
+              image5: updatedPart.Image_Url5 ?? "",
+              imageKey5: updatedPart.Image_Key5 ?? "",
             }
           : row
       )
@@ -420,6 +478,21 @@ const handleSavePictures = async () => {
     { field: "Part_Name", headerName: "Name", width: 200, editable: true },
     { field: "stock", headerName: "Stock", width: 150, editable: true, type: "number" },
     { field: "description", headerName: "Description", width: 200, editable: true },
+    { field: "editPictures",
+      headerName: "Pictures",
+      width: 140,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => openPictureEditor(params.row as PartRow)}
+        >
+          Edit Pictures
+        </Button>
+      ),
+    },
     {
       field: "image",
       headerName: "Image",
@@ -442,20 +515,18 @@ const handleSavePictures = async () => {
       renderCell: (params) => imageCell(params.value || ""),
     },
     {
-      field: "editPictures",
-      headerName: "Pictures",
-      width: 140,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => (
-        <Button
-          variant="contained"
-          size="small"
-          onClick={() => openPictureEditor(params.row as PartRow)}
-        >
-          Edit Pictures
-        </Button>
-      ),
+      field: "image4",
+      headerName: "Image4",
+      width: 120,
+      editable: false,
+      renderCell: (params) => imageCell(params.value || ""),
+    },
+    {
+      field: "image5",
+      headerName: "Image5",
+      width: 120,
+      editable: false,
+      renderCell: (params) => imageCell(params.value || ""),
     },
   ];
 
@@ -504,6 +575,7 @@ const handleSavePictures = async () => {
               url={manualImage1}
               setUrl={setManualImage1}
               setFile={setFile1}
+              file={file1}
             />
 
             <PictureSlotEditor
@@ -511,6 +583,7 @@ const handleSavePictures = async () => {
               url={manualImage2}
               setUrl={setManualImage2}
               setFile={setFile2}
+              file={file2}
             />
 
             <PictureSlotEditor
@@ -518,6 +591,21 @@ const handleSavePictures = async () => {
               url={manualImage3}
               setUrl={setManualImage3}
               setFile={setFile3}
+              file={file3}
+            />
+            <PictureSlotEditor
+              title="Image Slot 4"
+              url={manualImage4}
+              setUrl={setManualImage4}
+              setFile={setFile4}
+              file={file4}
+            />
+            <PictureSlotEditor
+              title="Image Slot 5"
+              url={manualImage5}
+              setUrl={setManualImage5}
+              setFile={setFile5}
+              file={file5}
             />
           </Stack>
         </DialogContent>
