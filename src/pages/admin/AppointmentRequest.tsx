@@ -562,7 +562,7 @@ if (endIso) {
               .toISOString()
           : computeDefaultEnd(startISO);
 
-        await updateAppointmentOnServer(id, "accepted", undefined, endISO);
+        await updateAppointmentOnServer(id, "accepted", undefined, endISO, travelCost);
         closeDialog();
         return;
       }
@@ -593,7 +593,7 @@ if (endIso) {
           return;
         }
 
-        await updateAppointmentOnServer(id, "rescheduled", startISO, endISO);
+        await updateAppointmentOnServer(id, "rescheduled", startISO, endISO, travelCost);
 
         // refresh busy so the UI updates immediately for next actions
         await fetchBusyForDate(dialogDate);
