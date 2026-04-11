@@ -1,6 +1,7 @@
 import Generator from '../models/generator.model.js';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import s3 from "../s3.js";
+import User from "../models/user.model.js";
 
 // Get all generators
 export const getGens = async (req, res) => {
@@ -41,6 +42,10 @@ export const createGen = async (req, res) => {
         Image_Key2,
         Image_Url3,
         Image_Key3,
+        Image_Url4,
+        Image_Key4,
+        Image_Url5,
+        Image_Key5
         } = req.body;
 
         const generator = await Generator.create({
@@ -55,6 +60,10 @@ export const createGen = async (req, res) => {
         Image_Key2,
         Image_Url3,
         Image_Key3,
+        Image_Url4,
+        Image_Key4,
+        Image_Url5,
+        Image_Key5
         });
 
         res.status(201).json({ message: "Generator created!", generator });
@@ -82,12 +91,16 @@ export const updateGen = async (req, res) => {
       oldGen.Image_Key,
       oldGen.Image_Key2,
       oldGen.Image_Key3,
+      oldGen.Image_Key4,
+      oldGen.Image_Key5,
     ].filter(Boolean);
 
     const newKeys = [
       updatedGen.Image_Key,
       updatedGen.Image_Key2,
       updatedGen.Image_Key3,
+      updatedGen.Image_Key4,
+      updatedGen.Image_Key5,
     ].filter(Boolean);
 
     const removedKeys = oldKeys.filter((key) => !newKeys.includes(key));
@@ -119,9 +132,24 @@ export const deleteGen = async (req, res) => {
       generator.Image_Key,
       generator.Image_Key2,
       generator.Image_Key3,
+      generator.Image_Key4,
+      generator.Image_Key5,
     ].filter(Boolean);
 
     await Generator.findByIdAndDelete(id);
+
+     // remove deleted generator from all users' favorites
+    await User.updateMany(
+      {},
+      {
+        $pull: {
+          favorites: {
+            itemId: id,
+            itemType: "generator",
+          },
+        },
+      }
+    );
 
     for (const key of keysToCheck) {
       const stillUsed = await isImageKeyStillUsed(key, id);
@@ -144,6 +172,8 @@ const isImageKeyStillUsed = async (key, excludeGeneratorId = null) => {
       { Image_Key: key },
       { Image_Key2: key },
       { Image_Key3: key },
+      { Image_Key4: key },
+      { Image_Key5: key },
     ],
   };
 
