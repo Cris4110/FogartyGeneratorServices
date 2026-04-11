@@ -4,10 +4,33 @@ import axios from "axios";
 import { useAuth } from "../../context/Appcontext";
 import { auth } from "../../firebase";
 
-import { Card, CardContent, Chip } from "@mui/material";
-import { Backdrop, Box, Button, Grid, InputLabel, MenuItem, OutlinedInput, Paper, Select, Stack, Switch, TextField, Typography } from "@mui/material";
+import {
+  Backdrop,
+  Box,
+  Button,
+  Grid,
+  InputLabel,
+  MenuItem,
+  OutlinedInput,
+  Paper,
+  Select,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+  Card,
+  CardContent,
+  Chip,
+} from "@mui/material";
 import { useState, useEffect } from "react";
-import { signInWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider, verifyBeforeUpdateEmail, deleteUser, applyActionCode } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  verifyBeforeUpdateEmail,
+  deleteUser,
+} from "firebase/auth";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
@@ -210,10 +233,16 @@ const UserSettings = () => {
         if (firebaseUser != null && currentUser) {
           const idToken = await firebaseUser.getIdToken();
           // delete databa
-          const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-          });
+          const response = await fetch(
+            "http://localhost:3000/api/users/" + currentUser.userID,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${idToken}`,
+              },
+            },
+          );
           const result = await response.json();
           await deleteUser(firebaseUser); // delete firebase user
           if (!response.ok) {
@@ -491,9 +520,9 @@ const UserSettings = () => {
             break;
           }
           case "Email": {
-            tmpEmail = currentUser.email.trim();  // stores the old email
-            //currentUser.email = buff2.trim();
-            newData = { email: currentUser.email }
+            tmpEmail = currentUser.email.trim(); // stores the old email
+            currentUser.email = buff2.trim();
+            newData = { email: currentUser.email };
             break;
           }
           case "Phone Number": {
@@ -532,8 +561,7 @@ const UserSettings = () => {
             );
             const firebaseUser = userCredential.user;
             await updatePassword(firebaseUser, buff2.trim()); // updates password
-            setResponseMsg("Sent verification link! Refresh to see changes.");
-          } catch(err: any) {
+          } catch (err: any) {
             console.log(err);
             setResponseMsg("Incorrect information");
           }
@@ -545,11 +573,14 @@ const UserSettings = () => {
               buff1.trim(),
             ); // confirms user
             if (user != null) {
-              await reauthenticateWithCredential(user, credential);  // reauth user
-              await verifyBeforeUpdateEmail(user, buff2.toLowerCase().trim(), {url: 'http://localhost:5173/'});  // updates firebase email after clicking link
-              setResponseMsg("Sent verification link! Refresh to see changes.");
+              const result = await reauthenticateWithCredential(
+                user,
+                credential,
+              ); // reauth user
+              await verifyBeforeUpdateEmail(user, buff2.toLowerCase().trim()); // updates email after clicking link
             }
-          } catch(err: any) {
+          } catch (err: any) {
+            correctPassword = false;
             console.log(err);
             setResponseMsg("Incorrect information");
           }
@@ -936,6 +967,11 @@ const UserSettings = () => {
                               hour: "2-digit",
                               minute: "2-digit",
                             },
+                          )}
+                          {apt.travelCost !== undefined && apt.travelCost != null && (
+                            <Typography variant="body2" sx={{ color: "#321a6cff", fontWeight : 600}}>
+                             💰 Travel Cost : ${apt.travelCost.toFixed(2)}
+                            </Typography>
                           )}
                         </Typography>
                         {apt.address && (
