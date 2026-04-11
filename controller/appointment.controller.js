@@ -485,6 +485,24 @@ export const getPendingCount = async (req, res) => {
   }
 };
 
+// GET user's appointments
+export const getUserAppointments = async (req, res) => {
+  try {
+    const userID = req.params.userID || req.user?.uid;
+    
+    if (!userID) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const appointments = await Appointment.find({ userID }).sort({ appointmentDateTime: 1 });
+    
+    res.json(appointments);
+  } catch (err) {
+    console.error("Error fetching user appointments:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 // // EXPORT EVERYTHING
 // module.exports = {
