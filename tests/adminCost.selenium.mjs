@@ -6,8 +6,8 @@ async function adminCost() {
     let driver = await new Builder().forBrowser('chrome').build();
     const WAIT = 20000;
 
-    const id = "heertandel@csus.edu";
-    const password = "blahblah2929";
+    const id = "testingemail@gmail.com";
+    const password = "passswrddddd";
     const cost = "700";
 
     try {
