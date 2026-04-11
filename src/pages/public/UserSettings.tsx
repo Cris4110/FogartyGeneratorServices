@@ -230,7 +230,7 @@ const UserSettings = () => {
       try {
         // 2. Authenticate with Firebase directly
         const firebaseUser = auth.currentUser;
-        if (firebaseUser != null && currentUser != null) {
+        if (firebaseUser != null && currentUser) {
           const idToken = await firebaseUser.getIdToken();
           // delete databa
           const response = await fetch(
@@ -258,6 +258,7 @@ const UserSettings = () => {
 
     setBuff1("");
     handleCloseDelete(); // close the backdrop
+    window.location.reload;
   };
 
   // Checks if the string matches the regular expression format
@@ -547,8 +548,9 @@ const UserSettings = () => {
         }
 
         // DATABASE AND AUTH VALIDATION
+        // Update the user's information in the DB
+        let updateSuccessful = false;
         // Password validation section
-        let correctPassword = true;
         if (label == "Password") {
           try {
             // 2. Authenticate with Firebase directly
@@ -561,13 +563,9 @@ const UserSettings = () => {
             await updatePassword(firebaseUser, buff2.trim()); // updates password
           } catch (err: any) {
             console.log(err);
-            correctPassword = false;
-            setResponseMsg("Password Error");
+            setResponseMsg("Incorrect information");
           }
-        }
-
-        // user needs to have recently signed in to change password/email
-        if (label == "Email") {
+        } else if (label == "Email") {
           try {
             const user = auth.currentUser;
             const credential = EmailAuthProvider.credential(
@@ -584,13 +582,9 @@ const UserSettings = () => {
           } catch (err: any) {
             correctPassword = false;
             console.log(err);
-            setResponseMsg("Password Error");
+            setResponseMsg("Incorrect information");
           }
-        }
-
-        // Update the user's information in the DB
-        let updateSuccessful = false;
-        if (correctPassword) {
+        } else {
           try {
             // 2. Authenticate with Firebase directly
             const firebaseUser = auth.currentUser;

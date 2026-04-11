@@ -70,6 +70,12 @@ const [manualImageUrl2, setManualImageUrl2] = useState("");
 const [imageFile3, setImageFile3] = useState<File | null>(null);
 const [manualImageUrl3, setManualImageUrl3] = useState("");
 
+const [imageFile4, setImageFile4] = useState<File | null>(null);
+const [manualImageUrl4, setManualImageUrl4] = useState("");
+
+const [imageFile5, setImageFile5] = useState<File | null>(null);
+const [manualImageUrl5, setManualImageUrl5] = useState("");
+
 const navigate = useNavigate();
 
 const uploadImageIfNeeded = async (
@@ -118,7 +124,8 @@ const uploadImageIfNeeded = async (
     const slot1 = await uploadImageIfNeeded(imageFile1, manualImageUrl1);
     const slot2 = await uploadImageIfNeeded(imageFile2, manualImageUrl2);
     const slot3 = await uploadImageIfNeeded(imageFile3, manualImageUrl3);
-
+    const slot4 = await uploadImageIfNeeded(imageFile4, manualImageUrl4);
+    const slot5 = await uploadImageIfNeeded(imageFile5, manualImageUrl5);
     const response = await fetch("http://localhost:3000/api/parts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,6 +143,12 @@ const uploadImageIfNeeded = async (
 
         Image_Url3: slot3.imageUrl,
         Image_Key3: slot3.imageKey,
+
+        Image_Url4: slot4.imageUrl,
+        Image_Key4: slot4.imageKey,
+
+        Image_Url5: slot5.imageUrl,
+        Image_Key5: slot5.imageKey,
         }),
     });
 
@@ -159,6 +172,12 @@ const uploadImageIfNeeded = async (
 
         setImageFile3(null);
         setManualImageUrl3("");
+
+        setImageFile4(null);
+        setManualImageUrl4("");
+
+        setImageFile5(null);
+        setManualImageUrl5("");
 
         navigate("/admin/inven-management");
     }
@@ -237,6 +256,20 @@ return (
                 manualUrl={manualImageUrl3}
                 setManualUrl={setManualImageUrl3}
                 setFile={setImageFile3}
+                />
+
+                <ImageSlot
+                title="Image Slot 4"
+                manualUrl={manualImageUrl4}
+                setManualUrl={setManualImageUrl4}
+                setFile={setImageFile4}
+                />
+
+                <ImageSlot
+                title="Image Slot 5"
+                manualUrl={manualImageUrl5}
+                setManualUrl={setManualImageUrl5}
+                setFile={setImageFile5}
                 />
 
                 <div style={{ textAlign: "center", marginTop: "1rem" }}>
