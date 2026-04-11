@@ -10,8 +10,8 @@ async function estTravelCost() {
     const genModel = "GM1234";
     const serialNum = "97678767";
     const description = "Generator won't start";
-    const id = "kclassy250@gmail.com";
-    const password = "TestingTesting2944!!";
+    const id = "ktestest@gmail.com";
+    const password = "Testpass";
 
     try {
         await driver.get("http://localhost:5173");
