@@ -318,11 +318,53 @@ export const notifyAdminOfNewAppointment = async (appointment) => {
 // UPDATE appointment
 export const updateAppointment = async (req, res) => {
   try {
+    const update = {
+     status: req.body.status,
+     travelCost: typeof req.body.travelCost === "number" ? req.body.travelCost : undefined,
+     rescheduledDateTime: req.body.rescheduledDateTime,
+     rescheduledEndDateTime: req.body.rescheduledEndDateTime,
+   };
+
+
+   // ✅ ONLY for reschedule
+   if (status === "rescheduled") {
+    if (newAppointmentTime) {
+     appointment.newAppointmentTime = newAppointmentTime;
+   }
+   if (newEndAppointmentTime) {
+     appointment.newEndAppointmentTime = newEndAppointmentTime;
+   }
+ }
+ //✅ ONLY for reschedule
+ if (status === "rescheduled") {
+   if (newAppointmentTime) {
+     appointment.newAppointmentTime = newAppointmentTime;
+   }
+   if (newEndAppointmentTime) {
+     appointment.newEndAppointmentTime = newEndAppointmentTime;
+   }
+ }
+
+ // ✅ travel cost for both accept + reschedule
+ if (travelCost !== undefined) {
+   appointment.travelCost = travelCost;
+ }
+
     const updated = await Appointment.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      {
+      $set: {
+      status: req.body.status,
+      travelCost: typeof req.body.travelCost === "number" ? req.body.travelCost : undefined,
+      rescheduledDateTime: req.body.rescheduledDateTime,
+      rescheduledEndDateTime: req.body.rescheduledEndDateTime,
+      }
+      },
       { new: true }
     );
+    if (!updated) {
+   return res.status(404).json({ message: "Appointment not found" });
+ }
 
     res.json(updated);
 
@@ -345,10 +387,20 @@ await sendEmail(
 // controllers/appointment.controller.js
 export const updateAppointmentStatus = async (req, res) => {
   try {
-    const { status, newAppointmentTime, newEndAppointmentTime, appointmentEndDateTime } = req.body;
+    const { 
+      status, 
+      travelCost,
+      newAppointmentTime,
+      newEndAppointmentTime, 
+      appointmentEndDateTime,
+     } = req.body;
     
     // 1. Prepare the update object for the Database
     const update = { status };
+
+    if (typeof travelCost === "number") {
+   update.travelCost = travelCost;
+ }
 
     if (status === "accepted" && appointmentEndDateTime) {
       update.appointmentEndDateTime = new Date(appointmentEndDateTime);
@@ -481,6 +533,23 @@ export const getPendingCount = async (req, res) => {
     const count = await Appointment.countDocuments({ status: "pending" });
     res.json({ count });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getUserAppointments = async (req, res) => {
+  try {
+    const userID = req.params.userID || req.user?.uid;
+    
+    if (!userID) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const appointments = await Appointment.find({ userID }).sort({ appointmentDateTime: 1 });
+    
+    res.json(appointments);
+  } catch (err) {
+    console.error("Error fetching user appointments:", err);
     res.status(500).json({ message: err.message });
   }
 };

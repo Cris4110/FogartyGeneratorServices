@@ -67,7 +67,11 @@ const AppointmentSchema = new mongoose.Schema(
             type: String,
             enum: ["user", "admin"],
             default: "user",
-        }
+        },
+        travelCost: {
+         type: Number,
+         default: 0,
+     },
         
     },    
     {

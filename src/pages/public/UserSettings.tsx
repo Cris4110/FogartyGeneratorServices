@@ -1,12 +1,36 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
-import { useAuth } from "../../context/Appcontext"; 
-import { auth } from "../../firebase"; 
+import { useAuth } from "../../context/Appcontext";
+import { auth } from "../../firebase";
 
-import { Backdrop, Box, Button, Grid, InputLabel, MenuItem, OutlinedInput, Paper, Select, Stack, Switch, TextField, Typography } from "@mui/material";
-import { useState } from "react";
-import { signInWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider, verifyBeforeUpdateEmail, deleteUser } from "firebase/auth";
+import {
+  Backdrop,
+  Box,
+  Button,
+  Grid,
+  InputLabel,
+  MenuItem,
+  OutlinedInput,
+  Paper,
+  Select,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+  Card,
+  CardContent,
+  Chip,
+} from "@mui/material";
+import { useState, useEffect } from "react";
+import {
+  signInWithEmailAndPassword,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  verifyBeforeUpdateEmail,
+  deleteUser,
+} from "firebase/auth";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
@@ -28,26 +52,79 @@ api.interceptors.request.use(async (config) => {
 });
 
 // Regular Expression section
-const passwordRegex = /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/
-const nameRegex = /[~`!@#$%^&*()0-9_=+[\]{}|\\;:"<,>./?]+|(\s{2,})|(^ $)/
-const emailRegex = /[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?/
-const phoneRegex = /(^\d{10}$){1}/
-const streetRegex = /[~`!@#$%^*()_=+[\]{}|\\;<>/?]+|(\s{2,})|(^ $)/   // checks for special characters
-const cityRegex = /[~`!@#$%^&*()_=+[\]{}|\\;:"<,>/?]+|(\s{2,})|(^ $)/ // checks for special characters
+const passwordRegex =
+  /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/;
+const nameRegex = /[~`!@#$%^&*()0-9_=+[\]{}|\\;:"<,>./?]+|(\s{2,})|(^ $)/;
+const emailRegex =
+  /[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?/;
+const phoneRegex = /(^\d{10}$){1}/;
+const streetRegex = /[~`!@#$%^*()_=+[\]{}|\\;<>/?]+|(\s{2,})|(^ $)/; // checks for special characters
+const cityRegex = /[~`!@#$%^&*()_=+[\]{}|\\;:"<,>/?]+|(\s{2,})|(^ $)/; // checks for special characters
 const stateAbbreviations = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI",
-  "ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI",
-  "MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC",
-  "ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT",
-  "VT","VA","WA","WV","WI","WY",
-  ];
+  "AL",
+  "AK",
+  "AZ",
+  "AR",
+  "CA",
+  "CO",
+  "CT",
+  "DE",
+  "FL",
+  "GA",
+  "HI",
+  "ID",
+  "IL",
+  "IN",
+  "IA",
+  "KS",
+  "KY",
+  "LA",
+  "ME",
+  "MD",
+  "MA",
+  "MI",
+  "MN",
+  "MS",
+  "MO",
+  "MT",
+  "NE",
+  "NV",
+  "NH",
+  "NJ",
+  "NM",
+  "NY",
+  "NC",
+  "ND",
+  "OH",
+  "OK",
+  "OR",
+  "PA",
+  "RI",
+  "SC",
+  "SD",
+  "TN",
+  "TX",
+  "UT",
+  "VT",
+  "VA",
+  "WA",
+  "WV",
+  "WI",
+  "WY",
+];
 const zipRegex = /(^\d{5}$)|(^\d{5}-\d{4}$)/; // ex) 12345 or 12345-6789
 
 const UserSettings = () => {
   const { currentUser, setCurrentUser, authReady, isAdmin } = useAuth();
   // On first render, try to hydrate from cookie via /users/me
-  let fullAddress = currentUser?.address.street + ", " + currentUser?.address.city + ", " + currentUser?.address.state +
-    " " + currentUser?.address.zipcode;
+  let fullAddress =
+    currentUser?.address.street +
+    ", " +
+    currentUser?.address.city +
+    ", " +
+    currentUser?.address.state +
+    " " +
+    currentUser?.address.zipcode;
   const [buff1, setBuff1] = useState(""); // User settings to update
   const [buff2, setBuff2] = useState("");
   const [buff3, setBuff3] = useState("");
@@ -56,6 +133,8 @@ const UserSettings = () => {
   const [validBuff2, setValidBuff2] = useState(true);
   const [validBuff3, setValidBuff3] = useState(true);
   const [validBuff4, setValidBuff4] = useState(true);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(true);
   const userAddress = {
     street: buff1,
     city: buff2,
@@ -67,15 +146,52 @@ const UserSettings = () => {
   const [disableButton, setDisableButton] = useState(true);
   const [openDelete, setOpenDelete] = useState(false);
   const [disableDeleteButton, setDisableDeleteButton] = useState(true);
-  const handleCloseDelete = () => {
-      setOpenDelete(false); // Closes the update confirmation
-      setBuff1(""); // Sets the text fields to empty
-      setValidBuff1(true);
-      setDisableDeleteButton(true);
+
+  // Fetch upcoming appointments for the current user
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!currentUser?.userID) {
+        console.log("No userID available yet");
+        return;
+      }
+      try {
+        console.log("Fetching appointments for userID:", currentUser.userID);
+        const response = await api.get(
+          `/appointments/user/${currentUser.userID}`,
+        );
+        console.log("Appointments response:", response.data);
+        const allAppointments = response.data;
+
+        // Filter for future appointments only
+        const userAppointments = allAppointments
+          .filter((apt: any) => new Date(apt.appointmentDateTime) > new Date())
+          .sort(
+            (a: any, b: any) =>
+              new Date(a.appointmentDateTime).getTime() -
+              new Date(b.appointmentDateTime).getTime(),
+          );
+
+        console.log("Filtered upcoming appointments:", userAppointments);
+        setAppointments(userAppointments);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      } finally {
+        setLoadingAppointments(false);
+      }
     };
-    const handleOpenDelete = () => {
-      setOpenDelete(true);  // Brings up the update confirmation
-    }
+
+    fetchAppointments();
+  }, [currentUser?.userID]);
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false); // Closes the update confirmation
+    setBuff1(""); // Sets the text fields to empty
+    setValidBuff1(true);
+    setDisableDeleteButton(true);
+  };
+  const handleOpenDelete = () => {
+    setOpenDelete(true); // Brings up the update confirmation
+  };
   const [receiveTexts, setReceiveTexts] = useState(false);
   const [receiveEmails, setReceiveEmails] = useState(false);
 
@@ -96,15 +212,18 @@ const UserSettings = () => {
     try {
       if (currentUser != null) {
         const user = auth.currentUser;
-        const credential = EmailAuthProvider.credential(currentUser.email.toLowerCase().trim(), buff1.trim());  // confirms user
+        const credential = EmailAuthProvider.credential(
+          currentUser.email.toLowerCase().trim(),
+          buff1.trim(),
+        ); // confirms user
         if (user != null) {
-          await reauthenticateWithCredential(user, credential);  // reauth user
-        };
+          await reauthenticateWithCredential(user, credential); // reauth user
+        }
       }
-    } catch(err: any) {
-        console.log(err);
-        correctDetails = false;
-        setResponseMsg("Wrong Information");
+    } catch (err: any) {
+      console.log(err);
+      correctDetails = false;
+      setResponseMsg("Wrong Information");
     }
 
     if (correctDetails) {
@@ -114,12 +233,18 @@ const UserSettings = () => {
         if (firebaseUser != null && currentUser != null) {
           const idToken = await firebaseUser.getIdToken();
           // delete databa
-          const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID , {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-          });
+          const response = await fetch(
+            "http://localhost:3000/api/users/" + currentUser.userID,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${idToken}`,
+              },
+            },
+          );
           const result = await response.json();
-          await deleteUser(firebaseUser);  // delete firebase user
+          await deleteUser(firebaseUser); // delete firebase user
           if (!response.ok) {
             setResponseMsg(result.message || "Error updating user."); // Show the backend error directly
           } else {
@@ -158,17 +283,17 @@ const UserSettings = () => {
   // Uses the label to know which form sent the request and which buffers to change
   const setInput = (label: string, userInput: string, invalid: boolean) => {
     setDisableButton(invalid);
-    switch(label) {
-      case 'First Name':
-      case 'Phone Number':
-      case 'Street':
+    switch (label) {
+      case "First Name":
+      case "Phone Number":
+      case "Street":
         setValidBuff1(!invalid);
         setBuff1(userInput);
         break;
-      case 'Last Name':
-      case 'Password':
-      case 'Email':
-      case 'City':
+      case "Last Name":
+      case "Password":
+      case "Email":
+      case "City":
         setValidBuff2(!invalid);
         setBuff2(userInput);
         break;
@@ -184,37 +309,64 @@ const UserSettings = () => {
     let inputField;
     switch (label) {
       case "Name": {
-        inputField =
-        <>
-          < TextField placeholder="First Name" variant="outlined"
-            value={buff1}
-            onChange={(e) => checkRegex("First Name", nameRegex, e.target.value, false)}
-            error={!validBuff1}
-            helperText = {!validBuff1 ? "Please do not use special characters or spaces" : ''}
-          />
-          < TextField placeholder="Last Name" variant="outlined"
-            value={buff2}
-            onChange={(e) => checkRegex("Last Name", nameRegex, e.target.value, false)}
-            error={!validBuff2}
-            helperText = {!validBuff2 ? "Please do not use special characters or spaces" : ''}
-          />
-        </>
+        inputField = (
+          <>
+            <TextField
+              placeholder="First Name"
+              variant="outlined"
+              type="name"
+              value={buff1}
+              onChange={(e) =>
+                checkRegex("First Name", nameRegex, e.target.value, false)
+              }
+              error={!validBuff1}
+              helperText={
+                !validBuff1
+                  ? "Please do not use special characters or spaces"
+                  : ""
+              }
+            />
+            <TextField
+              placeholder="Last Name"
+              variant="outlined"
+              type="name"
+              value={buff2}
+              onChange={(e) =>
+                checkRegex("Last Name", nameRegex, e.target.value, false)
+              }
+              error={!validBuff2}
+              helperText={
+                !validBuff2
+                  ? "Please do not use special characters or spaces"
+                  : ""
+              }
+            />
+          </>
+        );
         break;
       }
       case "Email": {
-        inputField = 
-        <>
-          < TextField placeholder="Current Password" variant="outlined" type="password"
-            value={buff1}
-            onChange={(e) => setBuff1(e.target.value)}
-          /> 
-          < TextField placeholder="Email" variant="outlined"
-            value={buff2}
-            onChange={(e) => checkRegex("Email", emailRegex, e.target.value, true)}
-            error={!validBuff2}
-            helperText = {!validBuff2 ? "Please enter a valid email" : ''}
-          />
-        </>
+        inputField = (
+          <>
+            <TextField
+              placeholder="Enter Password to confirm changes"
+              variant="outlined"
+              type="password"
+              value={buff1}
+              onChange={(e) => setBuff1(e.target.value)}
+            />
+            <TextField
+              placeholder="New Email"
+              variant="outlined"
+              value={buff2}
+              onChange={(e) =>
+                checkRegex("Email", emailRegex, e.target.value, true)
+              }
+              error={!validBuff2}
+              helperText={!validBuff2 ? "Please enter a valid email" : ""}
+            />
+          </>
+        );
         break;
       }
       case "Phone Number": {
@@ -321,7 +473,6 @@ const UserSettings = () => {
   // label defines the setting and value defines the user's information
   // count defines which buffer to check if all inputs are entered or not
   const settingRow = (label: string, value: string, count: number) => {
-    
     let buffArray = [""]; // used to keep track of empty buffers
     switch (count) {
       case 1:
@@ -361,25 +512,25 @@ const UserSettings = () => {
         // updates settings display
         let newData = {};
         let tmpEmail = "";
-        switch(label) {
+        switch (label) {
           case "Name": {
             currentUser.name = buff1.trim() + " " + buff2.trim();
-            newData = { name: currentUser.name }
+            newData = { name: currentUser.name };
             break;
           }
           case "Email": {
-            tmpEmail = currentUser.email.trim();  // stores the old email
+            tmpEmail = currentUser.email.trim(); // stores the old email
             currentUser.email = buff2.trim();
-            newData = { email: currentUser.email }
+            newData = { email: currentUser.email };
             break;
           }
           case "Phone Number": {
             currentUser.phoneNumber = buff1;
-            newData = { phoneNumber: currentUser.phoneNumber }
+            newData = { phoneNumber: currentUser.phoneNumber };
             break;
           }
           case "Password": {
-            newData = { password: buff2 }
+            newData = { password: buff2 };
             break;
           }
           case "Address": {
@@ -387,7 +538,7 @@ const UserSettings = () => {
             currentUser.address.city = buff2.trim();
             currentUser.address.state = buff3.trim();
             currentUser.address.zipcode = buff4.trim();
-            newData = { address: userAddress }
+            newData = { address: userAddress };
             break;
           }
           default: {
@@ -404,11 +555,11 @@ const UserSettings = () => {
             const userCredential = await signInWithEmailAndPassword(
               auth,
               currentUser.email.toLowerCase().trim(),
-              buff1.trim()  // cur password
+              buff1.trim(), // cur password
             );
             const firebaseUser = userCredential.user;
             await updatePassword(firebaseUser, buff2.trim()); // updates password
-          } catch(err: any) {
+          } catch (err: any) {
             console.log(err);
             correctPassword = false;
             setResponseMsg("Password Error");
@@ -419,12 +570,18 @@ const UserSettings = () => {
         if (label == "Email") {
           try {
             const user = auth.currentUser;
-            const credential = EmailAuthProvider.credential(tmpEmail.toLowerCase(), buff1.trim());  // confirms user
+            const credential = EmailAuthProvider.credential(
+              tmpEmail.toLowerCase(),
+              buff1.trim(),
+            ); // confirms user
             if (user != null) {
-              const result = await reauthenticateWithCredential(user, credential);  // reauth user
-              await verifyBeforeUpdateEmail(user, buff2.toLowerCase().trim());  // updates email after clicking link
+              const result = await reauthenticateWithCredential(
+                user,
+                credential,
+              ); // reauth user
+              await verifyBeforeUpdateEmail(user, buff2.toLowerCase().trim()); // updates email after clicking link
             }
-          } catch(err: any) {
+          } catch (err: any) {
             correctPassword = false;
             console.log(err);
             setResponseMsg("Password Error");
@@ -440,17 +597,26 @@ const UserSettings = () => {
             if (firebaseUser != null) {
               const idToken = await firebaseUser.getIdToken();
 
-              const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-                
-                body: JSON.stringify({newData}),
-              });
+              const response = await fetch(
+                "http://localhost:3000/api/users/" + currentUser.userID,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${idToken}`,
+                  },
+
+                  body: JSON.stringify({ newData }),
+                },
+              );
               const result = await response.json();
               if (!response.ok) {
                 setResponseMsg(result.message || "Error updating user."); // Show the backend error directly
               } else {
-                setResponseMsg(result.message + " Refreshing page in 5 seconds..." || "User updated successfully!");
+                setResponseMsg(
+                  result.message + " Refreshing page in 5 seconds..." ||
+                    "User updated successfully!",
+                );
                 updateSuccessful = true;
               }
             }
@@ -476,31 +642,48 @@ const UserSettings = () => {
     return (
       <>
         {/* Contains each setting to one box/row */}
-        <Box>
+        <Box
+          sx={{
+            borderBottom: "1px solid #f0f0f0",
+            py: 1.5,
+            px: 2,
+            "&:last-child": { borderBottom: "none" },
+          }}
+        >
           {/* Each line is a label and a button */}
           <Grid
             container
-            spacing={2}
-            sx={{ alignItems: "center", justifyContent: "center" }}
+            spacing={1}
+            sx={{ alignItems: "center", justifyContent: "space-between" }}
           >
             {/* Label */}
-            <Grid size={8} padding={3}>
-              <Typography variant="h5" fontWeight={700} gutterBottom>
+            <Grid size={{ xs: 8 }}>
+              <Typography
+                variant="subtitle2"
+                fontWeight={600}
+                sx={{ fontSize: "0.95rem" }}
+              >
                 {label}
               </Typography>
-              <Typography variant="h5" fontWeight={300} gutterBottom>
+              <Typography
+                variant="body2"
+                fontWeight={400}
+                sx={{ color: "#666", fontSize: "0.85rem", mt: 0.5 }}
+              >
                 {value}
               </Typography>
             </Grid>
             {/* Button to edit setting */}
             <Grid
-              container
-              size={2}
-              padding={5}
-              direction="row"
-              sx={{ justifyContent: "flex-end" }}
+              size={{ xs: 4 }}
+              sx={{ display: "flex", justifyContent: "flex-end" }}
             >
-              <Button variant="outlined" onClick={handleOpenUpdate}>
+              <Button
+                variant="outlined"
+                onClick={handleOpenUpdate}
+                size="small"
+                sx={{ fontSize: "0.75rem", py: 0.5, px: 1 }}
+              >
                 Edit
               </Button>
             </Grid>
@@ -554,26 +737,38 @@ const UserSettings = () => {
       const fieldName = isTexts ? "receiveTexts" : "receiveEmails";
 
       return (
-        <Box>
+        <Box
+          sx={{
+            borderBottom: "1px solid #f0f0f0",
+            py: 1.5,
+            px: 2,
+            "&:last-child": { borderBottom: "none" },
+          }}
+        >
           <Grid
             container
-            spacing={2}
-            sx={{ alignItems: "center", justifyContent: "center" }}
+            spacing={1}
+            sx={{ alignItems: "center", justifyContent: "space-between" }}
           >
-            <Grid size={8} padding={3}>
-              <Typography variant="h5" fontWeight={700} gutterBottom>
+            <Grid size={{ xs: 8 }}>
+              <Typography
+                variant="subtitle2"
+                fontWeight={600}
+                sx={{ fontSize: "0.95rem" }}
+              >
                 {label}
               </Typography>
-              <Typography variant="h5" fontWeight={300} gutterBottom>
+              <Typography
+                variant="body2"
+                fontWeight={400}
+                sx={{ color: "#666", fontSize: "0.85rem", mt: 0.5 }}
+              >
                 {value ? "Enabled" : "Disabled"}
               </Typography>
             </Grid>
             <Grid
-              container
-              size={2}
-              padding={5}
-              direction="row"
-              sx={{ justifyContent: "flex-end" }}
+              size={{ xs: 4 }}
+              sx={{ display: "flex", justifyContent: "flex-end" }}
             >
               <Switch
                 checked={value}
@@ -582,104 +777,272 @@ const UserSettings = () => {
                   setValue(newValue);
                   if (currentUser) {
                     let newData = {};
-                    isTexts ? currentUser.receiveTexts = newValue : currentUser.receiveEmails = newValue;
-                    isTexts ? newData = {receiveTexts: newValue} : newData = {receiveEmails: newValue}
+                    isTexts
+                      ? (currentUser.receiveTexts = newValue)
+                      : (currentUser.receiveEmails = newValue);
+                    isTexts
+                      ? (newData = { receiveTexts: newValue })
+                      : (newData = { receiveEmails: newValue });
                     try {
                       // 2. Authenticate with Firebase directly
                       const firebaseUser = auth.currentUser;
                       if (firebaseUser != null) {
                         const idToken = await firebaseUser.getIdToken();
 
-                        const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID, {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-                          
-                          body: JSON.stringify({newData}),
-                        });
+                        const response = await fetch(
+                          "http://localhost:3000/api/users/" +
+                            currentUser.userID,
+                          {
+                            method: "PUT",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: `Bearer ${idToken}`,
+                            },
+
+                            body: JSON.stringify({ newData }),
+                          },
+                        );
                         const result = await response.json();
                         if (!response.ok) {
-                          setResponseMsg(result.message || "Error updating user."); // Show the backend error directly
+                          setResponseMsg(
+                            result.message || "Error updating user.",
+                          ); // Show the backend error directly
                         } else {
-                          setResponseMsg(result.message || "Setting updated successfully!");
+                          setResponseMsg(
+                            result.message || "Setting updated successfully!",
+                          );
                         }
                       }
                     } catch (error: any) {
-                      setResponseMsg(error.response?.data?.message || "Error updating setting.");
+                      setResponseMsg(
+                        error.response?.data?.message ||
+                          "Error updating setting.",
+                      );
                       console.log("Error updating user: ", error);
                       // Revert on error
                       setValue(!newValue);
-                      isTexts ? currentUser.receiveTexts = !newValue : currentUser.receiveEmails = !newValue;
+                      isTexts
+                        ? (currentUser.receiveTexts = !newValue)
+                        : (currentUser.receiveEmails = !newValue);
                     }
                   }
                 }}
+                size="small"
               />
             </Grid>
           </Grid>
         </Box>
       );
     }
-  }
+  };
 
   return (
     <>
       <Navbar />
-      {/* Main container - stack */}
-      <Stack
-        paddingTop={5}
-        paddingBottom={5}
-        paddingLeft={15}
-        paddingRight={15}
-      >
-        {/* Title */}
-        <Typography variant="h4" fontWeight={700} gutterBottom>
-          Login & Security
-        </Typography>
-        {responseMsg && (
-          <p style={{ textAlign: "center", marginTop: "1rem" }}>
-            {responseMsg}
-          </p>
-        )}
-        {/* Setting container */}
-        <Box border={1} borderRadius={5}>
-          <Stack>
-            {settingRow("Name", currentUser?.name ?? "", 2)}
-            {settingRow("Email", currentUser?.email ?? "", 2)}
-            {settingRow("Phone Number", currentUser?.phoneNumber ?? "", 1)}
-            {settingRow("Password", "***********", 2)}
-            {settingRow("Address", fullAddress ?? "", 4)}
-            {settingSwitch("Receive Texts", currentUser?.receiveTexts ?? false)}
-            {settingSwitch("Receive Emails", currentUser?.receiveEmails ?? false)}
-          </Stack>
-        </Box>
-        <Button
-          variant="contained"
-          onClick={handleLogout}
-          sx={{ marginTop: 2 }}
-        >
-          Log Out
-        </Button>
-        <Button variant="outlined" onClick={handleOpenDelete}>
-          Delete Account
-        </Button>
-        <Backdrop sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
-          open={openDelete}
-        >
-          <Paper sx={{width: '30%', padding: 10}}>
-            <Box padding={2} sx={{textAlign: "center"}}>
-              <Typography sx={{fontWeight: 'bold', fontSize: 'h6.fontSize'}}>Delete Account?</Typography>
-              < TextField placeholder="Password" variant="outlined" type="password"
-                value={buff1}
-                onChange={(e) => setBuff1(e.target.value)}
-              />
+      {/* Main container - two column layout */}
+      <Stack paddingTop={3} paddingBottom={5} paddingLeft={3} paddingRight={3}>
+        <Grid container spacing={3}>
+          {/* Left Column - Settings */}
+          <Grid size={{ xs: 12, md: 7 }}>
+            {/* Title */}
+            <Typography
+              variant="h5"
+              fontWeight={700}
+              gutterBottom
+              sx={{ mb: 2 }}
+            >
+              Login & Security
+            </Typography>
+            {responseMsg && (
+              <Box
+                sx={{
+                  backgroundColor: "#e3f2fd",
+                  color: "#1976d2",
+                  p: 1.5,
+                  borderRadius: 1,
+                  mb: 2,
+                  textAlign: "center",
+                  fontSize: "0.9rem",
+                }}
+              >
+                {responseMsg}
+              </Box>
+            )}
+            {/* Setting container */}
+            <Box border={1} borderRadius={2} sx={{ borderColor: "#e0e0e0" }}>
+              <Stack>
+                {settingRow("Name", currentUser?.name ?? "", 2)}
+                {settingRow("Email", currentUser?.email ?? "", 2)}
+                {settingRow("Phone Number", currentUser?.phoneNumber ?? "", 1)}
+                {settingRow("Password", "***********", 2)}
+                {settingRow("Address", fullAddress ?? "", 4)}
+                {settingSwitch(
+                  "Receive Texts",
+                  currentUser?.receiveTexts ?? false,
+                )}
+                {settingSwitch(
+                  "Receive Emails",
+                  currentUser?.receiveEmails ?? false,
+                )}
+              </Stack>
             </Box>
-            <Stack direction="row" spacing={20} sx={{justifyContent: "center", alignItems: "center"}}>
-              <Button variant="contained" onClick={handleCloseDelete}>Decline</Button>
-              {/* Disables button if there is an invalid input or empty input*/}
-              <Button variant="contained" disabled={disableDeleteButton && buff1==""} onClick={handleDeleteUser}>Confirm</Button>
+            <Stack direction="row" spacing={1} sx={{ marginTop: 2 }}>
+              <Button variant="contained" onClick={handleLogout} size="small">
+                Log Out
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleOpenDelete}
+                size="small"
+              >
+                Delete Account
+              </Button>
             </Stack>
-          </Paper>
-        </Backdrop>
+          </Grid>
+
+          {/* Right Column - Upcoming Appointments */}
+          <Grid size={{ xs: 12, md: 5 }}>
+            <Typography
+              variant="h5"
+              fontWeight={700}
+              gutterBottom
+              sx={{ mb: 2 }}
+            >
+              Upcoming Appointments
+            </Typography>
+            {loadingAppointments ? (
+              <Typography sx={{ color: "#999" }}>Loading...</Typography>
+            ) : appointments.length === 0 ? (
+              <Card sx={{ backgroundColor: "#f5f5f5" }}>
+                <CardContent>
+                  <Typography sx={{ color: "#999", textAlign: "center" }}>
+                    No upcoming appointments
+                  </Typography>
+                </CardContent>
+              </Card>
+            ) : (
+              <Stack spacing={1.5}>
+                {appointments.map((apt, index) => (
+                  <Card
+                    key={index}
+                    sx={{
+                      backgroundColor: "#fafafa",
+                      border: "1px solid #e0e0e0",
+                    }}
+                  >
+                    <CardContent
+                      sx={{ py: 1.5, px: 2, "&:last-child": { pb: 1.5 } }}
+                    >
+                      <Stack spacing={0.5}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography variant="subtitle2" fontWeight={600}>
+                            {apt.generatorModel || "Generator Service"}
+                          </Typography>
+                          <Chip
+                            label={apt.status || "Scheduled"}
+                            size="small"
+                            sx={{
+                              backgroundColor:
+                                apt.status === "Cancelled"
+                                  ? "#ffebee"
+                                  : apt.status === "Completed"
+                                    ? "#e8f5e9"
+                                    : "#e3f2fd",
+                              color:
+                                apt.status === "Cancelled"
+                                  ? "#c62828"
+                                  : apt.status === "Completed"
+                                    ? "#2e7d32"
+                                    : "#1976d2",
+                            }}
+                          />
+                        </Box>
+                        <Typography variant="body2" sx={{ color: "#666" }}>
+                          {new Date(apt.appointmentDateTime).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
+                          {apt.travelCost !== undefined && apt.travelCost != null && (
+                            <Typography variant="body2" sx={{ color: "#321a6cff", fontWeight : 600}}>
+                             💰 Travel Cost : ${apt.travelCost.toFixed(2)}
+                            </Typography>
+                          )}
+                        </Typography>
+                        {apt.address && (
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#999", fontSize: "0.85rem" }}
+                          >
+                            📍 {apt.address}
+                          </Typography>
+                        )}
+                        {apt.phone && (
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#999", fontSize: "0.85rem" }}
+                          >
+                            📞 {apt.phone}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Stack>
+            )}
+          </Grid>
+        </Grid>
       </Stack>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Backdrop
+        sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+        open={openDelete}
+      >
+        <Paper sx={{ width: "30%", padding: 10 }}>
+          <Box padding={2} sx={{ textAlign: "center" }}>
+            <Typography sx={{ fontWeight: "bold", fontSize: "h6.fontSize" }}>
+              Delete Account?
+            </Typography>
+            <TextField
+              placeholder="Password"
+              variant="outlined"
+              type="password"
+              value={buff1}
+              onChange={(e) => setBuff1(e.target.value)}
+            />
+          </Box>
+          <Stack
+            direction="row"
+            spacing={20}
+            sx={{ justifyContent: "center", alignItems: "center" }}
+          >
+            <Button variant="contained" onClick={handleCloseDelete}>
+              Decline
+            </Button>
+            {/* Disables button if there is an invalid input or empty input*/}
+            <Button
+              variant="contained"
+              disabled={disableDeleteButton && buff1 == ""}
+              onClick={handleDeleteUser}
+            >
+              Confirm
+            </Button>
+          </Stack>
+        </Paper>
+      </Backdrop>
       <Footer />
     </>
   );

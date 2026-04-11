@@ -42,6 +42,7 @@ export default function AppointmentRequest() {
   const [dialogDate, setDialogDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [dialogTime, setDialogTime] = useState("");
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [travelCost, setTravelCost] = useState<string>("");
   const [busyRanges, setBusyRanges] = useState<{ start: dayjs.Dayjs; end: dayjs.Dayjs }[]>([]);
 
   const api = useMemo(() => axios.create({ baseURL: "http://localhost:3000/api" }), []);
@@ -171,6 +172,10 @@ const endISOFromPick = (dateStr: string, endTimeStr: string) =>
   const openDialog = async (row: Appointment) => {
     setActive(row);
     setOpen(true);
+    setActions((prev) => ({
+      ...prev,
+      [row._id]: { ...prev[row._id], decision: "none" }
+    }));
 
     const initialStart = dayjs(row.appointmentDateTime);
     const initialDate = initialStart.format("YYYY-MM-DD");
@@ -186,7 +191,7 @@ const endISOFromPick = (dateStr: string, endTimeStr: string) =>
     // default end = +1 hour from the current start (or use existing end if you have it in row)
     const startISO = initialStart.toISOString();
     setDialogEndISO(computeDefaultEnd(startISO));
-
+    setTravelCost((row as any).travelCost ? String((row as any).travelCost) : "");
     await fetchBusyForDate(initialDate);
   };
 
@@ -376,19 +381,22 @@ const textareaSx: React.CSSProperties = {
     id: string,
     status: AppointmentStatus,
     newDateTime?: string,
-    endIso?: string
+    endIso?: string,
+    travelCost?: string
   ) => {
     const payload: any = { status };
 
-    if (status === "rescheduled") {
-      const dt = dayjs(newDateTime);
-      payload.newAppointmentTime = newDateTime;
-      payload.newEndAppointmentTime  = endIso;
-    }
-    if(status === "accepted") {
-      payload.appointmentEndDateTime = endIso;
-    }
+    if (travelCost !== "") {
+payload.travelCost = Number(travelCost);
+}
 
+   if (newDateTime) {
+ payload.newAppointmentTime = newDateTime;
+}
+
+if (endIso) {
+ payload.newEndAppointmentTime = endIso;
+}
     await fetch(`http://localhost:3000/api/appointments/${id}/status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -1086,6 +1094,24 @@ return (
                 </Box>
 
                 <Divider sx={{ my: 2 }} />
+
+                {(activeAction.decision === "accept" || activeAction.decision === "reschedule") && (
+                  <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
+                  Travel Cost
+                    </Typography>
+
+                    <TextField
+                      fullWidth
+                      value={travelCost}
+                      onChange={(e) => setTravelCost(e.target.value)}
+                      placeholder="0.00"
+                    InputProps={{
+                        startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
+                    }}
+                    />
+                    </Box>
+                )}
 
                 {/* Action buttons stay on LEFT */}
                 <Box>
