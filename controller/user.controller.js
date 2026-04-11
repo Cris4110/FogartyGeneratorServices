@@ -82,29 +82,43 @@ export const updateUser = async (req, res) => {
   }
 };
 
+// Update user email details
+export const updateUserEmail = async (req, res) => {
+  try {
+    console.log("updating by email");
+    const { email } = req.params;
+    const updateData = req.body.newData;
+    const user = await User.findOneAndUpdate({ email: email.toLowerCase() }, updateData, { new: true });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json({message: "User updated successfully"}); 
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
+};
+
 export const deleteUser = async (req, res) => {
   try {
-    const { uid } = req.params;
-    console.log("Processing deletion for:", uid);
+    const { id } = req.params;
+    console.log("Processing deletion for:", id);
 
-    const user = await User.findOne({ userID: uid });
+    const user = await User.findOne({ userID: id });
     if (!user) {
       return res.status(404).json({ message: "User not found in database" });
     }
 
-    // 1. Attempt to delete from Firebase
-    try {
-      await getAuth().deleteUser(user.userID);
-    } catch (authError) {
-      // If the error is that the user doesn't exist in Firebase, log it 
-      // but do NOT crash the request. Proceed to DB deletion.
-      if (authError.code === 'auth/user-not-found') {
-        console.warn("User already missing from Firebase. Cleaning up MongoDB record.");
-      } else {
-        // If it's a different error (e.g., permission issues), re-throw it
-        throw authError;
-      }
-    }
+    // // 1. Attempt to delete from Firebase
+    // try {
+    //   await getAuth().deleteUser(user.userID);
+    // } catch (authError) {
+    //   // If the error is that the user doesn't exist in Firebase, log it 
+    //   // but do NOT crash the request. Proceed to DB deletion.
+    //   if (authError.code === 'auth/user-not-found') {
+    //     console.warn("User already missing from Firebase. Cleaning up MongoDB record.");
+    //   } else {
+    //     // If it's a different error (e.g., permission issues), re-throw it
+    //     throw authError;
+    //   }
+    // }
 
     // 2. Delete from MongoDB
     await User.findByIdAndDelete(user._id);

@@ -1,6 +1,6 @@
 import express from "express";
 import User from "../models/user.model.js";
-import { getUsers, getUser, createUser, updateUser, deleteUser, updateUserRole} from "../controller/user.controller.js";
+import { getUsers, getUser, createUser, updateUser, updateUserEmail, deleteUser, updateUserRole} from "../controller/user.controller.js";
 import { verifyFirebaseToken } from "../backend/middleware/auth.ts"; 
 
 const router = express.Router();
@@ -43,6 +43,7 @@ router.get("/me", verifyFirebaseToken, async (req, res) => {
 router.get('/', verifyFirebaseToken, getUsers);
 router.get("/:id", verifyFirebaseToken, getUser);
 router.put("/:id", verifyFirebaseToken, updateUser);
+router.put("/ver/:email", updateUserEmail);
 router.delete("/:id", verifyFirebaseToken, deleteUser);
 
 router.patch('/:id/role', verifyFirebaseToken, updateUserRole);

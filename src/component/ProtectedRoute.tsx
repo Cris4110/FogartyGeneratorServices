@@ -1,6 +1,11 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/Appcontext"; // Ensure this path is correct
+import { auth } from "../firebase";
+import { Alert, Button } from "@mui/material";
+import Navbar from "../pages/public/Navbar";
+import Footer from "../pages/public/Footer";
+import { sendEmailVerification } from "firebase/auth";
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -31,7 +36,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
     return <Navigate to="/userlogin" replace />;
   }
 
-  // 5. Success: Render children (for wrappers) or Outlet (for nested route groups)
+  // 5. If the user is logged in, but hasn't verified their email
+  if (auth.currentUser != null && !auth.currentUser.emailVerified) {
+    const user = auth.currentUser;
+    console.warn("Access denied: User has not verified their email.");
+    return (
+      <>
+        <Navbar />
+        <Alert severity="error">Access denied: User has not verified their email.</Alert>
+        <Button onClick={() => sendEmailVerification(user, {url: 'http://localhost:5173/'})}>Send Verification Link</Button>
+        <Footer />
+      </>
+    )
+  }
+  
+  // 6. Success: Render children (for wrappers) or Outlet (for nested route groups)
   return children ? <>{children}</> : <Outlet />;
 };
 

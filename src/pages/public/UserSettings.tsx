@@ -6,7 +6,7 @@ import { auth } from "../../firebase";
 
 import { Backdrop, Box, Button, Grid, InputLabel, MenuItem, OutlinedInput, Paper, Select, Stack, Switch, TextField, Typography } from "@mui/material";
 import { useState } from "react";
-import { signInWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider, verifyBeforeUpdateEmail, deleteUser } from "firebase/auth";
+import { signInWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider, verifyBeforeUpdateEmail, deleteUser, applyActionCode } from "firebase/auth";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
@@ -111,10 +111,10 @@ const UserSettings = () => {
       try {
         // 2. Authenticate with Firebase directly
         const firebaseUser = auth.currentUser;
-        if (firebaseUser != null && currentUser != null) {
+        if (firebaseUser != null && currentUser) {
           const idToken = await firebaseUser.getIdToken();
           // delete databa
-          const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID , {
+          const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID, {
             method: "DELETE",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
           });
@@ -133,6 +133,7 @@ const UserSettings = () => {
 
     setBuff1("");
     handleCloseDelete(); // close the backdrop
+    window.location.reload;
   };
 
   // Checks if the string matches the regular expression format
@@ -369,7 +370,7 @@ const UserSettings = () => {
           }
           case "Email": {
             tmpEmail = currentUser.email.trim();  // stores the old email
-            currentUser.email = buff2.trim();
+            //currentUser.email = buff2.trim();
             newData = { email: currentUser.email }
             break;
           }
@@ -396,8 +397,9 @@ const UserSettings = () => {
         }
 
         // DATABASE AND AUTH VALIDATION
+        // Update the user's information in the DB
+        let updateSuccessful = false;
         // Password validation section
-        let correctPassword = true;
         if (label == "Password") {
           try {
             // 2. Authenticate with Firebase directly
@@ -408,32 +410,25 @@ const UserSettings = () => {
             );
             const firebaseUser = userCredential.user;
             await updatePassword(firebaseUser, buff2.trim()); // updates password
+            setResponseMsg("Sent verification link! Refresh to see changes.");
           } catch(err: any) {
             console.log(err);
-            correctPassword = false;
-            setResponseMsg("Password Error");
+            setResponseMsg("Incorrect information");
           }
-        }
-
-        // user needs to have recently signed in to change password/email
-        if (label == "Email") {
+        } else if (label == "Email") {
           try {
             const user = auth.currentUser;
             const credential = EmailAuthProvider.credential(tmpEmail.toLowerCase(), buff1.trim());  // confirms user
             if (user != null) {
-              const result = await reauthenticateWithCredential(user, credential);  // reauth user
-              await verifyBeforeUpdateEmail(user, buff2.toLowerCase().trim());  // updates email after clicking link
+              await reauthenticateWithCredential(user, credential);  // reauth user
+              await verifyBeforeUpdateEmail(user, buff2.toLowerCase().trim(), {url: 'http://localhost:5173/'});  // updates firebase email after clicking link
+              setResponseMsg("Sent verification link! Refresh to see changes.");
             }
           } catch(err: any) {
-            correctPassword = false;
             console.log(err);
-            setResponseMsg("Password Error");
+            setResponseMsg("Incorrect information");
           }
-        }
-
-        // Update the user's information in the DB
-        let updateSuccessful = false;
-        if (correctPassword) {
+        } else {
           try {
             // 2. Authenticate with Firebase directly
             const firebaseUser = auth.currentUser;

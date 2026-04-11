@@ -13,8 +13,6 @@ export type User = {
   photoURL?: string;
   phoneNumber?: string;
   address?: any;
-  phoneNumber?: string; 
-  address?: any;
   receiveTexts?: boolean;
   receiveEmails?: boolean;
 };

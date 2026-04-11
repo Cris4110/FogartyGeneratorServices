@@ -7,6 +7,7 @@ import ContactPage from "../pages/public/ContactPage";
 import RequestQuote from "../pages/public/RequestQuote";
 import RequestPart from "../pages/public/RequestPart";
 import UserSettings from "../pages/public/UserSettings";
+import UserVer from "../pages/public/UserVer";
 import UserRegistration from "../pages/public/UserRegistration";
 import UserLogin from "../pages/public/UserLogin";
 import Appointment from "../pages/public/Appointment";
@@ -36,6 +37,7 @@ const PublicRoutes = () => (
     <Route path="/Services" element={<Servicespage />} />
     <Route path="/UserRegistration" element={<UserRegistration />} />
     <Route path="/UserLogin" element={<UserLogin />} />
+    <Route path="/UserVer" element={<UserVer />} />
     <Route path="/CurrentStockPage" element={<CurrentStockPage />} />
     <Route path="/item/:type/:id" element={<ItemDetailPage />} />
     <Route path="/ViewReviews" element={<ViewReviews />} />
