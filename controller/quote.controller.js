@@ -3,6 +3,7 @@ import PageContent from '../models/pagecontent.model.js';
 import { sendEmail } from "../backend/services/emailService.js";
 import { quoteRequestTemplate } from "../backend/services/emailTemplates.js";
 import { sendAdminNotification } from '../backend/services/quoteMailer.js';
+import { sendAdminText } from "../backend/services/quoteText.js";
 
 export const getQuotes = async (req, res) =>{
     try {
@@ -53,7 +54,17 @@ export const createQuote = async (req, res) => {
     try {
         const savedRequest = await Quote.create(req.body);
 
-        // ✅ CUSTOMER EMAIL
+        // ADMIN TEXT
+        await sendAdminText({
+            name: savedRequest.name,
+            email: savedRequest.email,
+            phoneNumber: savedRequest.phoneNumber,
+            genModel: savedRequest.genModel,
+            genSerialNumber: savedRequest.genSerialNumber,
+            message: savedRequest.additionalInfo
+        });
+
+        // CUSTOMER EMAIL
         await sendEmail(
             savedRequest.email,
             "Quote Request Received",
@@ -66,7 +77,7 @@ export const createQuote = async (req, res) => {
             })
         );
 
-        // ✅ ADMIN EMAIL
+        // ADMIN EMAIL
         await sendAdminNotification({
             name: savedRequest.name,
             email: savedRequest.email,

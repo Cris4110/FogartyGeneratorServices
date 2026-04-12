@@ -112,7 +112,7 @@ useEffect(() => {
           {/* Inputs remain the same as your code, but added styling to the button */}
           <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={inputStyle} />
           <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={inputStyle} />
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputStyle} />
+          <input name = "email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputStyle} />
           <input type="text" placeholder="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required style={inputStyle} />
           <input name = "Generator Model" type="text" placeholder="Generator Model" value={genModel} onChange={(e) => setGenModel(e.target.value)} required style={inputStyle} />
           <input name = "Generator Serial Number" type="text" placeholder="Generator Serial Number" value={genSerialNumber} onChange={(e) => setGenSerialNumber(e.target.value)} required style={inputStyle} />

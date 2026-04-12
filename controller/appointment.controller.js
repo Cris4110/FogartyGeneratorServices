@@ -6,6 +6,7 @@ import PageContent from '../models/pagecontent.model.js';
 import { sendEmail } from "../backend/services/emailService.js";
 import { appointmentConfirmationTemplate,appointmentStatusTemplate } from "../backend/services/emailTemplates.js";
 import { sendAdminNotification } from "../backend/services/appointmentMailer.js";
+import { sendAdminText } from "../backend/services/appointmentText.js";
 
 //get busy ranges for accepted/rescheduled appointments (for calendar blocking on frontend)
 export const getBusyRanges = async (req, res) => {
@@ -299,20 +300,29 @@ export const createAppointment = async (req, res) => {
 
 // NOTIFY admin
 export const notifyAdminOfNewAppointment = async (appointment) => {
-  try {
-    await sendAdminNotification({
-      name: appointment.name,
-      email: appointment.email,
-      phoneNumber: appointment.phone,
-      genModel: appointment.generatorModel,
-      serialNumber: appointment.serialNumber,
-      date: new Date(appointment.appointmentDateTime).toLocaleString(),
-      message: appointment.description
-    });
-    console.log("Admin notified via email.");
-  } catch (error) {
-    console.error("Email failed but appointment was saved:", error.message);
-  }
+  const adminData = {
+    name: appointment.name,
+    email: appointment.email,
+    phone: appointment.phone,
+    model: appointment.generatorModel,
+    serial: appointment.serialNumber,
+    date: appointment.appointmentDateTime,
+    notes: appointment.description
+  };
+
+  const results = await Promise.allSettled([
+    sendAdminNotification(adminData),
+    sendAdminText(adminData)
+  ]);
+
+  results.forEach((result, index) => {
+    const type = index === 0 ? "Email" : "Text";
+    if (result.status === "fulfilled") {
+      console.log(`Admin notified via ${type}.`);
+    } else {
+      console.error(`${type} failed:`, result.reason.message);
+    }
+  });
 };
 
 // UPDATE appointment

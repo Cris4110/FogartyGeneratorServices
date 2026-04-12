@@ -4,12 +4,12 @@ async function quoteRequest() {
 
     let driver = await new Builder().forBrowser('chrome').build();
     const WAIT = 10000; //ms, how long to wait for the element to be located before throwing an error.
-    const runs = 5;
+    const runs = 2;
     const times = [];
     let failures = 0;
     const genModel = "genny";
     const serialNum = "123456";
-    const description = "testing email";
+    const description = "testing notifs";
     const id = "user@gmail.com";       //test email and id      
     const password = "SuperCoolUserP@ss?";
   
@@ -47,6 +47,8 @@ async function quoteRequest() {
         );
         await driver.wait(until.elementIsEnabled(loginBtn), WAIT);
         await loginBtn.click();
+
+        await driver.sleep(5000);
 
         // loop only the quote request section
         for (let i = 1; i <= runs; i++) {
@@ -92,7 +94,7 @@ async function quoteRequest() {
             await driver.wait(until.elementIsVisible(submitBtn), WAIT);
             await submitBtn.click();
 
-            await driver.sleep(10000); // wait 10 seconds for email to send
+            await driver.sleep(15000); // wait 15 seconds for email to send
 
             const homeBtn = await driver.wait(
             until.elementLocated(By.xpath('//*[@id="root"]/div/header/div/div/div[1]/a[1]')),
