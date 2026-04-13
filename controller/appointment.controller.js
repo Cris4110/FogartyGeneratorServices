@@ -6,6 +6,7 @@ import PageContent from '../models/pagecontent.model.js';
 import { sendEmail } from "../backend/services/emailService.js";
 import { appointmentConfirmationTemplate,appointmentStatusTemplate } from "../backend/services/emailTemplates.js";
 import { sendAdminNotification } from "../backend/services/appointmentMailer.js";
+import { sendAdminText } from "../backend/services/appointmentText.js";
 
 //get busy ranges for accepted/rescheduled appointments (for calendar blocking on frontend)
 export const getBusyRanges = async (req, res) => {
@@ -299,30 +300,81 @@ export const createAppointment = async (req, res) => {
 
 // NOTIFY admin
 export const notifyAdminOfNewAppointment = async (appointment) => {
-  try {
-    await sendAdminNotification({
-      name: appointment.name,
-      email: appointment.email,
-      phoneNumber: appointment.phone,
-      genModel: appointment.generatorModel,
-      serialNumber: appointment.serialNumber,
-      date: new Date(appointment.appointmentDateTime).toLocaleString(),
-      message: appointment.description
-    });
-    console.log("Admin notified via email.");
-  } catch (error) {
-    console.error("Email failed but appointment was saved:", error.message);
-  }
+  const adminData = {
+    name: appointment.name,
+    email: appointment.email,
+    phone: appointment.phone,
+    model: appointment.generatorModel,
+    serial: appointment.serialNumber,
+    date: appointment.appointmentDateTime,
+    notes: appointment.description
+  };
+
+  const results = await Promise.allSettled([
+    sendAdminNotification(adminData),
+    sendAdminText(adminData)
+  ]);
+
+  results.forEach((result, index) => {
+    const type = index === 0 ? "Email" : "Text";
+    if (result.status === "fulfilled") {
+      console.log(`Admin notified via ${type}.`);
+    } else {
+      console.error(`${type} failed:`, result.reason.message);
+    }
+  });
 };
 
 // UPDATE appointment
 export const updateAppointment = async (req, res) => {
   try {
+    const update = {
+     status: req.body.status,
+     travelCost: typeof req.body.travelCost === "number" ? req.body.travelCost : undefined,
+     rescheduledDateTime: req.body.rescheduledDateTime,
+     rescheduledEndDateTime: req.body.rescheduledEndDateTime,
+   };
+
+
+   // ✅ ONLY for reschedule
+   if (status === "rescheduled") {
+    if (newAppointmentTime) {
+     appointment.newAppointmentTime = newAppointmentTime;
+   }
+   if (newEndAppointmentTime) {
+     appointment.newEndAppointmentTime = newEndAppointmentTime;
+   }
+ }
+ //✅ ONLY for reschedule
+ if (status === "rescheduled") {
+   if (newAppointmentTime) {
+     appointment.newAppointmentTime = newAppointmentTime;
+   }
+   if (newEndAppointmentTime) {
+     appointment.newEndAppointmentTime = newEndAppointmentTime;
+   }
+ }
+
+ // ✅ travel cost for both accept + reschedule
+ if (travelCost !== undefined) {
+   appointment.travelCost = travelCost;
+ }
+
     const updated = await Appointment.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      {
+      $set: {
+      status: req.body.status,
+      travelCost: typeof req.body.travelCost === "number" ? req.body.travelCost : undefined,
+      rescheduledDateTime: req.body.rescheduledDateTime,
+      rescheduledEndDateTime: req.body.rescheduledEndDateTime,
+      }
+      },
       { new: true }
     );
+    if (!updated) {
+   return res.status(404).json({ message: "Appointment not found" });
+ }
 
     res.json(updated);
 
@@ -345,10 +397,20 @@ await sendEmail(
 // controllers/appointment.controller.js
 export const updateAppointmentStatus = async (req, res) => {
   try {
-    const { status, newAppointmentTime, newEndAppointmentTime, appointmentEndDateTime } = req.body;
+    const { 
+      status, 
+      travelCost,
+      newAppointmentTime,
+      newEndAppointmentTime, 
+      appointmentEndDateTime,
+     } = req.body;
     
     // 1. Prepare the update object for the Database
     const update = { status };
+
+    if (typeof travelCost === "number") {
+   update.travelCost = travelCost;
+ }
 
     if (status === "accepted" && appointmentEndDateTime) {
       update.appointmentEndDateTime = new Date(appointmentEndDateTime);
@@ -481,6 +543,23 @@ export const getPendingCount = async (req, res) => {
     const count = await Appointment.countDocuments({ status: "pending" });
     res.json({ count });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getUserAppointments = async (req, res) => {
+  try {
+    const userID = req.params.userID || req.user?.uid;
+    
+    if (!userID) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const appointments = await Appointment.find({ userID }).sort({ appointmentDateTime: 1 });
+    
+    res.json(appointments);
+  } catch (err) {
+    console.error("Error fetching user appointments:", err);
     res.status(500).json({ message: err.message });
   }
 };

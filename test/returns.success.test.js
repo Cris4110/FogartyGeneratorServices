@@ -1,4 +1,5 @@
 import { Builder, By, until } from "selenium-webdriver";
+import 'dotenv/config';
 
 (async function testReturnsWithLogin() {
   const driver = await new Builder().forBrowser("chrome").build();
@@ -11,8 +12,8 @@ import { Builder, By, until } from "selenium-webdriver";
 
 
     // 3. Enter credentials (USE A TEST ACCOUNT)
-    await driver.findElement(By.xpath("/html/body/div/main/div/form/div[1]/div/input")).sendKeys("TEST_EMAIL");
-    await driver.findElement(By.xpath("/html/body/div/main/div/form/div[2]/div/input")).sendKeys("TEST_PASSWORD");
+    await driver.findElement(By.xpath("/html/body/div/main/div/form/div[1]/div/input")).sendKeys(process.env.TEST_EMAIL);
+    await driver.findElement(By.xpath("/html/body/div/main/div/form/div[2]/div/input")).sendKeys(process.env.TEST_PASSWORD);
 
     // 4. Submit login
     await driver.findElement(By.css("button[type='submit']")).click();

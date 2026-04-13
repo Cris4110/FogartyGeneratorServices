@@ -52,7 +52,27 @@ const PartSchema = mongoose.Schema(
             required: false,
             default: "",
             },
-
+        Image_Url4: {
+            type: String,
+            requried: false,
+            default: ""
+        },
+         Image_Key4: {
+            type: String,
+            required: false,
+            default: "",
+        },
+        Image_Url5: {
+            type: String,
+            requried: false,
+            default: ""
+        },
+         Image_Key5: {
+            type: String,
+            required: false,
+            default: "",
+        },
+        
         Description: {
             type: String,
             requried: false,

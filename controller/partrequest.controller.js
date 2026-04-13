@@ -1,5 +1,6 @@
 import Partrequest from '../models/partrequest.model.js';
 import { sendAdminNotification } from '../backend/services/partMailer.js';
+import { sendAdminText } from "../backend/services/partText.js";
 
 export const getPartrequests  = async (req, res) =>{
  try {
@@ -25,7 +26,6 @@ export const getPartrequest = async (req, res) =>{
 export const createPartrequest = async (req, res) => {
     try {
         const savedRequest = await Partrequest.create(req.body);
-        console.log("Part request saved to MongoDB");
         await sendAdminNotification({
             name: savedRequest.name,
             email: savedRequest.email,
@@ -33,19 +33,27 @@ export const createPartrequest = async (req, res) => {
             partName: savedRequest.partName,
             message: savedRequest.AdditionalInformation || savedRequest.message
         });
-        console.log("Email notification sent to Mailtrap");
-        return res.status(201).json({ 
-      message: "Request sent.",
-      data: savedRequest 
-    });
 
-  } catch (error) {
-    console.error("Part Request Error:", error.message);
-    
-    if (!res.headersSent) {
-      return res.status(500).json({ error: "Failed to process part request." });
+        await sendAdminText({
+            name: savedRequest.name,
+            email: savedRequest.email,
+            phoneNumber: savedRequest.phoneNumber,
+            partName: savedRequest.partName,
+            message: savedRequest.AdditionalInformation || savedRequest.message
+        });
+
+        return res.status(201).json({ 
+            message: "Request sent.",
+            data: savedRequest 
+        });
+
+    } catch (error) {
+        console.error("Part Request Error:", error.message);
+        
+        if (!res.headersSent) {
+        return res.status(500).json({ error: "Failed to process part request." });
+        }
     }
-  }
         
 }
 
