@@ -43,8 +43,8 @@ export default function AppointmentRequest() {
   const [dialogDate, setDialogDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [dialogTime, setDialogTime] = useState("");
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [travelCost, setTravelCost] = useState<string>("");
   const [busyRanges, setBusyRanges] = useState<{ start: dayjs.Dayjs; end: dayjs.Dayjs }[]>([]);
+  const [travelCost, setTravelCost] = useState<string>("");
 
   const api = useMemo(() => axios.create({ baseURL: "http://localhost:3000/api" }), []);
 
@@ -173,7 +173,7 @@ export default function AppointmentRequest() {
   const openDialog = async (row: Appointment) => {
     setActive(row);
     setOpen(true);
-    setActions((prev) => ({
+      setActions((prev) => ({
       ...prev,
       [row._id]: { ...prev[row._id], decision: "none" }
     }));
@@ -192,7 +192,9 @@ export default function AppointmentRequest() {
     // default end = +1 hour from the current start (or use existing end if you have it in row)
     const startISO = initialStart.toISOString();
     setDialogEndISO(computeDefaultEnd(startISO));
+
     setTravelCost((row as any).travelCost ? String((row as any).travelCost) : "");
+
     await fetchBusyForDate(initialDate);
   };
 
@@ -387,25 +389,18 @@ export default function AppointmentRequest() {
   ) => {
     const payload: any = { status };
 
-    if (status === "rescheduled") {
-      const dt = dayjs(newDateTime);
-      payload.newAppointmentTime = newDateTime;
-      payload.newEndAppointmentTime = endIso;
+     if (travelCost !== "") {
+    payload.travelCost = Number(travelCost);
     }
-    if (status === "accepted") {
-      payload.appointmentEndDateTime = endIso;
+
+      if (newDateTime) {
+    payload.newAppointmentTime = newDateTime;
     }
-    if (travelCost !== "") {
-payload.travelCost = Number(travelCost);
-}
 
-   if (newDateTime) {
- payload.newAppointmentTime = newDateTime;
-}
+    if (endIso) {
+    payload.newEndAppointmentTime = endIso;
+    }
 
-if (endIso) {
- payload.newEndAppointmentTime = endIso;
-}
     await fetch(`http://localhost:3000/api/appointments/${id}/status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -572,8 +567,6 @@ if (endIso) {
           : computeDefaultEnd(startISO);
 
         await updateAppointmentOnServer(id, "accepted", undefined, endISO, travelCost);
-        closeDialog();
-        return;
       }
       else if (state.decision === "reschedule") {
         if (!dialogTime || !dialogEndTime) {
@@ -596,9 +589,7 @@ if (endIso) {
           throw new Error("That time is no longer available.");
         }
 
-        await updateAppointmentOnServer(id, "rescheduled", startISO, endISO, travelCost);
-
-        // refresh busy so the UI updates immediately for next actions
+        await updateAppointmentOnServer(id, "rescheduled", startISO, endISO);
         await fetchBusyForDate(dialogDate);
       }
 
@@ -1101,6 +1092,24 @@ if (endIso) {
 
                   <Divider sx={{ my: 2 }} />
 
+                   {(activeAction.decision === "accept" || activeAction.decision === "reschedule") && (
+                  <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
+                  Travel Cost
+                    </Typography>
+
+                    <TextField
+                      fullWidth
+                      value={travelCost}
+                      onChange={(e) => setTravelCost(e.target.value)}
+                      placeholder="0.00"
+                    InputProps={{
+                        startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
+                    }}
+                    />
+                    </Box>
+                )}
+
                   {/* Action buttons stay on LEFT */}
                   <Box>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
@@ -1148,53 +1157,14 @@ if (endIso) {
                       overflowY: "auto",
                     }}
                   >
-                    {active.description || "(no description)"}
-                  </Box>
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                {(activeAction.decision === "accept" || activeAction.decision === "reschedule") && (
-                  <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
-                  Travel Cost
-                    </Typography>
-
-                    <TextField
-                      fullWidth
-                      value={travelCost}
-                      onChange={(e) => setTravelCost(e.target.value)}
-                      placeholder="0.00"
-                    InputProps={{
-                        startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
-                    }}
-                    />
-                    </Box>
-                )}
-
-                {/* Action buttons stay on LEFT */}
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
-                    Actions
-                  </Typography>
-
-                  <Stack direction="row" spacing={1}>
-                    <Button
-                      variant={activeAction.decision === "accept" ? "contained" : "outlined"}
-                      color="success"
-                      onClick={() => setDecision(active._id, "accept")}
-                      disabled={acceptBlocked}
-                    >
-                      Accept
-                    </Button>
-
-                    <Button
-                      variant={activeAction.decision === "deny" ? "contained" : "outlined"}
-                      color="error"
-                      onClick={() => setDecision(active._id, "deny")}
-                    >
-                      Deny
-                    </Button>
+                    {/* Accept Block*/}
+                    {activeAction.decision === "accept" && active && (
+                      <>
+                        {activeAction.decision === "accept" && active && (
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
+                              Adjust End Time
+                            </Typography>
 
                             <Paper elevation={0} sx={{ p: 2, border: "1px solid #e0e0e0", borderRadius: 3 }}>
                               {/* Start locked display */}
