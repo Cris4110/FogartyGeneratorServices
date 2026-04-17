@@ -26,6 +26,10 @@ const sendAdminNotification = async (clientData) => {
   const mailOptions = {
   from: '"Parts Request Admin" <' + process.env.MAIL_USER + '>',
   to: process.env.MAIL_USER,
+  /*
+  // for testing purposes
+  to: "testing@gmail",
+  */
   subject: `New Part Request: ${clientData.partName}`,
   html: partHtmlEmail(clientData),
 };

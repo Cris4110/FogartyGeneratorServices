@@ -26,6 +26,10 @@ const sendAdminNotification = async (clientData) => {
   const mailOptions = {
   from: '"Quote Requests Admin" <' + process.env.MAIL_USER + '>',
   to: process.env.MAIL_USER,
+  /*
+  // for testing purposes
+  to: "testing@gmail",
+  */
   subject: `New Quote Request: ${clientData.genModel}`,
   html: quoteHtmlEmail(clientData),
 };

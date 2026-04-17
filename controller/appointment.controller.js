@@ -242,7 +242,6 @@ export const getAppointment = async (req, res) => {
 export const createAppointment = async (req, res) => {
   try {
     const {
-      
       userID,
       appointmentDateTime,
       appointmentEndDateTime,
@@ -251,18 +250,6 @@ export const createAppointment = async (req, res) => {
       description,
       createdBy,
     } = req.body;
-
-    
-
-  await sendEmail(
-  req.body.email,
-  "Appointment Request Received",
-  appointmentConfirmationTemplate({
-    name: req.body.name,
-    phone: req.body.phone,
-    address: req.body.address
-  })
-);
 
     const start = new Date(appointmentDateTime);
     if (isNaN(start.getTime())) {
@@ -276,6 +263,7 @@ export const createAppointment = async (req, res) => {
     const targetUID = userID || req.user?.uid;
     const dbUser = await User.findById(targetUID);
 
+    console.log("PRE-SAVE DATA CHECK:", { generatorModel, serialNumber, description });
     const appt = await Appointment.create({
       userID: userID || req.user?.uid,
       name: req.body.name || dbUser?.name || req.user?.name,
@@ -289,8 +277,20 @@ export const createAppointment = async (req, res) => {
       status: "pending",
       createdBy,
     });
-    notifyAdminOfNewAppointment(appt);
+    console.log("POST-SAVE DB OBJECT:", appt);
 
+    await sendEmail(
+      req.body.email,
+      "Appointment Request Received",
+      appointmentConfirmationTemplate({
+        name: req.body.name,
+        phone: req.body.phone || dbUser?.phone || dbUser?.phoneNumber,
+        address: req.body.address || dbUser?.address || req.user?.address,
+      })
+    );
+
+    await notifyAdminOfNewAppointment(appt);
+    
     res.json({ message: "Appointment created", appt });
 
   } catch (err) {
@@ -336,7 +336,7 @@ export const updateAppointment = async (req, res) => {
    };
 
 
-   // ✅ ONLY for reschedule
+   // ONLY for reschedule
    if (status === "rescheduled") {
     if (newAppointmentTime) {
      appointment.newAppointmentTime = newAppointmentTime;
@@ -345,7 +345,7 @@ export const updateAppointment = async (req, res) => {
      appointment.newEndAppointmentTime = newEndAppointmentTime;
    }
  }
- //✅ ONLY for reschedule
+ // ONLY for reschedule
  if (status === "rescheduled") {
    if (newAppointmentTime) {
      appointment.newAppointmentTime = newAppointmentTime;
@@ -355,7 +355,7 @@ export const updateAppointment = async (req, res) => {
    }
  }
 
- // ✅ travel cost for both accept + reschedule
+ // travel cost for both accept + reschedule
  if (travelCost !== undefined) {
    appointment.travelCost = travelCost;
  }
