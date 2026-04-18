@@ -26,6 +26,10 @@ const sendAdminNotification = async (clientData) => {
   const mailOptions = {
   from: '"Appointment Request Admin" <' + process.env.MAIL_USER + '>',
   to: process.env.MAIL_USER,
+  /*
+  // for testing purposes
+  to: "testing@gmail",
+  */
   subject: `New Appointment Request`,
   html: appointmentHtmlEmail(clientData),
 };

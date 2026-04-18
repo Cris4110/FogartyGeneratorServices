@@ -8,7 +8,13 @@
  * @param {string} data.address
  * @returns {string} HTML email
  */
+
 export const appointmentConfirmationTemplate = (data) => {
+  const addr = data.address;
+  const addressString = addr 
+    ? `${addr.street}, ${addr.city}, ${addr.state} ${addr.zipcode}`
+    : "No address provided";
+
   return `
     <h2>Appointment Request Received</h2>
     <p>Hello <b>${data.name}</b>,</p>
@@ -18,7 +24,7 @@ export const appointmentConfirmationTemplate = (data) => {
     <h3>Your Details:</h3>
     <p><b>Name:</b> ${data.name}</p>
     <p><b>Phone:</b> ${data.phone}</p>
-    <p><b>Address:</b> ${data.address}</p>
+    <p><b>Address:</b> ${addressString}</p>
 
     <p>We will notify you once the admin reviews your request.</p>
 

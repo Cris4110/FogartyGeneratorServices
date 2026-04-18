@@ -2,11 +2,11 @@ import nodemailer from "nodemailer";
 
 // Mailtrap transporter
 const transporter = nodemailer.createTransport({
-  host: "smtp.mailtrap.io",
-  port: 587,
+  host: process.env.MAIL_HOST,
+  port: process.env.MAIL_PORT,
   auth: {
-    user: "mailtrap_user", // replace with your Mailtrap username
-    pass: "mailtrap_pass", // replace with your Mailtrap password
+    user: process.env.MAIL_USER, // your email
+    pass: process.env.MAIL_PASS, // app password for Gmail
   },
 });
 

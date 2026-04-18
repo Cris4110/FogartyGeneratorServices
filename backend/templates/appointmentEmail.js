@@ -16,14 +16,14 @@ export const appointmentHtmlEmail = (clientData) => {
           
           <p style="margin: 10px 0;"><strong style="color: #555;">Name:</strong> ${clientData.name}</p>
           <p style="margin: 10px 0;"><strong style="color: #555;">Email:</strong> ${clientData.email}</p>
-          <p style="margin: 10px 0;"><strong style="color: #555;">Phone:</strong> ${clientData.phoneNumber}</p>
-          <p style="margin: 10px 0;"><strong style="color: #555;">Generator Model:</strong> ${clientData.genModel}</p>
-          <p style="margin: 10px 0;"><strong style="color: #555;">Serial Number:</strong> ${clientData.serialNumber}</p>
+          <p style="margin: 10px 0;"><strong style="color: #555;">Phone:</strong> ${clientData.phone}</p>
+          <p style="margin: 10px 0;"><strong style="color: #555;">Generator Model:</strong> ${clientData.model}</p>
+          <p style="margin: 10px 0;"><strong style="color: #555;">Serial Number:</strong> ${clientData.serial}</p>
           <p style="margin: 10px 0;"><strong style="color: #555;">Date:</strong> ${clientData.date}</p>
           
           <p style="margin: 20px 0 5px 0;"><strong style="color: #555;">Additional Notes:</strong></p>
           <div style="background-color: #ffffff; padding: 15px; border-radius: 6px; border: 1px solid #eee; color: #444; line-height: 1.6;">
-            ${clientData.message || "No additional notes provided."}
+            ${clientData.notes || "No additional notes provided."}
           </div>
 
           <p style="font-size: 12px; color: #999; text-align: center; margin-top: 30px;">
