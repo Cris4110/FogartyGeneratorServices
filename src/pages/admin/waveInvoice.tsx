@@ -345,7 +345,7 @@ const validateItems = () => {
 
             {form.items.map((item, i) => (
               <Box key={i} sx={{ display: "flex", justifyContent: "space-between" }}>
-                <span>{item.quantity} x {item.price}</span>
+                <span>{item.description} {item.quantity} x {item.price}</span>
                 <span>${item.quantity * item.price}</span>
               </Box>
             ))}
