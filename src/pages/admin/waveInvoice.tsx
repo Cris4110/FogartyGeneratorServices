@@ -38,6 +38,56 @@ interface Product {
 export default function AdminCreateInvoice() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [errors, setErrors] = useState<any>({});
+
+  const validateClient = () => {
+  let newErrors: any = {};
+
+  if (!form.name.trim()) {
+    newErrors.name = "Client name is required";
+  }
+
+  if (!form.email.trim()) {
+    newErrors.email = "Email is required";
+  } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+    newErrors.email = "Invalid email format";
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
+const validateItems = () => {
+  let newErrors: any = {};
+
+  if (!form.items.length) {
+    newErrors.items = "At least one product is required";
+  } else {
+    const itemErrors = form.items.map((item) => {
+      let err: any = {};
+
+      if (!item.myproductId) {
+        err.myproductId = "Select a product";
+      }
+
+      if (item.quantity <= 0) {
+        err.quantity = "Qty must be ≥ 1";
+      }
+
+      if (item.price < 0) {
+        err.price = "Price cannot be negative";
+      }
+
+      return err;
+    });
+
+    newErrors.items = itemErrors;
+  }
+
+  setErrors(newErrors);
+
+  return !newErrors.items?.some((e) => Object.keys(e).length > 0);
+};
 
   const [form, setForm] = useState({
     name: "",
@@ -46,6 +96,7 @@ export default function AdminCreateInvoice() {
       { myproductId: "", description: "", quantity: 1, price: 0 }
     ]
   });
+  
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any | null>(null);
@@ -75,7 +126,6 @@ export default function AdminCreateInvoice() {
 
   
   // handle product selection from dropdown
-
   const handleProductSelect = (index: number, myproductId: string) => {
     const product = products.find(p => p.id === myproductId);
 
@@ -98,9 +148,10 @@ export default function AdminCreateInvoice() {
   };
 
   const removeItem = (index) => {
-    const updatedItems = form.items.filter((_, i) => i !== index);
-    setForm({ ...form, items: updatedItems });
-  };
+  if (form.items.length === 1) return; // prevent empty list
+  const updatedItems = form.items.filter((_, i) => i !== index);
+  setForm({ ...form, items: updatedItems });
+};
 
   // Total calculation 
   const total = form.items.reduce((sum, item) => {
@@ -109,33 +160,41 @@ export default function AdminCreateInvoice() {
 
   // handle form submission 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
 
-    try {
+  const isClientValid = validateClient();
+  const isItemsValid = validateItems();
 
-      const res = await fetch("/api/invoices/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          ...form,
-          amount: total
-        })
-      });
+  if (!isClientValid || !isItemsValid) {
+    setStep(0); 
+    return;
+  }
 
-      const data = await res.json();
-      setResult(data);
-      setOpenSnackbar(true);
+  setLoading(true);
 
-    } catch (err) {
-      console.error(err);
-      alert("Invoice creation failed");
-    }
+  try {
+    const res = await fetch("/api/invoices/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        ...form,
+        amount: total
+      })
+    });
 
-    setLoading(false);
-  };
+    const data = await res.json();
+    setResult(data);
+    setOpenSnackbar(true);
+
+  } catch (err) {
+    console.error(err);
+    alert("Invoice creation failed");
+  }
+
+  setLoading(false);
+};
 
   return (
       <>
@@ -165,6 +224,8 @@ export default function AdminCreateInvoice() {
               onChange={handleChange}
               name="name"
               fullWidth
+              error={!!errors.name}
+              helperText={errors.name}
             />
             <TextField
               label="Client Email"
@@ -172,9 +233,15 @@ export default function AdminCreateInvoice() {
               onChange={handleChange}
               name="email"
               fullWidth
+              error={!!errors.email}
+              helperText={errors.email}
             />
 
-            <Button variant="contained" onClick={() => setStep(1)}>
+            <Button
+              variant="contained"
+              onClick={() => {
+              if (validateClient()) setStep(1);
+            }}>
               Next
             </Button>
           </Stack>
@@ -203,6 +270,8 @@ export default function AdminCreateInvoice() {
                         select
                         fullWidth
                         value={item.myproductId}
+                        error={!!errors.items?.[index]?.myproductId}
+                        helperText={errors.items?.[index]?.myproductId}
                         onChange={(e) =>
                           handleProductSelect(index, e.target.value)
                         }
@@ -219,6 +288,8 @@ export default function AdminCreateInvoice() {
                       <TextField
                         type="number"
                         value={item.quantity}
+                        error={!!errors.items?.[index]?.quantity}
+                        helperText={errors.items?.[index]?.quantity}
                         onChange={(e) =>
                           handleItemChange(index, "quantity", Number(e.target.value))
                         }
@@ -229,6 +300,8 @@ export default function AdminCreateInvoice() {
                       <TextField
                         type="number"
                         value={item.price}
+                        error={!!errors.items?.[index]?.price}
+                        helperText={errors.items?.[index]?.price}
                         onChange={(e) =>
                           handleItemChange(index, "price", Number(e.target.value))
                         }
@@ -256,7 +329,8 @@ export default function AdminCreateInvoice() {
 
             <Box sx={{ mt: 3, display: "flex", justifyContent: "space-between" }}>
               <Button onClick={() => setStep(0)}>Back</Button>
-              <Button variant="contained" onClick={() => setStep(2)}>
+              <Button
+                variant="contained" onClick={() => { if (validateItems()) setStep(2);}}>
                 Next
               </Button>
             </Box>
@@ -271,7 +345,7 @@ export default function AdminCreateInvoice() {
 
             {form.items.map((item, i) => (
               <Box key={i} sx={{ display: "flex", justifyContent: "space-between" }}>
-                <span>{item.quantity} x {item.price}</span>
+                <span>{item.description} {item.quantity} x {item.price}</span>
                 <span>${item.quantity * item.price}</span>
               </Box>
             ))}
