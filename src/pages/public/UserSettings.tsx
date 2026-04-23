@@ -4,33 +4,9 @@ import axios from "axios";
 import { useAuth } from "../../context/Appcontext";
 import { auth } from "../../firebase";
 
-import {
-  Backdrop,
-  Box,
-  Button,
-  Grid,
-  InputLabel,
-  MenuItem,
-  OutlinedInput,
-  Paper,
-  Select,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-  Card,
-  CardContent,
-  Chip,
-} from "@mui/material";
+import { Backdrop, Box, Button, Grid, InputLabel, MenuItem, OutlinedInput, Paper, Select, Stack, Switch, TextField, Typography, Card, CardContent, Chip } from "@mui/material";
 import { useState, useEffect } from "react";
-import {
-  signInWithEmailAndPassword,
-  updatePassword,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-  verifyBeforeUpdateEmail,
-  deleteUser,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider, verifyBeforeUpdateEmail, deleteUser } from "firebase/auth";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
@@ -61,57 +37,10 @@ const phoneRegex = /(^\d{10}$){1}/;
 const streetRegex = /[~`!@#$%^*()_=+[\]{}|\\;<>/?]+|(\s{2,})|(^ $)/; // checks for special characters
 const cityRegex = /[~`!@#$%^&*()_=+[\]{}|\\;:"<,>/?]+|(\s{2,})|(^ $)/; // checks for special characters
 const stateAbbreviations = [
-  "AL",
-  "AK",
-  "AZ",
-  "AR",
-  "CA",
-  "CO",
-  "CT",
-  "DE",
-  "FL",
-  "GA",
-  "HI",
-  "ID",
-  "IL",
-  "IN",
-  "IA",
-  "KS",
-  "KY",
-  "LA",
-  "ME",
-  "MD",
-  "MA",
-  "MI",
-  "MN",
-  "MS",
-  "MO",
-  "MT",
-  "NE",
-  "NV",
-  "NH",
-  "NJ",
-  "NM",
-  "NY",
-  "NC",
-  "ND",
-  "OH",
-  "OK",
-  "OR",
-  "PA",
-  "RI",
-  "SC",
-  "SD",
-  "TN",
-  "TX",
-  "UT",
-  "VT",
-  "VA",
-  "WA",
-  "WV",
-  "WI",
-  "WY",
-];
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", 
+  "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND",
+  "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+  ];
 const zipRegex = /(^\d{5}$)|(^\d{5}-\d{4}$)/; // ex) 12345 or 12345-6789
 
 const UserSettings = () => {
@@ -233,16 +162,13 @@ const UserSettings = () => {
         if (firebaseUser != null && currentUser) {
           const idToken = await firebaseUser.getIdToken();
           // delete databa
-          const response = await fetch(
-            "http://localhost:3000/api/users/" + currentUser.userID,
-            {
+          const response = await fetch("http://localhost:3000/api/users/" + currentUser.userID, {
               method: "DELETE",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${idToken}`,
-              },
-            },
-          );
+                Authorization: `Bearer ${idToken}`, 
+              }
+            });
           const result = await response.json();
           await deleteUser(firebaseUser); // delete firebase user
           if (!response.ok) {
@@ -392,7 +318,7 @@ const UserSettings = () => {
               placeholder="Current Password"
               variant="outlined"
               type="password"
-              value={""}
+              value={buff1}
               onChange={(e) => setBuff1(e.target.value)}
             />
             <TextField
@@ -521,7 +447,7 @@ const UserSettings = () => {
           }
           case "Email": {
             tmpEmail = currentUser.email.trim(); // stores the old email
-            currentUser.email = buff2.trim();
+            //currentUser.email = buff2.trim();
             newData = { email: currentUser.email };
             break;
           }
@@ -561,6 +487,8 @@ const UserSettings = () => {
             );
             const firebaseUser = userCredential.user;
             await updatePassword(firebaseUser, buff2.trim()); // updates password
+            setResponseMsg("User updated successfully!");
+            updateSuccessful = true;
           } catch (err: any) {
             console.log(err);
             setResponseMsg("Incorrect information");
@@ -573,14 +501,11 @@ const UserSettings = () => {
               buff1.trim(),
             ); // confirms user
             if (user != null) {
-              const result = await reauthenticateWithCredential(
-                user,
-                credential,
-              ); // reauth user
-              await verifyBeforeUpdateEmail(user, buff2.toLowerCase().trim()); // updates email after clicking link
+              await reauthenticateWithCredential(user, credential); // reauth user
+              await verifyBeforeUpdateEmail(user, buff2.toLowerCase().trim(), {url: 'http://localhost:5173/'}); // updates email after clicking link
+              setResponseMsg("Sent verification link! Refresh to see changes.");
             }
           } catch (err: any) {
-            correctPassword = false;
             console.log(err);
             setResponseMsg("Incorrect information");
           }
