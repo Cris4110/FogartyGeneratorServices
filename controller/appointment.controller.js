@@ -412,8 +412,8 @@ export const updateAppointmentStatus = async (req, res) => {
    update.travelCost = travelCost;
  }
 
-    if (status === "accepted" && appointmentEndDateTime) {
-      update.appointmentEndDateTime = new Date(appointmentEndDateTime);
+    if (status === "accepted" && newEndAppointmentTime) {
+      update.appointmentEndDateTime = new Date(newEndAppointmentTime);
     }
 
    if (status === "rescheduled") {

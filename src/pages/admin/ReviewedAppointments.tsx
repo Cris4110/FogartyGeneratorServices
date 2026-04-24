@@ -11,7 +11,7 @@ interface ReviewedAppointment {
   appointmentDateTime: string;
   appointmentEndDateTime: string;
   newAppointmentTime?: string | null;
-  newAppointmentEndTime?: string | null;
+  newEndAppointmentTime?: string | null;
   status: "accepted" | "denied" | "rescheduled";
   name: string;
   phone: string;
@@ -42,15 +42,28 @@ const formatRange = (start?: string | null, end?: string | null) => {
 };
 
 const getEffectiveStartEnd = (row: ReviewedAppointment) => {
-  const scheduledStart =
-    row.status === "rescheduled" ? row.rescheduledDateTime : row.appointmentDateTime;
+  if (row.status === "rescheduled") {
+    return {
+      scheduledStart:
+        row.rescheduledDateTime ?? row.newAppointmentTime ?? row.appointmentDateTime,
+      scheduledEnd:
+        row.rescheduledEndDateTime ??
+        row.newEndAppointmentTime ??
+        row.appointmentEndDateTime,
+    };
+  }
 
-  const scheduledEnd =
-    row.status === "rescheduled"
-      ? row.rescheduledEndDateTime ?? row.appointmentEndDateTime
-      : row.appointmentEndDateTime;
+  if (row.status === "accepted") {
+    return {
+      scheduledStart: row.appointmentDateTime,
+      scheduledEnd: row.newEndAppointmentTime ?? row.appointmentEndDateTime,
+    };
+  }
 
-  return { scheduledStart, scheduledEnd };
+  return {
+    scheduledStart: row.appointmentDateTime,
+    scheduledEnd: row.appointmentEndDateTime,
+  };
 };
 
 export default function ReviewedAppointments() {
