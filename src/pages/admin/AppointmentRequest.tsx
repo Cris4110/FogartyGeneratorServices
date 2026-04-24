@@ -1213,7 +1213,6 @@ export default function AppointmentRequest() {
                                         variant={isSelected ? "contained" : "outlined"}
                                         onClick={() => {
                                           setDialogEndTime(t);
-                                          setDialogEndISO(endISOFromPick(dialogDate, t));
                                         }}
                                         disabled={disabled}
                                         sx={{
