@@ -2,17 +2,17 @@ import React, { useState, useEffect, useMemo } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Container, Box, Typography, Button, TextField, CircularProgress, Divider, Grid, Paper } from "@mui/material";
-import { useAuth } from "../../context/Appcontext"; // 1. Import your global context
-import { auth } from "../../firebase"; // 2. Needed to get the fresh token
-import dayjs, { Dayjs } from "dayjs";
+import { useAuth } from "../../context/Appcontext";
+import { auth } from "../../firebase";
+import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { StaticDateTimePicker } from "@mui/x-date-pickers/StaticDateTimePicker";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import axios from "axios";
 
 function Appointment() {
-  // 3. Pull user and readiness state from Context
   const { currentUser, authReady } = useAuth();
+  
   const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'day').format("YYYY-MM-DD"));
   const [selectedTime, setSelectedTime] = useState("");
   const [generatorModel, setGeneratorNumber] = useState("");
@@ -27,7 +27,7 @@ function Appointment() {
   const timeSlots = useMemo(() => {
     const slots = [];
     let start = dayjs().set('hour', 8).set('minute', 0);
-    const end = dayjs().set('hour', 20).set('minute', 0);
+    const end = dayjs().set('hour', 19).set('minute', 30);
     
     while (start.isBefore(end) || start.isSame(end)) {
       slots.push(start.format("h:mm A"));
@@ -36,94 +36,77 @@ function Appointment() {
     return slots;
   }, []);
 
-    const isTimeSlotBooked = (timeStr: string) => {
+  const isTimeSlotBooked = (timeStr: string) => {
     const slotStart = dayjs(`${selectedDate} ${timeStr}`, "YYYY-MM-DD h:mm A");
     return busyRanges.some(range => 
       (slotStart.isSame(range.start) || slotStart.isAfter(range.start)) && slotStart.isBefore(range.end)
     );
   };
-  
 
-  // 4. Handle Submission with the Firebase Token
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
+    if (!currentUser) { setResponseMsg("You must be logged in."); return; }
+    if (!selectedTime) { setResponseMsg("Select a time."); return; }
 
-  if (!currentUser) { setResponseMsg("You must be logged in."); return; }
-  if (!selectedTime) { setResponseMsg("Select a time."); return; }
-
-  try {
-    const appointmentDateTime = dayjs(`${selectedDate} ${selectedTime}`, "YYYY-MM-DD h:mm A").toISOString();
-    const appointmentEndDateTime = dayjs(appointmentDateTime).add(1, "hour").toISOString();
-
-    const res = await api.post("/appointments", {
-      userID: currentUser.userID,
-      email: currentUser.email,   
-      name: currentUser.name, 
-      generatorModel,
-      serialNumber,
-      description,
-      appointmentDateTime,
-      appointmentEndDateTime,
-    });
-
-    setResponseMsg(res.data.message || "Request submitted successfully!");
-    setGeneratorNumber("");
-    setSerialNumber("");
-    setDescription("");
-    setSelectedTime("");
-  } catch (err: any) {
-    setResponseMsg(err.response?.data?.message || "Error submitting request.");
-  }
-};
-  useEffect(() => {
-  const interceptorId = api.interceptors.request.use(async (config) => {
-    const token = await auth.currentUser?.getIdToken();
-    if (token) {
-      config.headers = config.headers ?? {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
-
-  return () => api.interceptors.request.eject(interceptorId);
-}, [api]);
-
- useEffect(() => {
-  if (!authReady) return; // wait until firebase context is ready
-  // if your /busy endpoint is protected, also require currentUser:
-  // if (!currentUser) return;
-
-  const fetchBusy = async () => {
-    setLoadingSlots(true);
     try {
-      const from = dayjs(selectedDate).startOf("day").toISOString();
-      const to = dayjs(selectedDate).endOf("day").toISOString();
+      const appointmentDateTime = dayjs(`${selectedDate} ${selectedTime}`, "YYYY-MM-DD h:mm A").toISOString();
+      const appointmentEndDateTime = dayjs(appointmentDateTime).add(1, "hour").toISOString();
 
-      const res = await api.get(
-        `/appointments/busy?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
-      );
+      const res = await api.post("/appointments", {
+        userID: currentUser.userID,
+        email: currentUser.email,   
+        name: currentUser.name, 
+        generatorModel,
+        serialNumber,
+        description,
+        appointmentDateTime,
+        appointmentEndDateTime,
+      });
 
-      const mapped = (res.data ?? [])
-        .map((r: any) => ({ start: dayjs(r.start), end: dayjs(r.end) }))
-        .filter((r: any) => r.start.isValid() && r.end.isValid());
-
-      setBusyRanges(mapped);
+      setResponseMsg(res.data.message || "Request submitted successfully!");
+      setGeneratorNumber("");
+      setSerialNumber("");
+      setDescription("");
+      setSelectedTime("");
     } catch (err: any) {
-      console.error(
-        "busy fetch failed:",
-        err?.response?.status,
-        err?.response?.data || err.message
-      );
-      setBusyRanges([]); // make sure it doesn't keep stale data
-    } finally {
-      setLoadingSlots(false);
+      setResponseMsg(err.response?.data?.message || "Error submitting request.");
     }
   };
 
-  fetchBusy();
-}, [authReady, currentUser, selectedDate, api]);
+  useEffect(() => {
+    const interceptorId = api.interceptors.request.use(async (config) => {
+      const token = await auth.currentUser?.getIdToken();
+      if (token) {
+        config.headers = config.headers ?? {};
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+    return () => api.interceptors.request.eject(interceptorId);
+  }, [api]);
 
-  // 6. Handle the Loading State
+  useEffect(() => {
+    if (!authReady) return;
+    const fetchBusy = async () => {
+      setLoadingSlots(true);
+      try {
+        const from = dayjs(selectedDate).startOf("day").toISOString();
+        const to = dayjs(selectedDate).endOf("day").toISOString();
+        const res = await api.get(`/appointments/busy?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+        const mapped = (res.data ?? [])
+          .map((r: any) => ({ start: dayjs(r.start), end: dayjs(r.end) }))
+          .filter((r: any) => r.start.isValid() && r.end.isValid());
+        setBusyRanges(mapped);
+      } catch (err: any) {
+        console.error("busy fetch failed:", err?.response?.status, err?.response?.data || err.message);
+        setBusyRanges([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+    fetchBusy();
+  }, [authReady, currentUser, selectedDate, api]);
+
   if (!authReady) {
     return (
       <Container sx={{ mt: 15, textAlign: "center" }}>
@@ -143,11 +126,10 @@ function Appointment() {
               <Typography align="center" sx={{ mt: 3 }}>Please log in to book.</Typography>
             ) : (
               <form onSubmit={handleSubmit}>
-                {/*<TextField label="User ID" value={currentUser.userID} fullWidth sx={{ mb: 3 }} disabled />*/}
                 <TextField label="Name" value={currentUser.name || ""} fullWidth sx={{ mb: 2 }} disabled />
-                <TextField name="generatorModel" label="Generator Model" value={generatorModel} onChange={(e) => setGeneratorNumber(e.target.value)} fullWidth sx={{ mb: 3 }} />
-                <TextField name="serialNumber" label="Serial Number" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} fullWidth sx={{ mb: 3 }} />
-                <TextField name="description" required label="Problem Description" value={description} onChange={(e) => setDescription(e.target.value)} multiline rows={4} fullWidth sx={{ mb: 3 }} />
+                <TextField label="Generator Model" value={generatorModel} onChange={(e) => setGeneratorNumber(e.target.value)} fullWidth sx={{ mb: 3 }} />
+                <TextField label="Serial Number" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} fullWidth sx={{ mb: 3 }} />
+                <TextField required label="Problem Description" value={description} onChange={(e) => setDescription(e.target.value)} multiline rows={4} fullWidth sx={{ mb: 3 }} />
                 <Button variant="contained" color="primary" size="large" type="submit" disabled={!selectedTime}>Submit Request</Button>
               </form>
             )}
@@ -159,16 +141,31 @@ function Appointment() {
             <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0', borderRadius: 4 }}>
               <Box sx={{ mb: 4 }}>
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>1. Choose Date</Typography>
-                <TextField 
-                  type="date" 
-                  fullWidth 
-                  value={selectedDate} 
-                  onChange={(e) => setSelectedDate(e.target.value)} 
-                  inputProps={{ min: dayjs().format("YYYY-MM-DD"), max: dayjs().add(2 , 'month').format("YYYY-MM-DD")}} 
-                  InputLabelProps={{ shrink: true }}
-                />
+                
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    value={dayjs(selectedDate)}
+                    onChange={(newValue) => {
+                      if (newValue) {
+                        setSelectedDate(newValue.format("YYYY-MM-DD"));
+                        setSelectedTime("");
+                      }
+                    }}
+                    shouldDisableDate={(date) => date.day() === 0 || date.day() === 6}
+                    minDate={dayjs()}
+                    maxDate={dayjs().add(2, 'month')}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: "outlined"
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
               </Box>
+
               <Divider sx={{ mb: 4 }} />
+
               <Box sx={{ position: 'relative' }}>
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>2. Select Available Time</Typography>
                 {loadingSlots && <Box sx={{ position: 'absolute', right: 0, top: 0 }}><CircularProgress size={20} /></Box>}
@@ -178,7 +175,7 @@ function Appointment() {
                       const isSelected = selectedTime === time;
                       const isBooked = isTimeSlotBooked(time);
                       return (
-                        <Grid size={4} key={time}>
+                        <Grid key={time} size={4}>
                           <Button
                             fullWidth
                             variant={isSelected ? "contained" : "outlined"}
@@ -212,6 +209,5 @@ function Appointment() {
     </Box>
   );
 }
-
 
 export default Appointment;
