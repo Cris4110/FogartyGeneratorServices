@@ -1,143 +1,60 @@
 import { Builder, By, until, Key } from "selenium-webdriver";
+import dotenv from "dotenv"
+import { error } from 'node:console';
 import { send } from "vite";
+dotenv.config();
 
 // in the terminal, run the test with 'node test/userSettingsVal.selenium.mjs'
 
 async function testUserSettingsInputs() {
-    const driver = await new Builder().forBrowser("chrome").build(); //specific browser to use, 
+    let driver = await new Builder().forBrowser("chrome").build(); //specific browser to use, 
+    await driver.manage().window().maximize();
 
-    const invalidBlank = "";
-    const invalidWhiteSpace = "      ";
-    const invalidName = "J@NE";
-    const invalidID = "John Doe";
-    const invalidEmail = "jeo aw@gmail.com";
-    const invalidPhone = "987AW";
-    const invalidPass = "simplePass32";
-    const invalidStreet = "Aw @ Shasta";
-    const invalidCity = "New Y@rk";
-    const invalidZip = "john";
-
-    const validName = "Mary Jane";
-    const validName2 = "Mary";
-    const validID = "johndoe";
-    const validEmail = "realemailfortesting@gmail.com";
-    const validEmail2 = "henryhill@csus.edu";
-    const validPhone = "8547895120";
-    const validPhone2 = "1475648520";
-    const validPass = "newAAbb22##aaaaaaaaaaaaaaaaaaaaaaaaa";
-    const validPass2 = "$2b$12$lFgryF47q7aUbYBJgh"
-    const validStreet = "12th Ave";
-    const validStreet2 = "13th Street";
-    const validCity = "Site 13";
-    const validCity2 = "Site 14";
-    const validZip = "98765";
-    const validZip2 = "12345";
-
-
-    const WAIT = 10000; //ms, how long to wait for the element to be located before throwing an error.
-
+    const WAIT = 15000; // ms, how long to wait for the element to be located before throwing an error.
+    const DELAY = 50;
     const runs = 1;
     const times = [];
     let failures = 0;
 
-    // tries to click create user button
-    async function clickCreateAccount() {
-        const submitButton = await driver.wait(
-            until.elementLocated(By.xpath('//*[@id="root"]/div[1]/form/div[2]')),
-            WAIT
-        );
-        await driver.wait(until.elementIsVisible(submitButton), WAIT);
-        await submitButton.click();
+    // Invalids
+    const invalidNames = ["", "      ", "J@NE", "Jane  ", "Jane3", "1231"];
+    const invalidEmails = ["", "      ", "1231", "abc.example.com", "a@b@c@example.com", "just\"not\"right@example.com", "i.like.underscores@but_they_are_not_allowed_in_this_part"];
+    const invalidPhones = ["", "      ", "111", "dwad", "12#", "12345678901"];
+    const invalidPass = ["", "      ", "simplePass32"];
+    const invalidStreet = ["", "      ", "Aw @ Shasta"];
+    const invalidCity = ["", "      ", "New Y@rk"];
+    const invalidZip = ["", "      ", "john", "222"];
+
+    // Valids (tests edge cases)
+    const validName = "Mary Jane";
+    const validName2 = "Doe";
+    const validID = "deleteTest";
+    const validEmail = process.env.REAL_EMAIL;
+    const validEmail2 = process.env.REAL_EMAIL2;
+    const validPhone = "5557895120";
+    const validPass = process.env.REAL_PASSWORD;
+    const validPass2 = process.env.REAL_PASSWORD2;
+    const validStreet = "12th Ave";
+    const validCity = "Site 13";
+    const validZip = "98765-1234";
+
+    if (!validEmail || !validPass || !validEmail2 || !validPass2) {
+        throw new Error("Missing TEST_EMAIL or TEST_PASSWORD in .env");
     }
 
-    // tries to click update user button
-    async function clickUpdateAccount(element) {
-        const submitButton = await driver.wait(
-            until.elementLocated(By.xpath(element)),
-            WAIT
-        );
-        await driver.wait(until.elementIsVisible(submitButton), WAIT);
-        await submitButton.click();
-    }
+    async function testFieldsCSS(field, inputs, btn, click) {
+        for(const input in inputs) {
+            // clear fields
+            await (await driver.wait(until.elementLocated(By.css(field)),WAIT)).sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE)); 
+            // send in the invalid inputs
+            await (await driver.wait(until.elementLocated(By.css(field)),WAIT)).sendKeys(inputs[input]);    
+            await driver.sleep(DELAY);
 
-    // goes through user registration inputs
-    async function testUserRegistration(element, invalid, valid) {
-        // find input
-        let input = await driver.wait(
-            until.elementLocated(By.css(element)),
-            WAIT
-        );
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));   // clear the input field 
-        await input.sendKeys(Key.chord(invalidBlank)); // and enter input, ""
-        // try to click button
-        await clickCreateAccount();
-        // click, enter "     ";
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));
-        await input.sendKeys(Key.chord(invalidWhiteSpace));
-        // try to click button
-        await clickCreateAccount();
-        // click, enter invalid
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));
-        await input.sendKeys(Key.chord(invalid));
-        // try to click button
-        await clickCreateAccount();
-        // click, enter valid
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));
-        await input.sendKeys(valid);
-    }
-
-    // goes through user update inputs
-    async function testUserSettings(elementField, invalid, valid) {
-        // find input
-        let input = await driver.wait(
-            until.elementLocated(By.css(elementField)),
-            WAIT
-        );
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));   // clear the input field 
-        await input.sendKeys(Key.chord(invalidBlank)); // and enter input, ""
-        // click, enter "     ";
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));
-        await input.sendKeys(Key.chord(invalidWhiteSpace));
-        // click, enter invalid
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));
-        await input.sendKeys(Key.chord(invalid));
-        // click, enter valid
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));
-        await input.sendKeys(valid);
-        await new Promise(r => setTimeout(r, 500));
-    }
-    
-    // goes through user update inputs
-    async function testUserSettingsID(elementField, invalid, valid) {
-        // find input
-        let input = await driver.wait(
-            until.elementLocated(By.xpath(elementField)),
-            WAIT
-        );
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));   // clear the input field 
-        await input.sendKeys(Key.chord(invalidBlank)); // and enter input, ""
-        // click, enter "     ";
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));
-        await input.sendKeys(Key.chord(invalidWhiteSpace));
-        // click, enter invalid
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));
-        await input.sendKeys(Key.chord(invalid));
-        // click, enter valid
-        await driver.wait(until.elementIsVisible(input), WAIT);
-        await input.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));
-        await input.sendKeys(valid);
-        await new Promise(r => setTimeout(r, 500));
+            // checks to see if invalid inputs are still invalid
+            if (await (await driver.wait(until.elementLocated(By.xpath(btn)),WAIT)).isEnabled() && click) {
+                throw new Error("Invalid input passed: " + inputs[input]);
+            }
+        }
     }
     
     try {
@@ -148,220 +65,123 @@ async function testUserSettingsInputs() {
             // launch the application
             await driver.get("http://localhost:5173");
 
-            // click request account
-            const signInBtn = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[1]/a[7]')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(signInBtn), WAIT);
-            await signInBtn.click();
+            // go to login and login to account
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[2]/a')),WAIT)).click();
+            await driver.sleep(DELAY);
+            await (await driver.wait(until.elementLocated(By.css('input[type="email"]')),WAIT)).sendKeys(validEmail);    // enter email
+            await driver.sleep(DELAY);
+            await (await driver.wait(until.elementLocated(By.css('input[type="password"]')),WAIT)).sendKeys(validPass);   // enter password
+            await driver.sleep(DELAY);
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/main/div/form/button')),WAIT)).click(); // click login
+            await driver.sleep(DELAY*50);    // wait for page to load
+
+            // go to user settings
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[2]/div/div/a')),WAIT)).click();
+            await driver.sleep(DELAY);
+
+            // input validation for settings and confirm
+            // -------NAME-----------
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div[1]/div[1]/div/div[1]/div/div[2]/button')),WAIT)).click();
+            await driver.sleep(DELAY);
+            // fill with valid first
+            let confirmBtn = '//*[@id="root"]/div[1]/div/div[1]/div[1]/div/div[2]/div/div[2]/button[2]';
+            await testFieldsCSS('input[placeholder="First Name"]', [validName], confirmBtn, false);
+            await testFieldsCSS('input[placeholder="Last Name"]', [validName2], confirmBtn, false);
+            await testFieldsCSS('input[placeholder="First Name"]', invalidNames, confirmBtn, true);
+            await testFieldsCSS('input[placeholder="First Name"]', [validName], confirmBtn, false); // replace after done testing
+            await testFieldsCSS('input[placeholder="Last Name"]', invalidNames, confirmBtn, true);
+            await testFieldsCSS('input[placeholder="Last Name"]', [validName2], confirmBtn, false); // replace after done testing
+            await (await driver.wait(until.elementLocated(By.xpath(confirmBtn)),WAIT)).click();
+            await driver.sleep(DELAY);  // Name: updated
+
+
+            // -----EMAIL--------
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div[1]/div[2]/div/div[3]/div/div[2]/button')),WAIT)).click();
+            await driver.sleep(DELAY);
+            // fill with valid first
+            confirmBtn = '//*[@id="root"]/div[1]/div/div[1]/div[2]/div/div[4]/div/div[2]/button[2]';
+            await testFieldsCSS('input[placeholder="Enter Password to confirm changes"]', [validPass], confirmBtn, false);
+            await testFieldsCSS('input[placeholder="New Email"]', [validEmail], confirmBtn, false); // if the button is available, it will still fail since it is the same email
+            await testFieldsCSS('input[placeholder="New Email"]', invalidEmails, confirmBtn, true);
+            await testFieldsCSS('input[placeholder="New Email"]', [validEmail2], confirmBtn, false);    // replace
+            await (await driver.wait(until.elementLocated(By.xpath(confirmBtn)),WAIT)).click();
+            await driver.sleep(DELAY*50);  // Email: link sent
+
+
+            // -----PHONE-------
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div[1]/div[2]/div/div[5]/div/div[2]/button')),WAIT)).click();
+            await driver.sleep(DELAY);
+            // fill with valid first
+            confirmBtn = '//*[@id="root"]/div[1]/div/div[1]/div[2]/div/div[6]/div/div[2]/button[2]';
+            await testFieldsCSS('input[placeholder="Phone Number"]', invalidPhones, confirmBtn, true);
+            await testFieldsCSS('input[placeholder="Phone Number"]', [validPhone], confirmBtn, false);
+            await (await driver.wait(until.elementLocated(By.xpath(confirmBtn)),WAIT)).click();
+            await driver.sleep(DELAY);  // Phone: Update
+
             
-            // enter invalid and valid inputs
-            await testUserRegistration('input[placeholder="First Name"]', invalidName, validName);
-            await testUserRegistration('input[placeholder="Last Name"]', invalidName, validName);
-            await testUserRegistration('input[placeholder="User ID"]', invalidID, validID);
-            await testUserRegistration('input[placeholder="Email"]', invalidEmail, validEmail);
-            await testUserRegistration('input[placeholder="Phone Number"]', invalidPhone, validPhone);
-            await testUserRegistration('input[placeholder="Password"]', invalidPass, validPass);
-            await testUserRegistration('input[placeholder="Street"]', invalidStreet, validStreet);
-            await testUserRegistration('input[placeholder="City"]', invalidCity, validCity);
-            await testUserRegistration('input[placeholder="ZIP Code"]', invalidZip, validZip);
-            // click state and select CA
-            const stateBtn = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/div[1]/form/div[1]/div[9]/div/div')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(stateBtn), WAIT);
-            await stateBtn.click();
-            const caliBtn = await driver.wait(
-                until.elementLocated(By.xpath('/html/body/div[2]/div[3]/ul/li[5]')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(caliBtn), WAIT);
-            await caliBtn.click();
+            // ------PASSWORD-------
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div[1]/div[2]/div/div[7]/div/div[2]/button')),WAIT)).click();
+            await driver.sleep(DELAY);
+            // fill with valid first
+            confirmBtn = '//*[@id="root"]/div[1]/div/div[1]/div[2]/div/div[8]/div/div[2]/button[2]';
+            await testFieldsCSS('input[placeholder="Current Password"]', [validPass2], confirmBtn, false);  // keep cur pass wrong
+            await testFieldsCSS('input[placeholder="New Password"]', invalidPass, confirmBtn, true);
+            await testFieldsCSS('input[placeholder="Current Password"]', [validPass], confirmBtn, false);   // cur pass right
+            await testFieldsCSS('input[placeholder="New Password"]', [validPass2], confirmBtn, false);      // enter new password
+            await (await driver.wait(until.elementLocated(By.xpath(confirmBtn)),WAIT)).click();
+            await driver.sleep(DELAY*50);  // Password: Update
+            
 
-            // create a new user
-            await clickCreateAccount();
-            await new Promise(r => setTimeout(r, 4000));
-
+            // ----LOGOUT AND LOGIN WITH NEW PASS------
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[2]/div/button')),WAIT)).click();
+            await driver.sleep(DELAY);
+            // go to login and login to account
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[2]/a')),WAIT)).click();
+            await driver.sleep(DELAY);
+            await (await driver.wait(until.elementLocated(By.css('input[type="email"]')),WAIT)).sendKeys(validEmail);    // enter email
+            await driver.sleep(DELAY);
+            await (await driver.wait(until.elementLocated(By.css('input[type="password"]')),WAIT)).sendKeys(validPass2);   // enter password
+            await driver.sleep(DELAY);
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/main/div/form/button')),WAIT)).click(); // click login
+            await driver.sleep(DELAY*50);    // wait for page to load
             // go to user settings
-            const userSettings = await driver.wait(
-                until.elementLocated(By.xpath('/html/body/div/header/div/div/div[2]/div/div/a')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(userSettings), WAIT);
-            await userSettings.click();
-
-            // -----NAME-----
-            const settingName = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div/div[1]/div/div[2]/button')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(settingName), WAIT);
-            await settingName.click();
-            // edit name settings
-            await testUserSettings('input[placeholder="First Name"]', invalidName, validName2);
-            await testUserSettings('input[placeholder="Last Name"]', invalidName, validName2);
-            await clickUpdateAccount('//*[@id="root"]/div[1]/div/div/div[2]/div/div[2]/button[2]');
-            await new Promise(r => setTimeout(r, 1000));
-
-            // ----PASSWORD------
-            const settingPass = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div/div[7]/div/div[2]/button')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(settingPass), WAIT);
-            await settingPass.click();
-            // edit password settings
-            await testUserSettingsID('/html/body/div/div[1]/div[1]/div/div[8]/div/div[1]/div[1]/div/input', invalidPass, validPass);
-            await testUserSettingsID('/html/body/div/div[1]/div[1]/div/div[8]/div/div[1]/div[2]/div/input', invalidPass, validPass2);
-            await clickUpdateAccount('//*[@id="root"]/div[1]/div/div/div[8]/div/div[2]/button[2]');
-            await new Promise(r => setTimeout(r, 1000));
-
-            // ----EMAIL------
-            const settingEmail = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div/div[3]/div/div[2]/button')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(settingEmail), WAIT);
-            await settingEmail.click();
-            // edit email settings
-            await testUserSettingsID('/html/body/div/div[1]/div[1]/div/div[4]/div/div[1]/div[1]/div/input', invalidPass, validPass2);
-            await testUserSettings('input[placeholder="Email"]', invalidEmail, validEmail2);
-            // click decline since it cannot click the auth email link
-            await clickUpdateAccount('//*[@id="root"]/div[1]/div/div/div[4]/div/div[2]/button[1]');
-            await new Promise(r => setTimeout(r, 1000));
-
-            // ----PHONE------
-            const settingPhone = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div/div[5]/div/div[2]/button')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(settingPhone), WAIT);
-            await settingPhone.click();
-            // edit phone settings
-            await testUserSettings('input[placeholder="Phone Number"]', invalidPhone, validPhone2);
-            await clickUpdateAccount('//*[@id="root"]/div[1]/div/div/div[6]/div/div[2]/button[2]');
-            await new Promise(r => setTimeout(r, 1000));
-
-            // ----ADDRESS------
-            const settingAdd = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div/div[9]/div/div[2]/button')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(settingAdd), WAIT);
-            await settingAdd.click();
-            // edit address settings
-            await testUserSettings('input[placeholder="Street"]', invalidStreet, validStreet2);
-            await testUserSettings('input[placeholder="City"]', invalidCity, validCity2);
-            await testUserSettings('input[placeholder="ZIP Code"]', invalidZip, validZip2);
-            // click state and select AZ
-            const settingState = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div/div[10]/div/div[1]/div[3]/div')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(settingState), WAIT);
-            await settingState.click();
-            const azBtn = await driver.wait(
-                until.elementLocated(By.xpath('/html/body/div[2]/div[3]/ul/li[3]')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(azBtn), WAIT);
-            await azBtn.click();
-            await clickUpdateAccount('//*[@id="root"]/div[1]/div/div/div[10]/div/div[2]/button[2]');
-            await new Promise(r => setTimeout(r, 1000));
-
-            // logout
-            const logout = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[2]/div/button')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(logout), WAIT);
-            await logout.click();
-
-            // go back to homepage
-            await driver.get("http://localhost:5173");
-
-            // try to login with old info
-            const login = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[2]/a')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(login), WAIT);
-            await login.click();
-            // enter old email
-            const enterEmail = await driver.wait(
-                until.elementLocated(By.css('input[type="email"]')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(enterEmail), WAIT);
-            await enterEmail.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));   // clear the input field 
-            await enterEmail.sendKeys(Key.chord(validEmail)); // and enter input
-            // enter old pass
-            const enterPass = await driver.wait(
-                until.elementLocated(By.css('input[type="password"]')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(enterPass), WAIT);
-            await enterPass.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));   // clear the input field 
-            await enterPass.sendKeys(Key.chord(validPass)); // and enter input
-            // click sign in
-            const loginBtn = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/main/div/form/button')),
-                WAIT
-            );
-            await driver.wait(until.elementIsEnabled(loginBtn), WAIT);
-            await loginBtn.click();
-            await new Promise(r => setTimeout(r, 1000));
-            await driver.wait(until.elementIsVisible(enterPass), WAIT);
-            await enterPass.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));   // clear the input field 
-            await enterPass.sendKeys(Key.chord(validPass2)); // and enter input
-            await driver.wait(until.elementIsEnabled(loginBtn), WAIT);
-            await loginBtn.click();
-            await new Promise(r => setTimeout(r, 4000));
-
-            // -------------delete account---------
-            // go to user settings
-            const sett = await driver.wait(
-                until.elementLocated(By.xpath('/html/body/div/header/div/div/div[2]/div/div/a')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(sett), WAIT);
-            await sett.click();
-            // click delete button
-            // click request account
-            const deleteBtn = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/div[1]/button[2]')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(deleteBtn), WAIT);
-            await deleteBtn.click();
-            // enter old pass
-            const enterOld = await driver.wait(
-                until.elementLocated(By.xpath('/html/body/div/div[1]/div[2]/div/div[1]/div/div/input')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(enterOld), WAIT);
-            await enterOld.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));   // clear the input field 
-            await enterOld.sendKeys(Key.chord(validPass)); // and enter input
-            // enter curr pass
-            const enterNew = await driver.wait(
-                until.elementLocated(By.xpath('/html/body/div/div[1]/div[2]/div/div[1]/div/div/input')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(enterNew), WAIT);
-            await enterNew.sendKeys(Key.chord(Key.CONTROL,"a", Key.DELETE));   // clear the input field 
-            await enterNew.sendKeys(Key.chord(validPass2)); // and enter input
-            // delete account
-            const deleteAcc = await driver.wait(
-                until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div[2]/div/div[2]/button[2]')),
-                WAIT
-            );
-            await driver.wait(until.elementIsVisible(deleteAcc), WAIT);
-            await deleteAcc.click();
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[2]/div/div/a')),WAIT)).click();
+            await driver.sleep(DELAY);
 
 
-            // wait 0.5 seconds
+            // -----ADDRESS----------
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div[1]/div[1]/div/div[9]/div/div[2]/button')),WAIT)).click();
+            await driver.sleep(DELAY);
+            // fill with valid first
+            confirmBtn = '//*[@id="root"]/div[1]/div/div[1]/div[1]/div/div[10]/div/div[2]/button[2]';
+            await testFieldsCSS('input[placeholder="Street"]', [validStreet], confirmBtn, false);
+            await testFieldsCSS('input[placeholder="City"]', [validCity], confirmBtn, false);
+            await testFieldsCSS('input[placeholder="ZIP Code"]', [validZip], confirmBtn, false);
+            // state button
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div[1]/div[1]/div/div[10]/div/div[1]/div[3]/div')),WAIT)).click();
+            await (await driver.wait(until.elementLocated(By.xpath('/html/body/div[2]/div[3]/ul/li[5]')),WAIT)).click();
+            // test invalids
+            await testFieldsCSS('input[placeholder="Street"]', invalidStreet, confirmBtn, true);
+            await testFieldsCSS('input[placeholder="Street"]', [validStreet], confirmBtn, false); // replace
+            await testFieldsCSS('input[placeholder="City"]', invalidCity, confirmBtn, true);
+            await testFieldsCSS('input[placeholder="City"]', [validCity], confirmBtn, false); // replace
+            await testFieldsCSS('input[placeholder="ZIP Code"]', invalidZip, confirmBtn, true);
+            await testFieldsCSS('input[placeholder="ZIP Code"]', [validZip], confirmBtn, false); // replace
+            await (await driver.wait(until.elementLocated(By.xpath(confirmBtn)),WAIT)).click();
+            await driver.sleep(DELAY);  // Address: Update
+
+
+            // ----REVERT PASSWORD-----
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/div[1]/div[2]/div/div[7]/div/div[2]/button')),WAIT)).click();
+            await driver.sleep(DELAY);
+            // fill with valid first
+            confirmBtn = '//*[@id="root"]/div[1]/div/div[1]/div[2]/div/div[8]/div/div[2]/button[2]';
+            await testFieldsCSS('input[placeholder="Current Password"]', [validPass2], confirmBtn, false);  // keep cur pass wrong
+            await testFieldsCSS('input[placeholder="New Password"]', [validPass], confirmBtn, false);      // enter new password
+            await (await driver.wait(until.elementLocated(By.xpath(confirmBtn)),WAIT)).click();
+            await driver.sleep(DELAY*50);  // Password: Update 
+        
+            // // wait 0.5 seconds
             await new Promise(r => setTimeout(r, 5000));
             const t1 = performance.now();
             const ms = t1 - t0;
