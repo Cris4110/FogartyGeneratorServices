@@ -1,8 +1,18 @@
+// This test is for the Customer Return Request view. It checks if the mandatory fields are completed and if not
+// (Which this test skips one) it outputs "VALIDATION WORKING: Please fill out this field."
+
 import { Builder, By, until } from "selenium-webdriver";
+import pkg from "selenium-webdriver/package.json" with { type: "json" };
 import 'dotenv/config';
 
 (async function testValidation() {
   const driver = await new Builder().forBrowser("chrome").build();
+
+  const caps = await driver.getCapabilities();
+  console.log("Selenium Version:", pkg.version);
+  console.log("Browser:", caps.getBrowserName());
+  console.log("Browser Version:", caps.getBrowserVersion());
+  console.log("ChromeDriver Version:", caps.get("chrome").chromedriverVersion);
 
   try {
     console.log("Opening login page...");
