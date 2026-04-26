@@ -28,6 +28,16 @@ router.patch("/:id/verified", async (req, res) => {
     );
 
     if (!updated) return res.status(404).json({ message: "Review not found" });
+    console.log("Review visibility updated:", {
+      id: updated._id,
+      name: updated.name,
+      stars: updated.rating,
+      comment: updated.comment,
+      verified: updated.verified,
+      viewableOnHomepage: updated.verified === true,
+      viewableOnReviewPage: updated.verified === true,
+      updatedAt: new Date().toISOString(),
+    });
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ message: err.message });

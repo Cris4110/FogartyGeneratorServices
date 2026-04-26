@@ -24,6 +24,9 @@ export const createReview = async (req, res) => {
   try {
     const created = await Review.create(req.body);
     res.status(201).json(created);
+    console.log(
+      `[${new Date().toISOString()}] Review created | ID: ${created._id} | Name: ${created.name} | Stars: ${created.rating} | Comment: ${created.comment}`
+    );
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -39,6 +42,19 @@ export const updateReview = async (req, res) => {
     }).lean();
 
     if (!updated) return res.status(404).json({ message: "Review not found" });
+
+    console.log("Review updated:", {
+      id: updated._id,
+      name: updated.name,
+      stars: updated.rating,
+      comment: updated.comment,
+      verified: updated.verified,
+      viewableOnHomepage: updated.verified === true,
+      viewableOnReviewPage: updated.verified === true,
+      updatedBy: req.user?.uid || "unknown",
+      updatedAt: new Date().toISOString(),
+    });
+
     return res.status(200).json(updated);
   } catch (error) {
     return res.status(400).json({ message: error.message });
