@@ -5,8 +5,8 @@ import { faker } from "@faker-js/faker";
 const SITE_URL = "http://localhost:5173/userlogin";
 const INVOICE_PAGE = "http://localhost:5173/admin/wave-invoice";
 
-const ADMIN_EMAIL = "";
-const ADMIN_PASSWORD = "";
+const ADMIN_EMAIL = "realfakeemailfortestingpurpose@gmail.com";
+const ADMIN_PASSWORD = "Password123";
 
 
 const INVOICE_COUNT = 3;
