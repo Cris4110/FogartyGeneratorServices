@@ -1,6 +1,24 @@
+import axios from 'axios';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { Builder, By, until } from 'selenium-webdriver';
 
-async function partsRequest() {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+const MAILTRAP_CONFIG = {
+    token: process.env.MAILTRAP_API_TOKEN,
+    accountId: process.env.MAILTRAP_ACC_ID,
+    inboxId: process.env.MAILTRAP_INBOX_ID
+};
+
+/* 
+    in the terminal, run the test with 'node test/partsRequestAdminEmail.mjs'
+    This tests whether an admin receives an email notification when a parts request is filled.
+*/
+async function partsRequestAdminEmail() {
 
     let driver = await new Builder().forBrowser('chrome').build();
     const WAIT = 15000; // ms, how long to wait for the element to be located before throwing an error.
@@ -10,8 +28,8 @@ async function partsRequest() {
     const address = "1029 Street, City";
     const partName = "CoolPart";
     const description = "testing notifs";
-    const id = "user@gmail.com";       //test email and id      
-    const password = "SuperCoolUserP@ss?";
+    const id = "testing404nf@gmail.com";       // test email and id
+    const password = "SuperCoolUserP@ss?123";
   
     try {
         // launch the application
@@ -31,6 +49,8 @@ async function partsRequest() {
         await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/main/div/form/button')),WAIT)).click();;
 
         await driver.sleep(5000);
+
+        await clearInbox(); // clears inbox before starting automated run
 
         // loop only the parts request section
         for (let i = 1; i <= runs; i++) {
@@ -57,7 +77,15 @@ async function partsRequest() {
             // submit btn
             await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/div[1]/div/form/div/button')),WAIT)).click();
 
-            await driver.sleep(10000); // wait 10 seconds for text to send
+            await driver.sleep(12000); // wait 12 seconds for email to send
+
+            const isEmailDelivered = await verifyEmailSent("New Part Request: " + partName, "testing@gmail");
+
+            if (isEmailDelivered) {
+                console.log(`Run ${i}: Email verified in Mailtrap!`);
+            } else {
+                throw new Error("Email was not found in Mailtrap.");
+            }
 
             // home btn
             await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[1]/a[1]')),WAIT)).click();
@@ -94,4 +122,43 @@ async function partsRequest() {
 
 }
 
-partsRequest();
+// checks if email is present in MailTrap
+async function verifyEmailSent(subject, expectedEmail) {
+    try {
+        const response = await axios.get(
+            `https://mailtrap.io/api/accounts/${MAILTRAP_CONFIG.accountId}/inboxes/${MAILTRAP_CONFIG.inboxId}/messages`,
+            { headers: { 'Api-Token': MAILTRAP_CONFIG.token } }
+        );
+
+        const messages = response.data;
+        // Find a message that matches the subject and the recipient
+        const match = messages.find(msg => 
+            msg.subject.includes(subject) && 
+            msg.to_email.toLowerCase() === expectedEmail.toLowerCase()
+        );
+
+        console.log(`Subject: ${subject}`);
+        console.log(`Email: ${expectedEmail}`);
+
+        return !!match; // returns true if found, false otherwise
+    } catch (error) {
+        console.error("Mailtrap API Error:", error.message);
+        return false;
+    }
+}
+
+// clears inbox
+async function clearInbox() {
+    try {
+        await axios.patch(
+            `https://mailtrap.io/api/accounts/${MAILTRAP_CONFIG.accountId}/inboxes/${MAILTRAP_CONFIG.inboxId}/clean`,
+            {},
+            { headers: { 'Api-Token': MAILTRAP_CONFIG.token } }
+        );
+        console.log("Mailtrap inbox cleared for a fresh test run.");
+    } catch (error) {
+        console.error("Failed to clear Mailtrap inbox:", error.message);
+    }
+}
+
+partsRequestAdminEmail();

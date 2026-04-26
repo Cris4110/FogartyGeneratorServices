@@ -1,16 +1,32 @@
 import { Builder, By, until } from "selenium-webdriver";
 import dotenv from "dotenv"
 import path from "path";
+import chrome from "selenium-webdriver/chrome.js";
+import pkg from "selenium-webdriver/package.json" with { type: "json" };
 
 dotenv.config();
 
 //node test/testingInventory.mjs
 async function testInventory() {
-  const driver = await new Builder().forBrowser("chrome").build();
-  await driver.manage().window().maximize();
-
+  const options = new chrome.Options()
+    .addArguments(
+      "--disable-background-networking",
+      "--disable-gcm",
+      "--log-level=3",
+      "--silent"
+    )
+  .excludeSwitches("enable-logging");
+  const driver = await new Builder().forBrowser("chrome").setChromeOptions(options).build();
+    await driver.manage().window().maximize();
   const id = process.env.TEST_EMAIL;
   const password = process.env.TEST_PASSWORD;
+
+    const caps = await driver.getCapabilities();
+    console.log("Selenium Version:", pkg.version);
+    console.log("Browser:", caps.getBrowserName());
+    console.log("Browser Version:", caps.getBrowserVersion());
+    console.log("ChromeDriver Version:", caps.get("chrome").chromedriverVersion);
+  
 
   const textSerial = "serialTextTest";
   const textGen = "genTextTest";
@@ -20,6 +36,7 @@ async function testInventory() {
 
   const imagePath = path.resolve("test", "assets", "test-image.png");
   const imageURL = "https://picsum.photos/seed/picsum/200/300"
+  let passCounter = 0;
 
 
   if (!id || !password) {
@@ -128,11 +145,13 @@ async function testInventory() {
     await fileInputs2[0].sendKeys(imageURL);
     
     const addGen = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/form/div[5]/button")),
-      WAIT
+    until.elementLocated(By.css("button[type='submit']")),
+    WAIT
     );
     await driver.wait(until.elementIsVisible(addGen), WAIT);
-    await addGen.click();
+    await driver.executeScript("arguments[0].scrollIntoView({ block: 'center' });", addGen);
+    await driver.sleep(500);
+    await driver.executeScript("arguments[0].click();", addGen);
   }
   async function waitForImageToLoad(imgElement, timeout = 15000) {
   await driver.wait(async () => {
@@ -147,8 +166,8 @@ async function testInventory() {
     console.log("-----Verifying Generator Initial Item Set-Up-----")
     // 1st image: uploaded file
     const firstImg = await driver.wait(
-      until.elementLocated(By.xpath(" /html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div[1]/div[7]/div/img")),
-      WAIT
+      until.elementLocated(By.xpath(" /html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[8]/div/img")),
+      WAIT                            
     );
     await driver.wait(until.elementIsVisible(firstImg), WAIT);
     await waitForImageToLoad(firstImg, 20000);
@@ -170,8 +189,8 @@ async function testInventory() {
 
     // 2nd image: pasted URL
     const secondImg = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div[1]/div[8]/div/img")),
-      WAIT
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[9]/div/img")),
+      WAIT                            
     );
     await driver.wait(until.elementIsVisible(secondImg), WAIT);
     await waitForImageToLoad(secondImg, 20000);
@@ -193,7 +212,7 @@ async function testInventory() {
 
     // 3rd image: noImage
     const thirdImg = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div[1]/div[9]/div/img")),
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[10]/div/img")),
       WAIT
     );
     await driver.wait(until.elementIsVisible(thirdImg), WAIT);
@@ -207,13 +226,15 @@ async function testInventory() {
 
     console.log("Third image correctly has no src.");
 
-    console.log("All three images verified successfully.");
+    console.log("All three images verified successfully. Passed 1 test");
+    passCounter++;
+
   }
 
   async function editGeneratorItem(){
     // click edit pictures button
     const editBtn = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div[1]/div[10]/button")),
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[7]/button")),
       WAIT
     );
     await driver.wait(until.elementIsVisible(editBtn), WAIT);
@@ -222,7 +243,7 @@ async function testInventory() {
     // clear first image slot
     const clearBtn = await driver.wait(
       until.elementLocated(By.xpath("/html/body/div[2]/div[3]/div/div[1]/div/div[1]/button")),
-      WAIT
+      WAIT                        
     );
     await driver.wait(until.elementIsVisible(clearBtn), WAIT);
     await clearBtn.click();
@@ -246,7 +267,7 @@ async function testInventory() {
     // save
     const saveBtn = await driver.wait(
       until.elementLocated(By.xpath("/html/body/div[2]/div[3]/div/div[2]/button[2]")),
-      WAIT
+      WAIT                            
     );
     await driver.wait(until.elementIsVisible(saveBtn), WAIT);
     await saveBtn.click();
@@ -256,7 +277,7 @@ async function testInventory() {
     console.log("-----Verifying Generator Editing Set-Up-----")
      // 1st image: no image
     const firstImg = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div[1]/div[7]/div/img")),
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[8]/div/img")),
       WAIT
     );
     await driver.wait(until.elementIsVisible(firstImg), WAIT);
@@ -271,7 +292,7 @@ async function testInventory() {
 
     // 2nd image: uploaded file
     const secondImg = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div[1]/div[8]/div/img")),
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[9]/div/img")),
       WAIT
     );
     await driver.wait(until.elementIsVisible(secondImg), WAIT);
@@ -293,7 +314,7 @@ async function testInventory() {
     }
     // 3rd image: url
      const thirdImg = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div[1]/div[9]/div/img")),
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[2]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[10]/div/img")),
       WAIT
     );
     await driver.wait(until.elementIsVisible(thirdImg), WAIT);
@@ -303,7 +324,7 @@ async function testInventory() {
     console.log("Third image src:", thirdSrc);
 
     if (thirdSrc !== imageURL) {
-      throw new Error(`Expected second image to be ${imageURL}, got: ${thirdSrc}`);
+      throw new Error(`Expected third image to be ${imageURL}, got: ${thirdSrc}`);
     }
 
     const thirdLoaded = await driver.executeScript(
@@ -314,7 +335,8 @@ async function testInventory() {
       throw new Error("Third image exists but did not load correctly.");
     }
 
-    console.log("All three images verified successfully.");
+    console.log("All three images verified successfully, passed 1 test");
+    passCounter++;
   }
 
   async function deleteGenItem() {
@@ -370,7 +392,6 @@ async function testInventory() {
     );
     await driver.executeScript("arguments[0].click();", createBtn);
 
-    console.log("Current URL after add click:", await driver.getCurrentUrl());
     const PartTxt = await driver.wait(
       until.elementLocated(By.xpath("/html/body/div/div/form/input[1]")),
       WAIT                            
@@ -402,18 +423,21 @@ async function testInventory() {
     await fileInputs2[0].sendKeys(imageURL);
     
     const addPart = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/form/div[5]/button")),
+      until.elementLocated(By.css("button[type='submit']")),
       WAIT
     );
     await driver.wait(until.elementIsVisible(addPart), WAIT);
-    await addPart.click();
+    await driver.executeScript("arguments[0].scrollIntoView({ block: 'center' });", addPart);
+    await driver.sleep(500);
+    await driver.executeScript("arguments[0].click();", addPart);
+    
   
   }
   async function verifyPartItemInitial(){
     console.log("-----Verifying Part Initial Set-Up-----")
     // 1st image: uploaded file
     const firstImg = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[6]/div/img")),
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[7]/div/img")),
       WAIT                          
     );                        
     await driver.wait(until.elementIsVisible(firstImg), WAIT);
@@ -436,7 +460,7 @@ async function testInventory() {
 
     // 2nd image: pasted URL
     const secondImg = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[7]/div/img")),
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[8]/div/img")),
       WAIT                          
     );
     await driver.wait(until.elementIsVisible(secondImg), WAIT);
@@ -459,7 +483,7 @@ async function testInventory() {
 
     // 3rd image: noImage
     const thirdImg = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[8]/div/img")),
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[9]/div/img")),
       WAIT
     );
     await driver.wait(until.elementIsVisible(thirdImg), WAIT);
@@ -473,12 +497,13 @@ async function testInventory() {
 
     console.log("Third image correctly has no src.");
 
-    console.log("All three images verified successfully.");
+    console.log("All three images verified successfully, passed 1 test");
+    passCounter++;
   }
   async function editPartItem(){
     // click edit pictures button
     const editBtn = await driver.wait(
-      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[9]/button")),
+      until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[6]/button")),
       WAIT                            
     );
     await driver.wait(until.elementIsVisible(editBtn), WAIT);
@@ -520,8 +545,8 @@ async function testInventory() {
     console.log("-----Verifying Part Editing Set-Up-----")
       // 1st image: no image
       const firstImg = await driver.wait(
-        until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[6]/div/img")),
-        WAIT                           
+        until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[7]/div/img")),
+        WAIT                            
       );
       await driver.wait(until.elementIsVisible(firstImg), WAIT);
 
@@ -535,7 +560,7 @@ async function testInventory() {
 
       // 2nd image: uploaded file
       const secondImg = await driver.wait(
-        until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[7]/div/img")),
+        until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[8]/div/img")),
         WAIT
       );
       await driver.wait(until.elementIsVisible(secondImg), WAIT);
@@ -557,7 +582,7 @@ async function testInventory() {
       }
       // 3rd image: url
       const thirdImg = await driver.wait(
-        until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[8]/div/img")),
+        until.elementLocated(By.xpath("/html/body/div/div/div[2]/div/div/div[3]/div/div[1]/div/div/div[1]/div[2]/div[2]/div/div/div[9]/div/img")),
         WAIT
       );
       await driver.wait(until.elementIsVisible(thirdImg), WAIT);
@@ -578,7 +603,8 @@ async function testInventory() {
         throw new Error("Third image exists but did not load correctly.");
       }
 
-      console.log("All three images verified successfully.");
+      console.log("All three images verified successfully, passed 1 test.");
+      passCounter++;
     }
 
   async function deletePartItem() {
@@ -627,7 +653,7 @@ async function testInventory() {
 
     await editGeneratorItem();
 
-    await driver.sleep(1000);
+    await driver.sleep(3000);
 
     await verifyGeneratorItemChange();
 
@@ -646,13 +672,13 @@ async function testInventory() {
 
     await editPartItem();
 
-    await driver.sleep(2000);
+    await driver.sleep(3000);
 
     await verifyPartItemChange();
     
   
     await deletePartItem();
-    console.log("Finished InventoryTesting")
+    console.log("Finished InventoryTesting, total passes: " + passCounter + " / 4");
 
   } catch (err) {
     console.error("Error in testInventory:", err);
