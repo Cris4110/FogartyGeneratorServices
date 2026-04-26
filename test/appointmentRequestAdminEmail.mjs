@@ -1,7 +1,24 @@
+import axios from 'axios';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { Builder, By, until } from 'selenium-webdriver';
 
-async function appointmentRequest() {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+const MAILTRAP_CONFIG = {
+    token: process.env.MAILTRAP_API_TOKEN,
+    accountId: process.env.MAILTRAP_ACC_ID,
+    inboxId: process.env.MAILTRAP_INBOX_ID
+};
+
+/* 
+    in the terminal, run the test with 'node test/AppointmentRequestAdminEmail.mjs'
+    This tests whether an admin receives an email notification after an appointment request.
+*/
+async function appointmentRequestAdminEmail() {
     let driver = await new Builder().forBrowser('chrome').build();
     const WAIT = 10000; // ms, how long to wait for the element to be located before throwing an error.
     const runs = 5;
@@ -10,9 +27,9 @@ async function appointmentRequest() {
     const genModel = "genny";
     const serialNum = "123456";
     const description = "testing notifs";
-    const id = "user@gmail.com";       //test email and id      
-    const password = "SuperCoolUserP@ss?";
-  
+    const id = "testing404nf@gmail.com"; // test email and id
+    const password = "SuperCoolUserP@ss?123";
+
     try {
         // launch the application
         await driver.get("http://localhost:5173");
@@ -49,6 +66,8 @@ async function appointmentRequest() {
         await loginBtn.click();
         
         await driver.sleep(5000);
+
+        await clearInbox(); // clears inbox before starting automated run
 
         // loop only the appointment request section
         for (let i = 1; i <= runs; i++) {
@@ -101,7 +120,15 @@ async function appointmentRequest() {
             await driver.wait(until.elementIsVisible(submitBtn), WAIT);
             await submitBtn.click();
 
-            await driver.sleep(10000); // wait 10 seconds for email to send
+            await driver.sleep(12000); // wait 12 seconds for email to send
+
+            const isEmailDelivered = await verifyEmailSent("New Appointment Request", "testing@gmail");
+
+            if (isEmailDelivered) {
+                console.log(`Run ${i}: Email verified in Mailtrap!`);
+            } else {
+                throw new Error("Email was not found in Mailtrap.");
+            }
 
             const homeBtn = await driver.wait(
             until.elementLocated(By.xpath('//*[@id="root"]/div/header/div/div/div[1]/a[1]')),
@@ -139,7 +166,45 @@ async function appointmentRequest() {
         console.log(`Min: ${min.toFixed(1)} ms`);
         console.log(`Max: ${max.toFixed(1)} ms`);
     }
-
 }
 
-appointmentRequest();
+// Checks MailTrap inbox for email
+async function verifyEmailSent(subject, expectedEmail) {
+    try {
+        const response = await axios.get(
+            `https://mailtrap.io/api/accounts/${MAILTRAP_CONFIG.accountId}/inboxes/${MAILTRAP_CONFIG.inboxId}/messages`,
+            { headers: { 'Api-Token': MAILTRAP_CONFIG.token } }
+        );
+
+        const messages = response.data;
+        // Find a message that matches the subject and the recipient
+        const match = messages.find(msg => 
+            msg.subject.includes(subject) && 
+            msg.to_email.toLowerCase() === expectedEmail.toLowerCase()
+        );
+
+        console.log(`Subject: ${subject}`);
+        console.log(`Email: ${expectedEmail}`);
+
+        return !!match; // returns true if found, false otherwise
+    } catch (error) {
+        console.error("Mailtrap API Error:", error.message);
+        return false;
+    }
+}
+
+// clears MailTrap inbox
+async function clearInbox() {
+    try {
+        await axios.patch(
+            `https://mailtrap.io/api/accounts/${MAILTRAP_CONFIG.accountId}/inboxes/${MAILTRAP_CONFIG.inboxId}/clean`,
+            {},
+            { headers: { 'Api-Token': MAILTRAP_CONFIG.token } }
+        );
+        console.log("Mailtrap inbox cleared for a fresh test run.");
+    } catch (error) {
+        console.error("Failed to clear Mailtrap inbox:", error.message);
+    }
+}
+
+appointmentRequestAdminEmail();
