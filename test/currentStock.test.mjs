@@ -3,14 +3,32 @@ import dotenv from "dotenv"
 import path from "path";
 import { verify } from "crypto";
 import { text } from "stream/consumers";
-
+import chrome from "selenium-webdriver/chrome.js";
+import pkg from "selenium-webdriver/package.json" with { type: "json" };
 dotenv.config();
 
 //node test/currentStock.test.mjs
 async function runTest() {
-   const driver = await new Builder().forBrowser("chrome").build();
+  //to ignore non-error logs from selenium
+const options = new chrome.Options()
+  .addArguments(
+    "--disable-background-networking",
+    "--disable-gcm",
+    "--log-level=3",
+    "--silent"
+  )
+  .excludeSwitches("enable-logging");
+   const driver = await new Builder().forBrowser("chrome").setChromeOptions(options).build();
    await driver.manage().window().maximize();
  
+
+   
+    const caps = await driver.getCapabilities();
+    console.log("Selenium Version:", pkg.version);
+    console.log("Browser:", caps.getBrowserName());
+    console.log("Browser Version:", caps.getBrowserVersion());
+    console.log("ChromeDriver Version:", caps.get("chrome").chromedriverVersion);
+  
    const id = process.env.TEST_EMAIL;
    const password = process.env.TEST_PASSWORD;
  
@@ -19,6 +37,9 @@ async function runTest() {
    const textPart = "partTextTest";
    const textDescription = "descTextTest";
    const stock = 2;
+   let passCounter = 0;
+   
+
  
    const imagePath = path.resolve("test", "assets", "test-image.png");
    const imageURL = "https://picsum.photos/seed/picsum/200/300"
@@ -234,6 +255,7 @@ async function flipToParts() {
 
     if (itemResults.length > 0) {
       console.log("PASS: item appears in current stock");
+      passCounter++;
     } else {
       console.log("FAIL: item was not populated in current stock");
     }
@@ -263,6 +285,7 @@ async function flipToParts() {
 
     if (actualDescription ===  textDesc) {
       console.log(`PASS: description is accurate -> "${actualDescription}"`);
+      passCounter++;
       return true;
     } else {
       console.log(`FAIL: expected "${textDesc}" but got "${actualDescription}"`);
@@ -389,11 +412,12 @@ try {
 
     await deletePartItem(textPart);
 
+    console.log("Test completed, total passes: " + passCounter + " / 4");
 
   } catch (err) {
     console.error("Error in currentStock:", err);
   } finally {
-    //await driver.quit();
+    await driver.quit();
   }
 }
 
