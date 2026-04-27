@@ -1,13 +1,8 @@
-// This tests is for the Admin return view. It checks the Retention date, Sorting feature, Status change feature,
-// and deleting a Return request. Outputs "Retention test passed!, Sorting test passed!, Status change test passed!, Delete test passed!"
-
 import { Builder, By, Key, until } from 'selenium-webdriver';
-import pkg from "selenium-webdriver/package.json" with { type: "json" };
 import 'dotenv/config';
 
 const TEST_EMAIL = process.env.TEST_EMAIL;
 const TEST_PASSWORD = process.env.TEST_PASSWORD;
-
 
 async function runTest() {
   if (!TEST_EMAIL || !TEST_PASSWORD) {
@@ -16,13 +11,6 @@ async function runTest() {
   }
 
   let driver = await new Builder().forBrowser('chrome').build();
-
-  const caps = await driver.getCapabilities();
-  console.log("Selenium Version:", pkg.version);
-  console.log("Browser:", caps.getBrowserName());
-  console.log("Browser Version:", caps.getBrowserVersion());
-  console.log("ChromeDriver Version:", caps.get("chrome").chromedriverVersion);
-
 
   try {
     console.log("Opening login page...");
@@ -91,7 +79,6 @@ async function runTest() {
     console.log("Status change test passed!");
 
     // Select delete option on first entry
-    await driver.sleep(3000);
     const DeleteOption = await driver.wait(until.elementLocated(By.xpath("/html/body/div/div/div[2]/div[3]/div/table/tbody/tr[1]/td[9]/button")), 5000);
     await DeleteOption.click();
 

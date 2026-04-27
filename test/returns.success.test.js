@@ -1,18 +1,8 @@
-// This test is for the Customer Return Request view. Attempts to fill out the return form and submit it. If submission works it outputs "TEST PASSED: Return application submitted"
-// 
-
 import { Builder, By, until } from "selenium-webdriver";
-import pkg from "selenium-webdriver/package.json" with { type: "json" };
 import 'dotenv/config';
 
 (async function testReturnsWithLogin() {
   const driver = await new Builder().forBrowser("chrome").build();
-
-  const caps = await driver.getCapabilities();
-  console.log("Selenium Version:", pkg.version);
-  console.log("Browser:", caps.getBrowserName());
-  console.log("Browser Version:", caps.getBrowserVersion());
-  console.log("ChromeDriver Version:", caps.get("chrome").chromedriverVersion);
 
   try {
     console.log("Opening login page...");

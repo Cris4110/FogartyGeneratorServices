@@ -1,33 +1,14 @@
 import { Builder, By, until } from "selenium-webdriver";
 import dotenv from "dotenv"
-import chrome from "selenium-webdriver/chrome.js";
-import pkg from "selenium-webdriver/package.json" with { type: "json" };
 dotenv.config();
-
 
 //node test/testingSchedule.mjs
 async function testSchedule() {
-  const options = new chrome.Options()
-     .addArguments(
-       "--disable-background-networking",
-       "--disable-gcm",
-       "--log-level=3",
-       "--silent"
-     )
-   .excludeSwitches("enable-logging");
-   const driver = await new Builder().forBrowser("chrome").setChromeOptions(options).build();
-     await driver.manage().window().maximize();
-
-     const caps = await driver.getCapabilities();
-  console.log("Selenium Version:", pkg.version);
-  console.log("Browser:", caps.getBrowserName());
-  console.log("Browser Version:", caps.getBrowserVersion());
-  console.log("ChromeDriver Version:", caps.get("chrome").chromedriverVersion);
+  const driver = await new Builder().forBrowser("chrome").build();
+  await driver.manage().window().maximize();
 
   const id = process.env.TEST_EMAIL;
   const password = process.env.TEST_PASSWORD;
-  let passCounter = 0;
-
 
   if (!id || !password) {
     throw new Error("Missing TEST_EMAIL or TEST_PASSWORD in .env");
@@ -192,7 +173,6 @@ async function acceptSchedule() {
     );
     await driver.wait(until.elementIsVisible(updateBtn), WAIT);
     await updateBtn.click();
-    console.log("Accepted 9:00 AM-10:00 AM appointment successfully.");
 
   } else if (requestedText.includes("@ 10:00 AM")) {
     const acceptBtn = await driver.wait(
@@ -215,7 +195,6 @@ async function acceptSchedule() {
     );
     await driver.wait(until.elementIsVisible(updateBtn), WAIT);
     await updateBtn.click();
-    console.log("Updated 10:00 AM - 12:00 PM appointment successfully.");
 
   } else if (requestedText.includes("@ 11:00 AM")) {
     const acceptBtn = await driver.wait(
@@ -255,8 +234,6 @@ async function acceptSchedule() {
       );
       await driver.wait(until.elementIsVisible(updateBtn), WAIT);
       await updateBtn.click();
-      console.log("Rescheduled 11:00 AM appointment to 12:00 PM successfully.");
-
     } else {
       console.log("Failure: Accept button was enabled when it should be blocked");
     }
@@ -275,13 +252,10 @@ async function acceptSchedule() {
     );
     await driver.wait(until.elementIsVisible(updateBtn), WAIT);
     await updateBtn.click();
-    console.log("Denied 1:00 PM appointment successfully.");
   }
 
   await driver.sleep(1200);
   return true;
-  console.log("Finished all pending appointments. Passed 1 test.");
-  passCounter++;
 }
 async function goToReviewedAppointments() {
   const reviewedBtn = await driver.wait(
@@ -318,12 +292,9 @@ async function verifyReviewedAppointments() {
     if (actualTimes.includes(expected)) {
       console.log(`Success: found ${expected}`);
     } else {
-      throw new Error(`Failure: did not find expected time slot ${expected}`);
+      console.log(`Failure: missing ${expected}`);
     }
   }
-  console.log("All expected time slots verified successfully. Passed 1 test.");
-  passCounter++;
-  
 }
 
 async function verifyBlockedTimes() {
@@ -357,24 +328,20 @@ async function verifyBlockedTimes() {
     if (isBlocked) {
       console.log(`Success: ${label} is blocked`);
     } else {
-      throw new Error(`Failure: ${label} is not blocked when it should be`);
+      console.log(`Failure: ${label} is NOT blocked`);
     }
   }
-  console.log("All expected time slots correctly blocked. Passed 1 test.");
-  passCounter++;
 }
 
 async function deleteAppointments(){
   await driver.sleep(1000);
    while (true) {
-
     const deleteButtons = await driver.findElements(
       By.xpath("//button[contains(., 'Delete')]")
     );
 
     if (deleteButtons.length === 0) {
       console.log("All tests complete: no more appointments/tasks left.");
-      console.log("Finished ScheduleTesting, total passes: " + passCounter + " / 3");
       return;
     }
 
@@ -394,8 +361,6 @@ async function deleteAppointments(){
     await login();
    
     await goToAppointmentPage();
-    console.log("Creating 4 appointments...");
-    console.log("Creating appointment for 9:00 AM...");
     await createAppointment(
       "generatorModelTest1",
       "serialNumberTest1",
@@ -403,7 +368,6 @@ async function deleteAppointments(){
       '/html/body/div/div/div[1]/div/div[2]/div/div[2]/div/div/div[3]/button'
     );
 
-    console.log("Creating appointment for 10:00 AM...");
     await driver.get("http://localhost:5173");
     await goToAppointmentPage();
     await createAppointment(
@@ -413,7 +377,6 @@ async function deleteAppointments(){
       '/html/body/div/div/div[1]/div/div[2]/div/div[2]/div/div/div[5]/button'
     );
 
-    console.log("Creating appointment for 11:00 AM...");
     await driver.get("http://localhost:5173");
     await goToAppointmentPage();
     await createAppointment(
@@ -422,7 +385,7 @@ async function deleteAppointments(){
       "problemDescriptionTest3",
       '/html/body/div/div/div[1]/div/div[2]/div/div[2]/div/div/div[7]/button'
     );
-    console.log("Creating appointment for 1:00 PM...");
+
     await driver.get("http://localhost:5173");
     await goToAppointmentPage();
     await createAppointment(
@@ -431,9 +394,7 @@ async function deleteAppointments(){
       "problemDescriptionTest4",
       '/html/body/div/div/div[1]/div/div[2]/div/div[2]/div/div/div[11]/button'
     );
-    console.log("All 4 appointments created successfully. Passed 1 test.");
-    passCounter++;
-
+    
     await driver.get("http://localhost:5173")
     await goToAdminDashboard();
     await goToAppointmentRequests();

@@ -32,7 +32,7 @@ const passwordRegex =
   /^(?=(?:.*[A-Z]){2,})(?=(?:.*[a-z]){2,})(?=(?:.*\d){2,})(?=(?:.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]){2,}).{12,}$/;
 const nameRegex = /[~`!@#$%^&*()0-9_=+[\]{}|\\;:"<,>./?]+|(\s{2,})|(^ $)/;
 const emailRegex =
-  /^(?:(?:[\w`~!#$%^&*\-=+;:{}'|,?\/]+(?:(?:\.(?:"(?:\\?[\w`~!#$%^&*\-=+;:{}'|,?\/\.()<>\[\] @]|\\"|\\\\)*"|[\w`~!#$%^&*\-=+;:{}'|,?\/]+))*\.[\w`~!#$%^&*\-=+;:{}'|,?\/]+)?)|(?:"(?:\\?[\w`~!#$%^&*\-=+;:{}'|,?\/\.()<>\[\] @]|\\"|\\\\)+"))@(?:[a-zA-Z\d\-]+(?:\.[a-zA-Z\d\-]+)*|\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])$/;
+  /[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?/;
 const phoneRegex = /(^\d{10}$){1}/;
 const streetRegex = /[~`!@#$%^*()_=+[\]{}|\\;<>/?]+|(\s{2,})|(^ $)/; // checks for special characters
 const cityRegex = /[~`!@#$%^&*()_=+[\]{}|\\;:"<,>/?]+|(\s{2,})|(^ $)/; // checks for special characters
@@ -152,7 +152,7 @@ const UserSettings = () => {
     } catch (err: any) {
       console.log(err);
       correctDetails = false;
-      setResponseMsg("Delete error: " + err);
+      setResponseMsg("Wrong Information");
     }
 
     if (correctDetails) {
@@ -491,7 +491,7 @@ const UserSettings = () => {
             updateSuccessful = true;
           } catch (err: any) {
             console.log(err);
-            setResponseMsg("Update error: " + err);
+            setResponseMsg("Incorrect information");
           }
         } else if (label == "Email") {
           try {
@@ -507,7 +507,7 @@ const UserSettings = () => {
             }
           } catch (err: any) {
             console.log(err);
-            setResponseMsg("Update error: " + err);
+            setResponseMsg("Incorrect information");
           }
         } else {
           try {
@@ -533,7 +533,7 @@ const UserSettings = () => {
                 setResponseMsg(result.message || "Error updating user."); // Show the backend error directly
               } else {
                 setResponseMsg(
-                  result.message + " Refresh to see changes!" ||
+                  result.message + " Refreshing page in 5 seconds..." ||
                     "User updated successfully!",
                 );
                 updateSuccessful = true;
@@ -546,8 +546,8 @@ const UserSettings = () => {
 
         handleCloseUpdate(); // close the backdrop
         if (updateSuccessful) {
-          //await new Promise((resolve) => setTimeout(resolve, 5000)); // wait 5 seconds to show the success message
-          //window.location.reload(); // refresh the page to show updated information
+          await new Promise((resolve) => setTimeout(resolve, 5000)); // wait 5 seconds to show the success message
+          window.location.reload(); // refresh the page to show updated information
         }
       }
 

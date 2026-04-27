@@ -1,3 +1,7 @@
+if (import.meta.env.VITE_USE_EMULATOR === 'true') {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099");
+  console.log("Using Auth Emulator: 127.0.0.1:9099");
+}
 import 'dotenv/config'; // Modern way to load env vars
 import express from 'express';
 import path from 'path';
@@ -11,11 +15,12 @@ import userRoute from '../routes/user.route.js';
 import generatorRoute from '../routes/generator.route.js';
 import partRoute from '../routes/part.route.js';
 
-//For testing
-//if (process.env.NODE_ENV !== 'production') {
-//process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
-//console.log("Admin SDK redirected to Auth Emulator: 127.0.0.1:9099");
-//}
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    projectId: 'demo-no-project'
+  });
+}
 
 const PORT = process.env.PORT || 3000
 const __dirname = dirname(fileURLToPath(import.meta.url));

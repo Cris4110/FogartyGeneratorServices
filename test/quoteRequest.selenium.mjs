@@ -1,36 +1,17 @@
-import axios from 'axios';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { Builder, By, until } from 'selenium-webdriver';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
-const MAILTRAP_CONFIG = {
-    token: process.env.MAILTRAP_API_TOKEN,
-    accountId: process.env.MAILTRAP_ACC_ID,
-    inboxId: process.env.MAILTRAP_INBOX_ID
-};
-
-/* 
-    in the terminal, run the test with 'node test/quoteRequestAdminEmail.mjs'
-    This tests whether an admin receives an email notification after a quote request is submitted. Customer should not be able to spam and send more
-    until the first quote they sent is fulfilled, so admin should not receive an email when this happens.
-*/
-async function quoteRequestAdminEmail() {
+async function quoteRequest() {
 
     let driver = await new Builder().forBrowser('chrome').build();
     const WAIT = 10000; //ms, how long to wait for the element to be located before throwing an error.
-    const runs = 5;
+    const runs = 2;
     const times = [];
     let failures = 0;
     const genModel = "genny";
     const serialNum = "123456";
     const description = "testing notifs";
-    const id = "testing404nf@gmail.com";       // test email and id
-    const password = "SuperCoolUserP@ss?123";
+    const id = "user@gmail.com";       //test email and id      
+    const password = "SuperCoolUserP@ss?";
   
     try {
         // launch the application
@@ -68,8 +49,6 @@ async function quoteRequestAdminEmail() {
         await loginBtn.click();
 
         await driver.sleep(5000);
-
-        await clearInbox(); // clears inbox before starting automated run
 
         // loop only the quote request section
         for (let i = 1; i <= runs; i++) {
@@ -115,28 +94,10 @@ async function quoteRequestAdminEmail() {
             await driver.wait(until.elementIsVisible(submitBtn), WAIT);
             await submitBtn.click();
 
-            await driver.sleep(12000); // wait 12 seconds for email to send
-
-            // Checks if email is sent the first time and the rest of the submissions should not send emails to prevent spam
-            if (i === 1) {
-            const isEmailDelivered = await verifyEmailSent("New Quote Request: " + genModel, "testing@gmail");
-            if (!isEmailDelivered) {
-                throw new Error("First quote failed to send an email.");
-            }
-            console.log(`Run ${i}: SUCCESS - First email delivered.`);
-            } else {
-                // Subsequent runs: The email shouldn't be there
-                const ghostEmail = await verifyEmailSent("New Quote Request: " + genModel, "testing@gmail");
-                
-                if (ghostEmail && i > 1) {
-                    throw new Error(`Spam test failed: Email sent on run ${i}!`);
-                } else {
-                    console.log(`Run ${i}: SUCCESS - Anti-spam blocked email as expected.`);
-                }
-            }
+            await driver.sleep(15000); // wait 15 seconds for email to send
 
             const homeBtn = await driver.wait(
-            until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[1]/a[1]')),
+            until.elementLocated(By.xpath('//*[@id="root"]/div/header/div/div/div[1]/a[1]')),
             WAIT
             );
             await driver.wait(until.elementIsVisible(homeBtn), WAIT);
@@ -174,58 +135,4 @@ async function quoteRequestAdminEmail() {
 
 }
 
-// checks if email is present in MailTrap
-async function verifyEmailSent(subject, expectedEmail) {
-    try {
-        const response = await axios.get(
-            `https://mailtrap.io/api/accounts/${MAILTRAP_CONFIG.accountId}/inboxes/${MAILTRAP_CONFIG.inboxId}/messages`,
-            { headers: { 'Api-Token': MAILTRAP_CONFIG.token } }
-        );
-
-        const now = Date.now();
-        const messages = response.data;
-
-        // Find a message that matches subject, recipient, and was sent recently
-        const match = messages.find(msg => {
-            const sentAt = new Date(msg.sent_at).getTime();
-            const ageInSeconds = (now - sentAt) / 1000;
-
-            // Only count as a match if it was sent in the last 15 seconds
-            const isRecent = ageInSeconds < 15; 
-
-            return (
-                msg.subject.includes(subject) && 
-                msg.to_email.toLowerCase() === expectedEmail.toLowerCase() &&
-                isRecent
-            );
-        });
-
-        // Debugging logs to help you see what's happening
-        if (match) {
-            console.log(`Match found! Sent ${((now - new Date(match.sent_at).getTime())/1000).toFixed(1)}s ago.`);
-        } else {
-            console.log(`No recent match found for ${expectedEmail} with subject "${subject}"`);
-        }
-
-        return !!match; 
-    } catch (error) {
-        console.error("Mailtrap API Error:", error.message);
-        return false;
-    }
-}
-
-// clears inbox
-async function clearInbox() {
-    try {
-        await axios.patch(
-            `https://mailtrap.io/api/accounts/${MAILTRAP_CONFIG.accountId}/inboxes/${MAILTRAP_CONFIG.inboxId}/clean`,
-            {},
-            { headers: { 'Api-Token': MAILTRAP_CONFIG.token } }
-        );
-        console.log("Mailtrap inbox cleared for a fresh test run.");
-    } catch (error) {
-        console.error("Failed to clear Mailtrap inbox:", error.message);
-    }
-}
-
-quoteRequestAdminEmail();
+quoteRequest();

@@ -4,7 +4,7 @@ import Footer from "./Footer";
 import { Container, Box, Typography, Button, TextField, CircularProgress, Divider, Grid, Paper } from "@mui/material";
 import { useAuth } from "../../context/Appcontext";
 import { auth } from "../../firebase";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -12,23 +12,8 @@ import axios from "axios";
 
 function Appointment() {
   const { currentUser, authReady } = useAuth();
-  const isWeekend = (date: Dayjs) => {
-    const day = date.day();
-    return day === 0 || day === 6;
-  };
-
-  const getNextAvailableDate = () => {
-    let date = dayjs().add(1, "day").startOf("day");
-
-    while (isWeekend(date)) {
-      date = date.add(1, "day");
-    }
-
-    return date;
-  };
-  const minBookableDate = useMemo(() => getNextAvailableDate(), []); // calculate once on mount
-  const [selectedDate, setSelectedDate] = useState(minBookableDate.format("YYYY-MM-DD"));
-
+  
+  const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'day').format("YYYY-MM-DD"));
   const [selectedTime, setSelectedTime] = useState("");
   const [generatorModel, setGeneratorNumber] = useState("");
   const [serialNumber, setSerialNumber] = useState("");

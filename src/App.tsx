@@ -21,6 +21,9 @@ const App: React.FC = () => {
           {/* Login page */}
           <Route path="/userlogin" element={<Login />} />
 
+          {/* For forgetpassword ... email works */}
+          <Route path="/userver" element={<ForgotPassword />} />
+
           {/* ADD THIS LINE HERE */}
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
@@ -28,7 +31,7 @@ const App: React.FC = () => {
           <Route
             path="/admin/*"
             element={
-              <ProtectedRoute adminOnly={true}>
+              <ProtectedRoute>
                 <AdminRoutes />
               </ProtectedRoute>
             }

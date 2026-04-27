@@ -1,5 +1,5 @@
 import { Alert, Button, Stack, TextField } from "@mui/material";
-import { applyActionCode, checkActionCode, confirmPasswordReset, verifyPasswordResetCode, type Auth } from "firebase/auth";
+import { applyActionCode, checkActionCode, confirmPasswordReset, updateCurrentUser, updatePassword, verifyPasswordResetCode, type Auth } from "firebase/auth";
 import { auth } from "../../firebase"; 
 import { useEffect, useState } from "react";
 

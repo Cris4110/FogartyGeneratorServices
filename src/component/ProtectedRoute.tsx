@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/Appcontext"; // Ensure this path is correct
 import { auth } from "../firebase";
 import { Alert, Button, Stack } from "@mui/material";
 import Navbar from "../pages/public/Navbar";
 import Footer from "../pages/public/Footer";
-import { sendEmailVerification, type User } from "firebase/auth";
+import { sendEmailVerification } from "firebase/auth";
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -15,17 +15,6 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = false }) => {
   // 1. Grab everything from your global context
   const { currentUser, isAdmin, authReady } = useAuth();
-  const [message, setMessage] = useState("Access denied: User has not verified their email.");
-
-  const handleSendEmailVerification = async (user: User, continueUrl: string) => {
-    try {
-      await sendEmailVerification(user, {url: continueUrl});
-      setMessage("Access denied: Verification link sent, please check your email for the link.");
-    } catch (error) {
-      console.error(error);
-      setMessage("" + error);
-    }
-}
 
   // 2. Wait for the Global Context to finish its Firebase + MongoDB sync
   if (!authReady) {
@@ -51,13 +40,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
   if (auth.currentUser != null && !auth.currentUser.emailVerified) {
     const user = auth.currentUser;
     console.warn("Access denied: User has not verified their email.");
-
     return (
       <>
         <Navbar />
         <Stack alignItems={"center"} padding={3} spacing={2}>
-          <Alert severity="error">{message}</Alert>
-          <Button variant="contained" onClick={() => handleSendEmailVerification(user, 'http://localhost:5173/')}>Send Verification Link</Button>
+          <Alert severity="error">Access denied: Please verify your email by clicking the button below.</Alert>
+          <Button variant="contained" onClick={() => sendEmailVerification(user, {url: 'http://localhost:5173/'})}>Send Verification Link</Button>
         </Stack>
         <Footer />
       </>
