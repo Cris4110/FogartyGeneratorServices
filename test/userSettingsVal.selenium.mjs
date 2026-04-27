@@ -1,4 +1,5 @@
 import { Builder, By, until, Key } from "selenium-webdriver";
+import pkg from "selenium-webdriver/package.json" with { type: "json" };
 import dotenv from "dotenv"
 import { error } from 'node:console';
 import { send } from "vite";
@@ -8,11 +9,17 @@ dotenv.config();
 
 async function testUserSettingsInputs() {
     let driver = await new Builder().forBrowser("chrome").build(); //specific browser to use, 
+    
+    const caps = await driver.getCapabilities();
+    console.log("Selenium Version:", pkg.version);
+    console.log("Browser:", caps.getBrowserName());
+    console.log("Browser Version:", caps.getBrowserVersion());
+    console.log("ChromeDriver Version:", caps.get("chrome").chromedriverVersion);
     await driver.manage().window().maximize();
 
     const WAIT = 15000; // ms, how long to wait for the element to be located before throwing an error.
     const DELAY = 50;
-    const runs = 1;
+    const runs = 3;
     const times = [];
     let failures = 0;
 
@@ -181,8 +188,12 @@ async function testUserSettingsInputs() {
             await (await driver.wait(until.elementLocated(By.xpath(confirmBtn)),WAIT)).click();
             await driver.sleep(DELAY*50);  // Password: Update 
         
-            // // wait 0.5 seconds
-            await new Promise(r => setTimeout(r, 5000));
+            //-----LOGOUT----
+            await (await driver.wait(until.elementLocated(By.xpath('//*[@id="root"]/header/div/div/div[2]/div/button')),WAIT)).click();
+            await driver.sleep(DELAY);
+
+            // wait
+            await new Promise(r => setTimeout(r, 2000));
             const t1 = performance.now();
             const ms = t1 - t0;
             times.push(ms);

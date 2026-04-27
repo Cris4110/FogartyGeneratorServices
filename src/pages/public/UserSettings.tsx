@@ -366,7 +366,10 @@ const UserSettings = () => {
             <InputLabel>State</InputLabel>
             <Select
               value={userAddress.state}
-              onChange={(e) => setBuff3(e.target.value)}
+              onChange={(e) => {
+                setBuff3(e.target.value)
+                setValidBuff3(true);
+              }}
               input={<OutlinedInput label="State" />}
             >
               {stateAbbreviations.map((state) => (
@@ -401,15 +404,19 @@ const UserSettings = () => {
   // count defines which buffer to check if all inputs are entered or not
   const settingRow = (label: string, value: string, count: number) => {
     let buffArray = [""]; // used to keep track of empty buffers
+    let validArray = [false];
     switch (count) {
       case 1:
         buffArray = [buff1];
+        validArray = [validBuff1];
         break;
       case 2:
         buffArray = [buff1, buff2];
+        validArray = [validBuff1, validBuff2];
         break;
       case 4:
         buffArray = [buff1, buff2, buff3, buff4];
+        validArray = [validBuff1, validBuff2, validBuff3, validBuff4];
         break;
     }
 
@@ -634,7 +641,8 @@ const UserSettings = () => {
                 disabled={
                   disableButton ||
                   (buffArray.length > 0 &&
-                    buffArray.some((element) => element == ""))
+                    buffArray.some((element) => element == "")) ||
+                    validArray.some(element => element==false)
                 }
                 onClick={handleUpdateUser}
               >

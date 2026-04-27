@@ -59,6 +59,8 @@ const UserRegistration: React.FC = () => {
   const [validBuff9, setValidBuff9] = useState(true);
   const [validBuff10, setValidBuff10] = useState(true);
 
+  let validArray = [validBuff1, validBuff2, validBuff3, validBuff4, validBuff5, validBuff6, validBuff7, validBuff8, validBuff8, validBuff9, validBuff10];
+
   const [responseMsg, setResponseMsg] = useState("");
   const [disableButton, setDisableButton] = useState(true);
 
@@ -314,7 +316,7 @@ const UserRegistration: React.FC = () => {
         </div>
         <div style={{ textAlign: "center" }}>
           {/* Disables button if there is an invalid input or empty input*/}
-          <Button variant="contained" disabled={disableButton || buffArray.some(element => element=="")} onClick={handleSubmit}>Create User</Button>
+          <Button variant="contained" disabled={disableButton || buffArray.some(element => element=="") || validArray.some(element => element==false)} onClick={handleSubmit}>Create User</Button>
         </div>
       </form>
         {responseMsg && (
