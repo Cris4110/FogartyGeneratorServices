@@ -16,7 +16,7 @@ function Homepage() {
         <Grid container spacing={4} alignItems="center">
           <Grid size={{ xs: 12, md: 6}}>
             <Typography variant="h3" fontWeight={700} gutterBottom>
-              Hello World
+              Welcome to Fogarty Onsite Generator Service
             </Typography>
             <Typography variant="h6" color="text.secondary">
               Reliable generator installation, maintenance, and repair services you can trust.
