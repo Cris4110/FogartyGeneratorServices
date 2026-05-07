@@ -272,7 +272,7 @@ Fogarty Onsite Generator Services uses MongoDB in JSON Format.
 
 
 🧩 ERD — Entity Relationship Diagram
-![This is an alt text.](/src/assets/erd.png "Current ERD")
+![This is an alt text.](/src/assets/githubsnips/erd.png "Current ERD")
 
 🧪 API Testing
 
