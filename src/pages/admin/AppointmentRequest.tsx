@@ -46,6 +46,14 @@ export default function AppointmentRequest() {
   const [busyRanges, setBusyRanges] = useState<{ start: dayjs.Dayjs; end: dayjs.Dayjs }[]>([]);
   const [travelCost, setTravelCost] = useState<string>("");
 
+  const getAuthHeaders = async () => {
+        const user = auth.currentUser;
+        if (!user) throw new Error("No authenticated user found");
+        const token = await user.getIdToken();
+        return { Authorization: `Bearer ${token}` };
+      };
+  
+
   const api = useMemo(() => axios.create({ baseURL: "/api" }), []);
 
 
@@ -307,7 +315,9 @@ export default function AppointmentRequest() {
 
 
   const deleteAppointmentOnServer = async (id: string) => {
+    const headers = await getAuthHeaders();
     const res = await fetch(`/api/appointments/${id}`, {
+      headers,
       method: "DELETE",
       credentials: "include",
     });
@@ -401,9 +411,11 @@ export default function AppointmentRequest() {
     payload.newEndAppointmentTime = endIso;
     }
 
+    const token = await auth.currentUser?.getIdToken();
+                  if (!token) throw new Error("Not authenticated");
     await fetch(`/api/appointments/${id}/status`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload)
     });
 
@@ -426,7 +438,9 @@ export default function AppointmentRequest() {
         setLoading(true);
         setError(null);
 
+        const headers = await getAuthHeaders();
         const res = await fetch("/api/appointments", {
+          headers,
           credentials: "include",
         });
 
@@ -966,10 +980,11 @@ export default function AppointmentRequest() {
                   if (rangeConflicts(startISO, endISO)) {
                     throw new Error("Time conflicts with an existing schedule.");
                   }
-
+                  const token = await auth.currentUser?.getIdToken();
+                  if (!token) throw new Error("Not authenticated");
                   const res = await fetch("/api/appointments/admin-create", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                     credentials: "include",
                     body: JSON.stringify({
                       createdBy: "admin",

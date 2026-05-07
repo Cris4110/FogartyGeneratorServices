@@ -4,6 +4,7 @@ import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogC
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
+import { auth } from "../../firebase";
 
 interface PartsRequest {
   _id:          string;
@@ -48,12 +49,22 @@ const PartsRequest = () => {
     const [openComments, setOpenComments] = useState(false);
     const [buffer1, setBuffer1] = useState(""); // keep track of comments
 
+          const getAuthHeaders = async () => {
+            const user = auth.currentUser;
+            if (!user) throw new Error("No authenticated user found");
+            const token = await user.getIdToken();
+            return { Authorization: `Bearer ${token}` };
+          };
+
+
     // Gets the part requests
     useEffect(() => {
+      const headers = async () => await getAuthHeaders();
         const fetchPartRequests = async () => {
         try {
             const response = await axios.get<PartsRequest[]>(
-            "/api/partrequests"
+            "/api/partrequests",
+            { headers: await getAuthHeaders() }
             );
             setPartsRequests(response.data);
         } catch (err: any) {
@@ -112,7 +123,8 @@ const PartsRequest = () => {
 
         try {
           // API call to delete the request by ID
-          await axios.delete(`/api/partrequests/${requestToDelete._id}`);
+          const headers = await getAuthHeaders();
+          await axios.delete(`/api/partrequests/${requestToDelete._id}`, { headers });
 
           // SUCCESS: Update the local state by filtering out the deleted user
           setPartsRequests((prevRequests) =>
@@ -133,9 +145,11 @@ const PartsRequest = () => {
       partRequest.status = state;
       try {
         // API call to update the request by ID
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) throw new Error("Not authenticated");
         await fetch("/api/partrequests/" + partRequest._id, {
               method: "PUT",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({status: state}),
         });
         } catch (err: any) {
