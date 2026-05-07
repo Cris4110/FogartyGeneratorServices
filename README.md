@@ -75,7 +75,7 @@ Our platform includes a full set of features designed to give users an easy way 
 **General Access**
 - FAQ Page – Users can browse frequently asked questions for quick help.
 - Contact Page – Users can reach out directly for inquiries or support.
-- Homepage - Users can easily see the main 
+- Homepage - Users can view the homepage to easily request appointments, request quotes, and view reviews.
 
 ![This is an alt text.](/src/assets/githubsnips/homepage.png " Homepage")
 
