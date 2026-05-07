@@ -22,7 +22,7 @@ Purpose: Fogarty Onsite Generator Service primarily runs through a text and call
 
 ## Table of Contents
 - [Installation](#installation)
-- [Current Features](#current-features)
+- [Current Features](#features)
 - [Security](#security)
 - [API Documentation](#api-documentation)
 - [Testing](#testing)
@@ -131,7 +131,6 @@ Passwords are hashed and never stored in plaintext. Authentication is handled by
 
 **Authentication and Authorization**
 - Secure registration and login using server-side validation and hashed passwords 
-- Multi-factor authorization (MFA) will also be implemented for logging in and account recovery (Future Development)
 - Login tokens expire after 12 hours
 - API keys are used for backend services
 - .env files contain confidential information, so do not commit .env files or anything that compromises security
@@ -273,7 +272,7 @@ Fogarty Onsite Generator Services uses MongoDB in JSON Format.
 
 
 🧩 ERD — Entity Relationship Diagram
-![This is an alt text.](/src/assets/ERD_for_README.png "Current ERD")
+![This is an alt text.](/src/assets/erd.png "Current ERD")
 
 🧪 API Testing
 
