@@ -8,6 +8,7 @@ Purpose: Fogarty Onsite Generator Service primarily runs through a text and call
 ## Built Tools
 - **Frontend:** React, TypeScript, MUI Library, Node.js
 - **Backend:** MongoDB
+- **Other tools**: Firebase, S3, Twilio, Wave Integration
 - **Version Control:** GitHub
 
 ## Team
@@ -54,13 +55,67 @@ To set up this project, follow the steps below:
     npm install
     ```
 
-5. Running the project
+5. Environment Configuration
+    Before running the project, you must set up your environment variables. Create a `.env` file in the root directory and add the following keys:
+    ```env
+    # Database
+    MONGO_URI=your_mongodb_connection_string
+    
+    # Authentication
+    JWT_SECRET=your_jwt_secret
+    
+    # Twilio (SMS)
+    TWILIO_ACCOUNT_SID=your_sid
+    TWILIO_AUTH_TOKEN=your_token
+    TWILIO_PHONE_NUMBER=your_twilio_number
+    
+    # Firebase
+    VITE_FIREBASE_API_KEY=api-key
+    VITE_FIREBASE_AUTH_DOMAIN=authdomain
+    VITE_FIREBASE_PROJECT_ID=projectid
+    VITE_FIREBASE_STORAGE_BUCKET=storagebucket
+    VITE_FIREBASE_MESSAGING_SENDER_ID=messagingsenderid
+    VITE_FIREBASE_APP_ID=appid
+    VITE_FIREBASE_MEASUREMENT_ID=measurementid
+
+    # AWS
+    AWS_ACCESS_KEY_ID=access_key_id
+    AWS_SECRET_ACCESS_KEY=secret_access_key
+    AWS_REGION=region
+    AWS_BUCKET=bucket
+
+    # Courier
+    COURIER_API_KEY=courier_api_key
+    COURIER_SMS_APPOINTMENT_ID=courier_sms_appointment_id
+    COURIER_SMS_QUOTE_ID=courier_sms_quote_id
+    COURIER_SMS_PARTS_ID=courier_sms_parts_id
+
+    # Wave Integration
+    WAVE_TOKEN=your_wave_token
+    WAVE_BUSINESS_ID=your_wave_business_id
+    WAVE_PRODUCT_ID1=your_wave_product_id1
+    WAVE_PRODUCT_ID2=your_wave_product_id2
+
+    #Twilio
+    TWILIO_ACCOUNT_SID=your_twilio_account_sid
+    TWILIO_AUTH_TOKEN=your_twilio_auth_token
+    ADMIN_PHONE=your_admin_phone
+    TWILIO_PHONE_NUMBER=your_twilio_phone_number
+
+    # MailTrap
+    MAILTRAP_HOST=your_mailtrap_host
+    MAILTRAP_PORT=your_mailtrap_port
+    MAILTRAP_USER=your_mailtrap_user
+    MAILTRAP_PASS=your_mailtrap_pass
+    ```  
+
+6. Running the project
     Open two terminals. On each terminal, type the following.
     ```bash
     npm run dev
     npm run server
     ```
-6. Opening the project
+7. Opening the project
 
 When ```npm run dev``` begins, a local host link will be given. You can open the link by holding ```Ctrl``` and then clicking the link. This will open the link in your default web browser. 
 You can also simply copy and paste the link in any browser you want.
@@ -276,13 +331,34 @@ Fogarty Onsite Generator Services uses MongoDB in JSON Format.
 
 Test endpoints using:
 
-
-
 Insomnia
 ![This is an alt text.](/src/assets/Insomnia_For_ReadME.png "Insomnia Testing Example")
 
 ## Testing
-Testing is done with Selenium  
+This project utilizes both **Playwright** and **Selenium** for automated testing.
+
+### Playwright Testing
+Playwright is used for robust end-to-end testing and verifying user workflows.
+Tests are located in the `tests/` folder.
+
+**Running Playwright Tests:**
+1. Run all Playwright tests:
+    ```bash
+    npx playwright test
+    ```
+2. Run tests with the Playwright UI:
+    ```bash
+    npx playwright test --ui
+    ```
+
+You can also run specific test scripts defined in `package.json`, for example:
+```bash
+npm run test:appointment
+npm run test:quote
+npm run test:twilio
+```
+
+### Selenium Testing
 Systems test environment:
 
     Node Version - v22.18.0
@@ -291,7 +367,7 @@ Systems test environment:
     Browser - Google Chrome, v147.7727
     ChromeDriver - v147.0.7727.117 
     
-Selenium tests are located in the test folder, to run the selenium tests do the following:
+Selenium tests are located in the `test` folder. To run the selenium tests do the following:
 
     Run server using 
         Npm run serve
@@ -323,7 +399,21 @@ Hosting is done via Firebase App Hosting. To get started with Deployment, follow
 Firebase will redeploy after commiting changes to the live branch and reroll back to the last successful deployment if the new deployment has failed.
   
 ## Developer Instructions
-- TBA
 
+### Project Structure
+- **Frontend (`/src`)**: Built with React, TypeScript, and Vite. Contains UI components, pages, and assets.
+- **Backend (`/`, `/models`, `/routes`, `/controller`)**: Node.js Express server using Mongoose for MongoDB. 
 
+### Available Scripts
+You can run the following scripts from the root directory using `npm run <script_name>`:
+- `dev`: Starts the Vite development server for the frontend.
+- `server`: Starts the Express backend server.
+- `build`: Compiles TypeScript and builds the Vite application for production.
+- `lint`: Runs ESLint to check for code quality and formatting issues.
+- `test:appointment` / `test:quote` / `test:twilio`: Runs specific automated test suites.
 
+### Contribution Guidelines
+1. **Branching**: Create a new branch for your feature or bugfix (e.g., `feature/add-new-dashboard` or `bugfix/fix-login-error`).
+2. **Linting**: Before committing your code, run `npm run lint` to ensure it meets the project's formatting standards.
+3. **Testing**: Run the relevant Playwright or Selenium tests to ensure your changes haven't broken existing functionality. 
+4. **Pull Requests**: Submit a PR to the `main` branch with a clear description of the changes made.
