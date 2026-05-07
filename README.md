@@ -55,9 +55,10 @@ To set up this project, follow the steps below:
     ```
 
 5. Running the project
- Simply type the command below, and a link will be given.
+    Open two terminals. On each terminal, type the following.
     ```bash
     npm run dev
+    npm run server
     ```
 6. Opening the project
 
@@ -68,19 +69,28 @@ You can also simply copy and paste the link in any browser you want.
 You must keep the command prompt window open in order for the website to function correctly. Some assets and features may not load or work properly if closed. 
 Keep in mind website does not connect to the server for security purposes. See the **Security** section below for more details.
 
-## Current features 
+## Features 
 Our platform includes a full set of features designed to give users an easy way to explore services, request quotes, manage their accounts, and purchase products. The system ensures a smooth experience even for visitors who are not logged in, while still offering more advanced options for registered users.
 
 **General Access**
 - FAQ Page – Users can browse frequently asked questions for quick help.
 - Contact Page – Users can reach out directly for inquiries or support.
+- Homepage - Users can easily see the main 
+
+![This is an alt text.](/src/assets/githubsnips/homepage.png " Homepage")
+
+![This is an alt text.](/src/assets/githubsnips/aboutuspage.png "About us page")
 
 **Profile & Account**
 - User Registration – Create an account using a simple signup process.
 - User Login – Secure login system to access personalized features.
 
+![This is an alt text.](/src/assets/githubsnips/createaccount.png "Create Account page")
+
 **Profile & Account**
 - Request Services (Logged-in Users) – Users can request maintenance, repair, or other services.
+
+![This is an alt text.](/src/assets/githubsnips/appointments.png "Appointments page")
 
 Alongside the user facing functionality, we provide a powerful admin dashboard that allows the business to manage inventory, monitor service requests, and maintain the platform efficiently. Both sides work together to support real time operations and ensure accuracy.
 
@@ -92,6 +102,8 @@ Alongside the user facing functionality, we provide a powerful admin dashboard t
 **Current Stock**
 - Users can view all available items in stock.
 
+![This is an alt text.](/src/assets/githubsnips/inventory.png "Current Stock")
+
 **Service Request Management**
 - Accept service requests.
 - Hold requests for review or follow-up.
@@ -100,6 +112,8 @@ Alongside the user facing functionality, we provide a powerful admin dashboard t
 **Platform Control**
 - Keep track of user activity and incoming quote request.
 - Manage system data and keep product availability up to date.
+
+![This is an alt text.](/src/assets/githubsnips/admindashboard.png "Admin dashboard")
 
 **Reviews**
 - Users can view and create reviews.
@@ -110,6 +124,7 @@ Alongside the user facing functionality, we provide a powerful admin dashboard t
 **Wave Integration**
 - An account-free system for customers to submit quote requests describing their general needs. These requests will be reviewed by admins to provide a rough cost estimate.
 
+![This is an alt text.](/src/assets/githubsnips/wave.png "wave.png")
 
 ## Security
 Passwords are hashed and never stored in plaintext. Authentication is handled by our backend, and multi-factor authentication (MFA) provides an additional security layer during login.
