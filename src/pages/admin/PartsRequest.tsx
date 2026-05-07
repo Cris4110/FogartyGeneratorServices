@@ -59,12 +59,12 @@ const PartsRequest = () => {
 
     // Gets the part requests
     useEffect(() => {
-      const headers = async () => await getAuthHeaders();
         const fetchPartRequests = async () => {
         try {
+          const headers = await getAuthHeaders();
             const response = await axios.get<PartsRequest[]>(
             "/api/partrequests",
-            { headers: await getAuthHeaders() }
+            { headers, }
             );
             setPartsRequests(response.data);
         } catch (err: any) {

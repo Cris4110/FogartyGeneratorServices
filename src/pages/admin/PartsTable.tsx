@@ -212,9 +212,11 @@ const handleSavePictures = async () => {
     const slot3 = await uploadImageIfNeeded(file3, manualImage3, editingRow.image3, editingRow.imageKey3);
     const slot4 = await uploadImageIfNeeded(file4, manualImage4, editingRow.image4, editingRow.imageKey4);
     const slot5 = await uploadImageIfNeeded(file5, manualImage5, editingRow.image5, editingRow.imageKey5);
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw new Error("Not authenticated");
     const res = await fetch(`/api/parts/${editingRow.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         Part_Name: editingRow.Part_Name,
         Stock: editingRow.stock,
@@ -286,7 +288,8 @@ const handleSavePictures = async () => {
   const getParts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/parts");
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/parts", { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 

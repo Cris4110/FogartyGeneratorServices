@@ -88,7 +88,7 @@ useEffect(() => {
 
   const fetchFavorites = async () => {
     try {
-      const res = await api.get("/users/favorites/public?limit=50");
+      const res = await api.get("/users/favorites");
       setFavorites(res.data || []);
     } catch (err: any) {
       console.error(

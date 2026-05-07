@@ -9,6 +9,7 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 import React, { useEffect, useMemo, useState } from 'react';
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import dayjs from "dayjs";
+import { auth } from "../../firebase";
 
 interface ReviewedAppointment {
   _id: string;
@@ -70,11 +71,23 @@ const Dashboard = () => {
   const [timeframe, setTimeframe] = useState('all');
   const [loading, setLoading] = useState<boolean>(true);
 
+  const getAuthHeaders = async () => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user found");
+
+    const token = await user.getIdToken();
+
+    return {
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
   // useEffect for fetching pending appointment counts
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const response = await fetch("/api/appointments/pending-count");
+        const headers = await getAuthHeaders();
+        const response = await fetch("/api/appointments/pending-count", { headers });
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -95,7 +108,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const response = await fetch("/api/quotes/pending-quotes");
+        const headers = await getAuthHeaders();
+        const response = await fetch("/api/quotes/pending-quotes", { headers });
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -116,7 +130,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const response = await fetch("/api/partrequests/pending-parts");
+        const headers = await getAuthHeaders();
+        const response = await fetch("/api/partrequests/pending-parts", { headers });
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -138,7 +153,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchAppoint = async () => {
       try {
-        const res = await fetch("/api/appointments/reviewed");
+        const headers = await getAuthHeaders();
+        const res = await fetch("/api/appointments/reviewed", { headers });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load appointments");
 
@@ -176,7 +192,8 @@ const Dashboard = () => {
 
   // useEffect and table for reviews
     const getReviews = async () => {
-      const res = await fetch("/api/reviews", {method: "GET"});
+      const headers = await getAuthHeaders(); 
+      const res = await fetch("/api/reviews", {method: "GET", headers});
       // array of reviews is returned
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
@@ -191,7 +208,7 @@ const Dashboard = () => {
         service: review.service ?? "N/A",
       }));
       setRowsReview(tmp);
-      setLoading(true);
+      setLoading(false);
     };
     
     useEffect(() => {
@@ -201,7 +218,7 @@ const Dashboard = () => {
           await getReviews(); 
         } catch (err: any) {
           console.error("Error fetching reviews:", err);
-          setLoading(true);
+          setLoading(false);
         }
       })();
     }, []);

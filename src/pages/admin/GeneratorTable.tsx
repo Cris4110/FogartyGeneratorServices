@@ -213,9 +213,10 @@ const handleSavePictures = async () => {
     const slot3 = await uploadImageIfNeeded(file3, manualImage3, editingRow.image3, editingRow.imageKey3);
     const slot4 = await uploadImageIfNeeded(file4, manualImage4, editingRow.image4, editingRow.imageKey4);
     const slot5 = await uploadImageIfNeeded(file5, manualImage5, editingRow.image5, editingRow.imageKey5);
+    const headers = await getAuthHeaders();
     const res = await fetch(`/api/generators/${editingRow.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: headers.Authorization },
       body: JSON.stringify({
         Serial_Number: editingRow.Serial_Number,
         Description: editingRow.description,
@@ -286,7 +287,8 @@ const handleCloseDelete = () => {
   const getGens = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/generators");
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/generators", { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
