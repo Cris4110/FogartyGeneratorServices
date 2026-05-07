@@ -6,6 +6,7 @@ import { verifyFirebaseToken } from '../backend/middleware/auth.ts';
 
 
 
+router.get("/public",  getGens);
 
 router.get('/', verifyFirebaseToken, getGens);
 

@@ -7,6 +7,8 @@ import path from 'path';
 import { verifyFirebaseToken } from '../backend/middleware/auth.ts';
 
 
+router.get("/public",  getParts);
+
 router.get('/', verifyFirebaseToken, getParts);
 
 router.get("/:id",getPart);

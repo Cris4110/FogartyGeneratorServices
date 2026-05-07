@@ -15,6 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, type GridColDef, type GridRowSelectionModel } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import noImage from "../../assets/logo.png";
+import { auth } from "../../firebase";
 
 
 interface GeneratorRow {
@@ -124,6 +125,12 @@ function GeneratorTable() {
   ids: new Set(),
 });
 
+  const getAuthHeaders = async () => {
+        const user = auth.currentUser;
+        if (!user) throw new Error("No authenticated user found");
+        const token = await user.getIdToken();
+        return { Authorization: `Bearer ${token}` };
+      };
 const openPictureEditor = (row: GeneratorRow) => {
   setEditingRow(row);
 
@@ -153,7 +160,9 @@ const uploadImageIfNeeded = async (
     const formData = new FormData();
     formData.append("image", file);
 
+    const headers = await getAuthHeaders();
     const uploadResponse = await fetch("/api/upload", {
+      headers,
       method: "POST",
       body: formData,
     });
@@ -341,9 +350,11 @@ const handleCloseDelete = () => {
 
 const saveStock = async (id: string, Serial_Number: string, description: string, name: string, stock: number, image: string, image2: string, image3: string) => {
   try {
+    const token = await auth.currentUser?.getIdToken();
+                  if (!token) throw new Error("Not authenticated");
     const res = await fetch(`/api/generators/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ Stock: stock, Image_Url: image,Image_Url2: image2, Image_Url3: image3, Serial_Number: Serial_Number, Description: description, name: name}) 
     });
 
@@ -560,11 +571,13 @@ const handleDeleteRows = async () => {
   if (ids.length === 0) return;
 
   try {
+    const header = await getAuthHeaders();
+
     await Promise.all(
       ids.map(async (genId) => {
         const res = await fetch(
           `/api/generators/${genId}`,
-          { method: "DELETE" }
+          { method: "DELETE", headers: header }
         );
 
         if (!res.ok) {

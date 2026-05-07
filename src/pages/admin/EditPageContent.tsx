@@ -8,6 +8,7 @@ import {
   Alert,
 } from "@mui/material";
 import AdminNavbar from "./AdminNavbar";
+import { auth } from "../../firebase";
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ?? "/api";
@@ -27,6 +28,13 @@ function EditPageContent() {
   // Error message display
   const [error, setError] = useState("");
 
+    const getAuthHeaders = async () => {
+          const user = auth.currentUser;
+          if (!user) throw new Error("No authenticated user found");
+          const token = await user.getIdToken();
+          return { Authorization: `Bearer ${token}` };
+        };
+
   useEffect(() => {
     fetchAllContent();
   }, []);
@@ -34,11 +42,12 @@ function EditPageContent() {
   // Fetch all three content sections from the API on component mount
   const fetchAllContent = async () => {
     try {
+      const headers = await getAuthHeaders();
       // Fetch all three sections in parallel for better performance
       const [aboutRes, faqRes, footerRes] = await Promise.all([
-        fetch(`${API_BASE}/pagecontent/about`, { credentials: "include" }),
-        fetch(`${API_BASE}/pagecontent/faq`, { credentials: "include" }),
-        fetch(`${API_BASE}/pagecontent/footer`, { credentials: "include" }),
+        fetch(`${API_BASE}/pagecontent/about`, { headers, credentials: "include" }),
+        fetch(`${API_BASE}/pagecontent/faq`, { headers, credentials: "include" }),
+        fetch(`${API_BASE}/pagecontent/footer`, { headers, credentials: "include" }),
       ]);
 
       // Parse responses and update state
@@ -50,9 +59,11 @@ function EditPageContent() {
       try {
         const [quoteRes, apptRes] = await Promise.all([
           fetch(`${API_BASE}/pagecontent/quoteRetentionDays`, {
+            headers,
             credentials: "include",
           }),
           fetch(`${API_BASE}/pagecontent/appointmentRetentionDays`, {
+            headers,
             credentials: "include",
           }),
         ]);
@@ -78,10 +89,12 @@ function EditPageContent() {
   const handleSave = async (section: string, content: string) => {
     try {
       // Send PUT request to update the content for the specified section
+      const token = await auth.currentUser?.getIdToken();
+                  if (!token) throw new Error("Not authenticated");
       const response = await fetch(`${API_BASE}/pagecontent/${section}`, {
         method: "PUT",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ content }),
       });
       if (!response.ok) throw new Error("Save failed");
@@ -93,7 +106,6 @@ function EditPageContent() {
     }
   };
 
-  if (loading) return <CircularProgress />;
 
   return (
     <>

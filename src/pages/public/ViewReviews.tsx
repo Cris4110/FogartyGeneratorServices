@@ -36,7 +36,7 @@ function ViewReviews() {
 
   // Fetch Reviews
   useEffect(() => {
-    fetch("/api/reviews")
+    fetch("/api/reviews/public?limit=50")
       .then((res) => res.json())
       .then((data: Review[]) => setReviews(data))
       .catch((err) => console.error("Error fetching reviews:", err));

@@ -28,8 +28,6 @@ function About() {
     }
   };
 
-  if (loading) return <CircularProgress />;
-
   return (
     <>
       <Navbar />

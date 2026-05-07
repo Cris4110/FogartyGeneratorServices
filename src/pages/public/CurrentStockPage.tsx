@@ -88,7 +88,7 @@ useEffect(() => {
 
   const fetchFavorites = async () => {
     try {
-      const res = await api.get("/users/favorites");
+      const res = await api.get("/users/favorites/public?limit=50");
       setFavorites(res.data || []);
     } catch (err: any) {
       console.error(
@@ -109,7 +109,7 @@ const favoriteSet = new Set(
 
   // Fetch Generators
   useEffect(() => {
-    fetch("/api/generators")
+    fetch("/api/generators/public?limit=50")
       .then((res) => res.json())
       .then((data) => setGenerators(data))
       .catch((err) => console.error("Error fetching generators:", err));
@@ -117,7 +117,7 @@ const favoriteSet = new Set(
 
   // Fetch Parts
   useEffect(() => {
-    fetch("/api/parts")
+    fetch("/api/parts/public?limit=50")
       .then((res) => res.json())
       .then((data) => setParts(data))
       .catch((err) => console.error("Error fetching parts:", err));
