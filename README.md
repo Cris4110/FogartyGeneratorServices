@@ -270,7 +270,27 @@ Insomnia
 ![This is an alt text.](/src/assets/Insomnia_For_ReadME.png "Insomnia Testing Example")
 
 ## Testing
-- TBA
+Testing is done with Selenium
+Systems test environment:
+    Node Version - v22.18.0
+    Npm Version - v10.9.3
+    Selenium webdriver Version - v4.43.0
+    Browser - Google Chrome, v147.7727
+    ChromeDriver - v147.0.7727.117 
+    
+Selenium tests are located in the test folder, to run the selenium tests do the following:
+    Run server using 
+        Npm run serve
+    Run site using
+        Npm run dev
+    Run test by doing 
+        Node .\test\”insert which file to test”
+        
+Example:
+    Node .\test\Invoice-selenium-test.mjs
+    
+Results: 
+![This is an alt text.](/test/Invoice-testing-image.png "Invoice Testing Example")
 
 ## Deployment
 Hosting is done via Firebase App Hosting. To get started with Deployment, follow the steps below.
