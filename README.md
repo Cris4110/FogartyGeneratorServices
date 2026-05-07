@@ -10,10 +10,19 @@ Purpose: Fogarty Onsite Generator Service primarily runs through a text and call
 - **Backend:** MongoDB
 - **Version Control:** GitHub
 
+## Team
+- Eduardo Cordon      - cordonpgm@gmail.com
+- Cristian Magallon   - 
+- Lia Nguyen          -
+- Heer Tandel         -
+- Matthew Collins     -
+- Henry Hill          -
+- Victor Avetisov     -
+- Cameron Edwards     -
+
 ## Table of Contents
 - [Installation](#installation)
 - [Current Features](#current-features)
-- [Upcoming Features](#upcoming-features)
 - [Security](#security)
 - [API Documentation](#api-documentation)
 - [Testing](#testing)
@@ -80,6 +89,9 @@ Alongside the user facing functionality, we provide a powerful admin dashboard t
 - Edit existing product details.
 - Remove outdated or unavailable inventory.
 
+**Current Stock**
+- Users can view all available items in stock.
+
 **Service Request Management**
 - Accept service requests.
 - Hold requests for review or follow-up.
@@ -89,20 +101,8 @@ Alongside the user facing functionality, we provide a powerful admin dashboard t
 - Keep track of user activity and incoming quote request.
 - Manage system data and keep product availability up to date.
 
-## Upcoming Features
-During the timeline of late January 2026 to early April 2026, our team plans to implement the following features:
-
-**Authentication**
-- Currently, customers and admins can create an account and log in, but we do not yet have a full authentication system to verify their accounts. We plan to integrate Firebase Authentication as our authentication API to securely handle account verification and login.
-
-**Notification**
-- We plan to implement APIs to send email and SMS notifications for appointment requests and appointment reminders.
-
-**Settings**
-- For admins, we plan to provide the ability to modify website content to post updates. We also plan to add general settings for both admins and customers, including notification preferences.
-
 **Reviews**
-- We plan to create a review system that is used only within the website. Reviews will be triggered by completed appointments and will be visible to all users.
+- Users can view and create reviews.
 
 **Quotes**
 - An account-free system for customers to submit quote requests describing their general needs. These requests will be reviewed by admins to provide a rough cost estimate.
@@ -110,8 +110,6 @@ During the timeline of late January 2026 to early April 2026, our team plans to 
 **Wave Integration**
 - An account-free system for customers to submit quote requests describing their general needs. These requests will be reviewed by admins to provide a rough cost estimate.
 
-**Domain & Hosting**
-- During development, the application is running on `localhost` for both the frontend and backend. Before the client begins using the platform in production, we will utilize a custom domain name.
 
 ## Security
 Passwords are hashed and never stored in plaintext. Authentication is handled by our backend, and multi-factor authentication (MFA) provides an additional security layer during login.
@@ -275,7 +273,18 @@ Insomnia
 - TBA
 
 ## Deployment
-- TBA
+Hosting is done via Firebase App Hosting. To get started with Deployment, follow the steps below.
+1. Create an account with firebase and create a project. https://firebase.google.com/
+2. At the navigation table, hover over "Hosting & Serverless," and select "App Hosting."
+3. Click on Create Backend.
+4. Choose a primary region.
+5. Import your GitHub repository.
+6. Choose the live branch for deployment and the app root directory.
+7. Create a unique ID for your backend. The ID will be placed in front of the project name for the live URL. Can create a custom domain for the URL after setting up app hosting.
+8. Input every variable and value from your .env/secrets.
+9. Select "Create a new Firebase web app" and click "Finish and Deploy." After a few minutes, the website will be deployed. Check the status by clicking "view."
+
+Firebase will redeploy after commiting changes to the live branch and reroll back to the last successful deployment if the new deployment has failed.
   
 ## Developer Instructions
 - TBA
