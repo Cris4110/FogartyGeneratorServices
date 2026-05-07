@@ -11,14 +11,14 @@ Purpose: Fogarty Onsite Generator Service primarily runs through a text and call
 - **Version Control:** GitHub
 
 ## Team
-- Eduardo Cordon      - cordonpgm@gmail.com
-- Cristian Magallon   - 
-- Lia Nguyen          -
-- Heer Tandel         -
-- Matthew Collins     -
-- Henry Hill          -
-- Victor Avetisov     -
-- Cameron Edwards     -
+- Eduardo Cordon      - eduardorcordon@csus.edu
+- Cristian Magallon   - cristianmagallon@csus.edu
+- Lia Nguyen          - liannguyen@csus.edu
+- Heer Tandel         - heertandel@csus.edu
+- Matthew Collins     - matthewcollins2@csus.edu
+- Henry Hill          - henryhill@csus.edu
+- Victor Avetisov     - victoravetisov@csus.edu
+- Cameron Edwards     - cedwards@csus.edu
 
 ## Table of Contents
 - [Installation](#installation)
