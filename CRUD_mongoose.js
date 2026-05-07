@@ -5,6 +5,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path"; // Added for static files
 import { fileURLToPath } from "url"; // Added for path resolution
+import { verifyFirebaseToken } from "./middleware/auth.ts";
+
 
 // Route Imports
 import adminRoute from "./routes/admin.route.js";
