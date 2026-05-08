@@ -275,12 +275,14 @@ export default function QuoteRequests() {
       return;
     }
     try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error("Not authenticated");
       const res = await fetch(
         "/api/pagecontent/quoteRetentionDays",
         {
           method: "PUT",
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
           body: JSON.stringify({ content: retentionDays }),
         },
       );

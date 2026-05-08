@@ -7,13 +7,13 @@ import { createQuote } from "../controller/quote.controller.js";
 import { verifyFirebaseToken } from '../backend/middleware/auth.ts';
 
 
-router.get("/", getQuotes);
-router.get("/pending-quotes", getPendingQuotes);
-router.get("/:id", getQuote);
+router.get("/", verifyFirebaseToken, getQuotes);
+router.get("/pending-quotes", verifyFirebaseToken, getPendingQuotes);
+router.get("/:id", verifyFirebaseToken, getQuote);
 router.post("/", verifyFirebaseToken, createQuote);
-router.put("/:id", updateQuote);
-router.delete("/:id", deleteQuote);
-router.patch("/:id/acknowledge", setAcknowledged);
+router.put("/:id", verifyFirebaseToken, updateQuote);
+router.delete("/:id", verifyFirebaseToken, deleteQuote);
+router.patch("/:id/acknowledge", verifyFirebaseToken, setAcknowledged);
 
 
 export default router;

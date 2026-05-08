@@ -48,7 +48,15 @@ useEffect(() => {
 
     try {
       
-      const token = await auth.currentUser?.getIdToken();
+    const firebaseUser = auth.currentUser;
+
+    if (!firebaseUser) {
+      setResponseMsg("Please log in before requesting a quote.");
+      navigate("/userlogin");
+      return;
+    }
+
+    const token = await firebaseUser.getIdToken();
 
       const newQuote = {
         name: `${firstName} ${lastName}`.trim(),
@@ -71,8 +79,8 @@ useEffect(() => {
 
       const result = await response.json();
 
-      if (!response.ok) {
-        setResponseMsg(result.message || "Error creating quote.");
+     if (!response.ok) {
+      setResponseMsg(result.message || result.error || result.details || "Error creating quote.");
       } else {
         setResponseMsg("Quote created successfully!");
         // Clear specific generator fields

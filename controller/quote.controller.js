@@ -51,58 +51,61 @@ export const getQuote = async (req, res) =>{
 }
 
 export const createQuote = async (req, res) => {
-    try {
-        const savedRequest = await Quote.create(req.body);
+  try {
+    const savedRequest = await Quote.create(req.body);
 
-        // ADMIN TEXT
-        await sendAdminText({
-            name: savedRequest.name,
-            email: savedRequest.email,
-            phoneNumber: savedRequest.phoneNumber,
-            genModel: savedRequest.genModel,
-            genSerialNumber: savedRequest.genSerialNumber,
-            message: savedRequest.additionalInfo
-        });
+    const notificationResults = await Promise.allSettled([
+      sendAdminText({
+        name: savedRequest.name,
+        email: savedRequest.email,
+        phoneNumber: savedRequest.phoneNumber,
+        genModel: savedRequest.genModel,
+        genSerialNumber: savedRequest.genSerialNumber,
+        message: savedRequest.additionalInfo,
+      }),
 
-        // CUSTOMER EMAIL
-        await sendEmail(
-            savedRequest.email,
-            "Quote Request Received",
-            quoteRequestTemplate({
-                name: savedRequest.name,
-                phone: savedRequest.phoneNumber,
-                model: savedRequest.genModel,
-                serial: savedRequest.genSerialNumber,
-                notes: savedRequest.additionalInfo,
-            })
-        );
+      sendEmail(
+        savedRequest.email,
+        "Quote Request Received",
+        quoteRequestTemplate({
+          name: savedRequest.name,
+          phone: savedRequest.phoneNumber,
+          model: savedRequest.genModel,
+          serial: savedRequest.genSerialNumber,
+          notes: savedRequest.additionalInfo,
+        })
+      ),
 
-        // ADMIN EMAIL
-        await sendAdminNotification({
-            name: savedRequest.name,
-            email: savedRequest.email,
-            phoneNumber: savedRequest.phoneNumber,
-            genModel: savedRequest.genModel,
-            genSerialNumber: savedRequest.genSerialNumber,
-            message: savedRequest.additionalInfo
-        });
+      sendAdminNotification({
+        name: savedRequest.name,
+        email: savedRequest.email,
+        phoneNumber: savedRequest.phoneNumber,
+        genModel: savedRequest.genModel,
+        genSerialNumber: savedRequest.genSerialNumber,
+        message: savedRequest.additionalInfo,
+      }),
+    ]);
 
-        return res.status(201).json({ 
-            message: "Request sent.",
-            data: savedRequest 
-        });
+    notificationResults.forEach((result, index) => {
+      if (result.status === "rejected") {
+        const label = ["Admin text", "Customer email", "Admin email"][index];
+        console.error(`${label} failed:`, result.reason);
+      }
+    });
 
-    } catch (error) {
-        console.error("Quote Creation Error:", error.message);
-        
-        if (!res.headersSent) {
-            return res.status(500).json({ 
-                error: "Failed to process request.", 
-                details: error.message 
-            });
-        }
-    }
-}
+    return res.status(201).json({
+      message: "Request sent.",
+      data: savedRequest,
+    });
+  } catch (error) {
+    console.error("Quote Creation Error:", error.message);
+
+    return res.status(500).json({
+      error: "Failed to process request.",
+      details: error.message,
+    });
+  }
+};
 
 export const updateQuote = async (req, res) => {
      try {
