@@ -5,6 +5,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path"; // Added for static files
 import { fileURLToPath } from "url"; // Added for path resolution
+import { verifyFirebaseToken } from "./backend/middleware/auth.ts";
+
 
 // Route Imports
 import adminRoute from "./routes/admin.route.js";
@@ -32,15 +34,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // --- Middleware ---
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json()); // Fixes the 400 Bad Request error
 app.use(cookieParser());
 
 // Serve static files from the 'public' folder (from your server.js logic)
-app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Routes ---
-app.use('/api/admins', adminRoute);
+app.use('/api/admins' , adminRoute);
 app.use('/api/generators', generatorRoute);
 app.use('/api/parts', partRoute);
 app.use('/api/reviews', reviewRoute);
@@ -55,9 +56,10 @@ app.use('/api/returns', returnsRoute);
 app.use('/api/invoices', invoiceRoute);
 app.use('/api/invoice-products', invoiceProductRoute);
 
+app.use(express.static(path.join(__dirname, "dist")));
 
-app.get('/', (req, res) => {
-    res.send("Hello from the Unified Node API Server!");
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 // --- 404 Catch-all (Added from your server.js) ---

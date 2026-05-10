@@ -5,6 +5,7 @@ import Navbar from "./AdminNavbar";
 import { Switch } from "@mui/material";
 import type { GridRenderCellParams } from "@mui/x-data-grid";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Chip, Divider, } from "@mui/material";
+import { auth } from "../../firebase";
 
 type ReviewRow = {
       id: string;
@@ -40,6 +41,13 @@ function ReviewManagement() {
   const result = calcVerifiedAverage(testRows);
   console.log("[MANUAL TEST] avg verified should be 3.5 ->", result);
   }, []);
+
+      const getAuthHeaders = async () => {
+          const user = auth.currentUser;
+          if (!user) throw new Error("No authenticated user found");
+          const token = await user.getIdToken();
+          return { Authorization: `Bearer ${token}` };
+        };
 
     //for selected tracks
     const [selectionModel, setSelectionModel] = useState<string[]>([]);
@@ -77,9 +85,11 @@ function ReviewManagement() {
       if (next) setSelectionModel((prev) => prev.filter((x) => x !== id));
 
       try {
-        const res = await fetch(`http://localhost:3000/api/reviews/${id}/verified`, {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) throw new Error("Not authenticated");
+        const res = await fetch(`/api/reviews/${id}/verified`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           credentials: "include",
           body: JSON.stringify({ verified: next }),
         });
@@ -103,7 +113,8 @@ function ReviewManagement() {
     };
 
   const getReviews = async () => {
-    const res = await fetch("http://localhost:3000/api/reviews", {method: "GET"});
+    const headers = await getAuthHeaders();
+    const res = await fetch("/api/reviews", { headers, method: "GET" });
     // array of reviews is returned
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
@@ -149,7 +160,7 @@ function ReviewManagement() {
       // Fire deletes in parallel
       await Promise.all(
         selectedIds.map((id) =>
-          fetch(`http://localhost:3000/api/reviews/${id}`, {
+          fetch(`/api/reviews/${id}`, {
             method: "DELETE",
             credentials: "include",
           }).then(async (res) => {

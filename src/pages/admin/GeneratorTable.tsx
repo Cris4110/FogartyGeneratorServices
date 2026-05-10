@@ -15,6 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, type GridColDef, type GridRowSelectionModel } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import noImage from "../../assets/logo.png";
+import { auth } from "../../firebase";
 
 
 interface GeneratorRow {
@@ -124,6 +125,12 @@ function GeneratorTable() {
   ids: new Set(),
 });
 
+  const getAuthHeaders = async () => {
+        const user = auth.currentUser;
+        if (!user) throw new Error("No authenticated user found");
+        const token = await user.getIdToken();
+        return { Authorization: `Bearer ${token}` };
+      };
 const openPictureEditor = (row: GeneratorRow) => {
   setEditingRow(row);
 
@@ -153,7 +160,9 @@ const uploadImageIfNeeded = async (
     const formData = new FormData();
     formData.append("image", file);
 
-    const uploadResponse = await fetch("http://localhost:3000/api/upload", {
+    const headers = await getAuthHeaders();
+    const uploadResponse = await fetch("/api/upload", {
+      headers,
       method: "POST",
       body: formData,
     });
@@ -204,9 +213,10 @@ const handleSavePictures = async () => {
     const slot3 = await uploadImageIfNeeded(file3, manualImage3, editingRow.image3, editingRow.imageKey3);
     const slot4 = await uploadImageIfNeeded(file4, manualImage4, editingRow.image4, editingRow.imageKey4);
     const slot5 = await uploadImageIfNeeded(file5, manualImage5, editingRow.image5, editingRow.imageKey5);
-    const res = await fetch(`http://localhost:3000/api/generators/${editingRow.id}`, {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`/api/generators/${editingRow.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: headers.Authorization },
       body: JSON.stringify({
         Serial_Number: editingRow.Serial_Number,
         Description: editingRow.description,
@@ -277,7 +287,8 @@ const handleCloseDelete = () => {
   const getGens = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3000/api/generators");
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/generators", { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
@@ -341,9 +352,11 @@ const handleCloseDelete = () => {
 
 const saveStock = async (id: string, Serial_Number: string, description: string, name: string, stock: number, image: string, image2: string, image3: string) => {
   try {
-    const res = await fetch(`http://localhost:3000/api/generators/${id}`, {
+    const token = await auth.currentUser?.getIdToken();
+                  if (!token) throw new Error("Not authenticated");
+    const res = await fetch(`/api/generators/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ Stock: stock, Image_Url: image,Image_Url2: image2, Image_Url3: image3, Serial_Number: Serial_Number, Description: description, name: name}) 
     });
 
@@ -560,11 +573,13 @@ const handleDeleteRows = async () => {
   if (ids.length === 0) return;
 
   try {
+    const header = await getAuthHeaders();
+
     await Promise.all(
       ids.map(async (genId) => {
         const res = await fetch(
-          `http://localhost:3000/api/generators/${genId}`,
-          { method: "DELETE" }
+          `/api/generators/${genId}`,
+          { method: "DELETE", headers: header }
         );
 
         if (!res.ok) {

@@ -2,11 +2,13 @@ import express from "express";
 import Generator from '../models/generator.model.js';
 const router = express.Router();
 import {getGens, getGen, createGen, updateGen, deleteGen} from '../controller/generator.controller.js';
+import { verifyFirebaseToken } from '../backend/middleware/auth.ts';
 
 
 
+router.get("/public",  getGens);
 
-router.get('/', getGens);
+router.get('/', verifyFirebaseToken, getGens);
 
 router.get("/:id",getGen);
 

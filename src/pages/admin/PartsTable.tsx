@@ -15,6 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, type GridColDef, type GridRowSelectionModel } from '@mui/x-data-grid';
 import { useNavigate } from "react-router-dom";
 import noImage from "../../assets/logo.png";
+import { auth } from "../../firebase";
 
 
 interface PartRow {
@@ -123,6 +124,12 @@ function PartsTable() {
   ids: new Set(),
 });
 
+  const getAuthHeaders = async () => {
+        const user = auth.currentUser;
+        if (!user) throw new Error("No authenticated user found");
+        const token = await user.getIdToken();
+        return { Authorization: `Bearer ${token}` };
+      };
 const openPictureEditor = (row: PartRow) => {
     setEditingRow(row);
 
@@ -152,7 +159,9 @@ const uploadImageIfNeeded = async (
     const formData = new FormData();
     formData.append("image", file);
 
-    const uploadResponse = await fetch("http://localhost:3000/api/upload", {
+    const headers = await getAuthHeaders();
+    const uploadResponse = await fetch("/api/upload", {
+      headers,
       method: "POST",
       body: formData,
     });
@@ -203,9 +212,11 @@ const handleSavePictures = async () => {
     const slot3 = await uploadImageIfNeeded(file3, manualImage3, editingRow.image3, editingRow.imageKey3);
     const slot4 = await uploadImageIfNeeded(file4, manualImage4, editingRow.image4, editingRow.imageKey4);
     const slot5 = await uploadImageIfNeeded(file5, manualImage5, editingRow.image5, editingRow.imageKey5);
-    const res = await fetch(`http://localhost:3000/api/parts/${editingRow.id}`, {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw new Error("Not authenticated");
+    const res = await fetch(`/api/parts/${editingRow.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         Part_Name: editingRow.Part_Name,
         Stock: editingRow.stock,
@@ -277,7 +288,8 @@ const handleSavePictures = async () => {
   const getParts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3000/api/parts");
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/parts", { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
@@ -370,9 +382,11 @@ const handleSavePictures = async () => {
 
 ) => {
   try {
-    const res = await fetch(`http://localhost:3000/api/parts/${id}`, {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw new Error("Not authenticated");
+    const res = await fetch(`/api/parts/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         Part_Name,
         Stock: stock,
@@ -431,7 +445,9 @@ const handleSavePictures = async () => {
     try {
       await Promise.all(
         ids.map(async (partId) => {
-          const res = await fetch(`http://localhost:3000/api/parts/${partId}`, {
+          const headers = await getAuthHeaders();
+          const res = await fetch(`/api/parts/${partId}`, {
+            headers,
             method: "DELETE",
           });
 

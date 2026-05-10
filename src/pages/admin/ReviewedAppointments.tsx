@@ -23,6 +23,13 @@ interface ReviewedAppointment {
   createdBy: string;
 }
 
+  const getAuthHeaders = async () => {
+        const user = auth.currentUser;
+        if (!user) throw new Error("No authenticated user found");
+        const token = await user.getIdToken();
+        return { Authorization: `Bearer ${token}` };
+      };
+
 const formatISO = (iso?: string | null) => {
   if (!iso) return "-";
   const dt = dayjs(iso);
@@ -89,7 +96,8 @@ export default function ReviewedAppointments() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/appointments/reviewed");
+        const headers = await getAuthHeaders();
+        const res = await fetch("/api/appointments/reviewed", { headers });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load appointments");
 
@@ -113,7 +121,7 @@ export default function ReviewedAppointments() {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error("Not authenticated");
 
-      const res = await fetch(`http://localhost:3000/api/appointments/${id}`, {
+      const res = await fetch(`/api/appointments/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

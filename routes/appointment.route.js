@@ -8,18 +8,18 @@ import { verifyFirebaseToken } from '../backend/middleware/auth.ts';
 
 router.get("/busy",getBusyRanges);
 router.post("/admin-create", verifyFirebaseToken, adminCreateAppointment);  
-router.get("/reviewed", getReviewedAppointments);
-router.get("/pending-count", getPendingCount);
-router.get("/user/:userID", getUserAppointments);
-router.get("/", getAppointments);
-router.get("/:id", getAppointment);
-router.post("/", createAppointment);
-router.put("/:id", updateAppointment);
-router.patch("/:id/status", updateAppointmentStatus);
-router.put("/:id/status", updateAppointmentStatus);
-router.delete("/:id", deleteAppointment);
+router.get("/reviewed", verifyFirebaseToken,getReviewedAppointments);
+router.get("/pending-count",verifyFirebaseToken, getPendingCount);
+router.get("/user/:userID",verifyFirebaseToken, getUserAppointments);
+router.get("/", verifyFirebaseToken, getAppointments);
+router.get("/:id",verifyFirebaseToken, getAppointment);
+router.post("/", verifyFirebaseToken, createAppointment);
+router.put("/:id", verifyFirebaseToken, updateAppointment);
+router.patch("/:id/status",verifyFirebaseToken, updateAppointmentStatus);
+router.put("/:id/status", verifyFirebaseToken, updateAppointmentStatus);
+router.delete("/:id",verifyFirebaseToken, deleteAppointment);
 // Update appointment status
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', verifyFirebaseToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { status, rescheduledDateTime } = req.body;

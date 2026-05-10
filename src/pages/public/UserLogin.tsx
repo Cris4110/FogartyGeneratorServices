@@ -23,7 +23,7 @@ import ForgotPassword from "./ForgotPassword";
 import { Link } from "react-router-dom";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? "/api",
   withCredentials: true, // not using cookies yet; set true when JWT cookies
 });
 
@@ -164,8 +164,30 @@ export default function Login() {
               }}
             />
 
-            <FormControlLabel control={<Checkbox defaultChecked={false} />} label="Remember me" />
+            <Box
+              sx={{
+                mt: 1,
+                mb: 2,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 2,
+                flexWrap: "wrap",
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Don&apos;t have an account?
+              </Typography>
 
+              <Button
+                variant="text"
+                size="small"
+                component={Link}
+                to="/UserRegistration"
+              >
+                Create account
+              </Button>
+            </Box>
             <Button
               type="submit"
               variant="contained"
