@@ -18,6 +18,8 @@ interface ReviewedAppointment {
   email: string; 
   address: string;
   description: string;  
+  generatorModel?: string;
+  serialNumber?: string;
   rescheduledDateTime?: string | null;
   rescheduledEndDateTime?: string | null;
   createdBy: string;
@@ -350,6 +352,18 @@ export default function ReviewedAppointments() {
 
               <Divider />
 
+              {/*General Info */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                  Geneerator Info
+                </Typography>
+                <Typography variant="body2">
+                  Model: <b>{active.generatorModel || "-"}</b>
+                </Typography>
+                <Typography variant="body2">
+                  Serial Number : <b>{active.serialNumber || "-"}</b>
+                </Typography>
+              </Box>
               {/* Description */}
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
