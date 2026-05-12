@@ -25,7 +25,7 @@ const transporter = nodemailer.createTransport({
 const sendAdminNotification = async (clientData) => {
   const mailOptions = {
   from: '"Quote Requests Admin" <' + process.env.MAIL_USER + '>',
-  to: process.env.MAIL_USER,
+  to: process.env.MAIL_ADMINS,
   /*
   // for testing purposes
   to: "testing@gmail",

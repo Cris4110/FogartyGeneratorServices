@@ -390,6 +390,13 @@ export default function QuoteRequests() {
               </Typography>
 
               <Typography>
+                <strong>Generator Model:</strong> {selectedQuote.genModel}
+              </Typography>
+              <Typography>
+                <strong>Serial Number:</strong> {selectedQuote.genSerialNumber}
+              </Typography>
+
+              <Typography>
                 <strong>Created:</strong>{" "}
                 {dayjs(selectedQuote.createdAt).format("MMM DD, YYYY @ h:mm A")}
               </Typography>
